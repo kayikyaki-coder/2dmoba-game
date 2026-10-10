@@ -1261,6 +1261,13 @@ function hudChips(p,x,y,maxW){
   }
 }
 
+/* Eşya simgesi (assets/items/<id>.jpg, mağazayla aynı); yüklenene ya da yüklenemezse null: kısaltma rozeti çizilir */
+const itemIcons={};
+function itemIcon(id){
+  let e=itemIcons[id];
+  if(!e){ const im=new Image(); e=itemIcons[id]={ im, ok:false }; im.onload=()=>{ e.ok=true; }; im.src='assets/items/'+encodeURIComponent(id)+'.jpg'; }
+  return e.ok?e.im:null;
+}
 function hudPanel(p,W,H){
   const mmw=W>1100?260:190;
   const sc=Math.min(1,(W-mmw-34)/HUD_PW,(W-16)/HUD_PW);
@@ -1321,7 +1328,9 @@ function hudPanel(p,W,H){
     ctx.fillStyle=it?'#1b212d':'#12151c'; rrect(x,y,IS,IS,6); ctx.fill();
     if(it){
       const w=it.name.split(' '), ab=w.length>1?w.map(s=>s[0]).join('').slice(0,3):it.name.slice(0,3);
-      const t=hudFit(ab,IS-8,15,true,10); ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(t,x+IS/2,y+IS/2);
+      const im=itemIcon(id);
+      if(im){ ctx.save(); rrect(x+2,y+2,IS-4,IS-4,5); ctx.clip(); ctx.drawImage(im,x+2,y+2,IS-4,IS-4); ctx.restore(); }
+      else { const t=hudFit(ab,IS-8,15,true,10); ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(t,x+IS/2,y+IS/2); }
       if(PARTS[id]){ ctx.fillStyle='#7d8aa5'; ctx.fillRect(x+IS-10,y+IS-10,6,6); }
     }
     const act=i===actIdx;
