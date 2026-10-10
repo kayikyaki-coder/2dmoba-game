@@ -106,3 +106,4 @@ Haxball tarzı yuvarlak token karakterli 2D MOBA. Tarayıcıda çalışır, şim
 10. (yapıldı, 10.10.2026) Bot zorlukları, ayrıntı "Bot zorlukları" maddesinde.
 11. Bot ayar araması (evolve) en son, denge oturunca.
 - Üretilmiş görseller: assets/menu_bg.jpg (menü arka planı) ve assets/portre/<id>.jpg (menü kart portreleri), yerel Stable Diffusion DreamShaper 8 ile (tools/sdgen.mjs, tools/sd_portreler.mjs; ham çıktılar assets/sd/). WebUI: Masaüstü\StableDiffusion\webui-user.bat, API localhost:7860. Gemini ücretsiz kotası 0 (kullanılamıyor).
+- Git: github.com/kayikyaki-coder/2dmoba-game (main). Masaüstü\Oyunu-Guncelle.bat: git pull --ff-only (yerel değişiklik varsa stash'e alır) ve oyunu açar. old/, assets/sd/, *.log gitignore'da. Her işten sonra commit + push.
