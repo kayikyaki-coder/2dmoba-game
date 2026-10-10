@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><title>Token Denemesi</title>
+<style>body{margin:0;background:#0d0f26;color:#ece8ff;font-family:system-ui;padding:16px}canvas{display:block;background:#1b1e42;border-radius:12px}h1{font-size:18px;margin:0 0 10px}p{color:#9b9ac4;font-size:13px;margin:0 0 12px}</style>
+</head><body>
+<h1>Kahraman tokenları: eski (solda iki takım) / yeni (sağda iki takım, altta büyük)</h1>
+<p>Yeni: katmanlı halka (gölge, bevel, iç çizgi), iç disk vinyet + alt kenar ışığı, simge gölge+parlak kenar, daha detaylı simgeler. Takım rengi yine en dış kalın halka.</p>
+<canvas id="c"></canvas>
+<script type="module">
+import { PAL, HERO_THEME, rgba, mix } from '../../palette.js';
+import { drawToken, drawGlow, drawIcon } from '../../art.js';
+const TAU=Math.PI*2;
+function toRgb(c){ if(c[0]==='#'){ const n=parseInt(c.slice(1),16); return [(n>>16)&255,(n>>8)&255,n&255]; } const m=c.match(/[\d.]+/g); return [+m[0],+m[1],+m[2]]; }
+function mixA(a,b,t){ const x=toRgb(a), y=toRgb(b); return 'rgb('+Math.round(x[0]+(y[0]-x[0])*t)+','+Math.round(x[1]+(y[1]-x[1])*t)+','+Math.round(x[2]+(y[2]-x[2])*t)+')'; }
+const HEROES=Object.keys(HERO_THEME);
+const NAMES={archer:'Okçu',twin:'İkiz Ok',warrior:'Savaşçı',mage:'Büyücü',bounce:'Sekme',hook:'Zincirli',flame:'Alev Yumruğu',blood:'Kan Lordu',artillery:'Topçu',shadow:'Gölge',spirit:'Ruh Rehberi',dual:'İkili'};
+
+/* ---------- daha detaylı simgeler (-1..1 kutusu). c: ana renk, d: koyu, l: açık ---------- */
+function fletchArrow(g,ox,c,d,l){
+  // gövde
+  g.beginPath(); g.moveTo(ox,0.95); g.lineTo(ox,-0.3); g.lineWidth=0.18; g.strokeStyle=c; g.stroke();
+  // uç (iki yüzlü)
+  g.beginPath(); g.moveTo(ox,-1.02); g.lineTo(ox-0.3,-0.3); g.lineTo(ox,-0.42); g.closePath(); g.fillStyle=d; g.fill();
+  g.beginPath(); g.moveTo(ox,-1.02); g.lineTo(ox+0.3,-0.3); g.lineTo(ox,-0.42); g.closePath(); g.fillStyle=l; g.fill();
+  // tüyler
+  g.fillStyle=c;
+  for(const s of [-1,1]){ g.beginPath(); g.moveTo(ox,0.5); g.lineTo(ox+s*0.3,0.72); g.lineTo(ox+s*0.3,0.98); g.lineTo(ox,0.82); g.closePath(); g.fill(); }
+  g.beginPath(); g.moveTo(ox,0.52); g.lineTo(ox,0.98); g.lineWidth=0.06; g.strokeStyle=d; g.stroke();
+}
+const ICONS2={
+  arrow(g,c,d,l){ g.rotate(0.7); g.translate(0,-0.05); fletchArrow(g,0,c,d,l); },
+  twin(g,c,d,l){ g.rotate(0.45); g.scale(0.85,0.85); fletchArrow(g,-0.42,c,d,l); fletchArrow(g,0.42,c,d,l); },
+  shield(g,c,d,l){
+    const sh=()=>{ g.beginPath(); g.moveTo(-0.76,-0.8); g.quadraticCurveTo(0,-1.05,0.76,-0.8); g.lineTo(0.76,0.1); g.quadraticCurveTo(0.66,0.72,0,1.04); g.quadraticCurveTo(-0.66,0.72,-0.76,0.1); g.closePath(); };
+    sh(); g.fillStyle=c; g.fill();
+    g.save(); sh(); g.clip(); g.beginPath(); g.moveTo(0,-1.1); g.lineTo(0,1.1); g.lineTo(0.9,1.1); g.lineTo(0.9,-1.1); g.closePath(); g.fillStyle=d; g.fill(); g.restore();
+    g.beginPath(); g.moveTo(0,-0.6); g.lineTo(0,0.72); g.moveTo(-0.46,-0.1); g.lineTo(0.46,-0.1); g.lineWidth=0.17; g.strokeStyle=l; g.lineCap='round'; g.stroke();
+    g.beginPath(); g.arc(0,-0.1,0.16,0,TAU); g.fillStyle=l; g.fill(); g.beginPath(); g.arc(0,-0.1,0.07,0,TAU); g.fillStyle=d; g.fill();
+    sh(); g.lineWidth=0.09; g.strokeStyle=l; g.stroke();
+  },
+  flame(g,c,d,l){
+    const outer=()=>{ g.beginPath(); g.moveTo(0.05,-1.05); g.bezierCurveTo(0.3,-0.55,0.9,-0.15,0.76,0.38); g.bezierCurveTo(0.64,0.88,0.28,1.02,0,1.02); g.bezierCurveTo(-0.32,1.02,-0.82,0.82,-0.76,0.3); g.bezierCurveTo(-0.72,-0.1,-0.4,-0.3,-0.3,-0.68); g.bezierCurveTo(-0.1,-0.5,-0.05,-0.78,0.05,-1.05); g.closePath(); };
+    outer(); g.fillStyle=c; g.fill();
+    // ikinci alev dili
+    g.beginPath(); g.moveTo(-0.55,-0.45); g.bezierCurveTo(-0.45,-0.2,-0.2,-0.1,-0.3,0.3); g.bezierCurveTo(-0.5,0.2,-0.68,0,-0.55,-0.45); g.closePath(); g.fillStyle=mixA(c,'#ffffff',0.35); g.fill();
+    g.beginPath(); g.moveTo(0.02,-0.1); g.bezierCurveTo(0.22,0.25,0.46,0.42,0.34,0.7); g.bezierCurveTo(0.25,0.92,0.1,0.94,0,0.94); g.bezierCurveTo(-0.17,0.94,-0.4,0.84,-0.34,0.58); g.bezierCurveTo(-0.3,0.38,-0.1,0.28,0.02,-0.1); g.closePath(); g.fillStyle=d; g.fill();
+    g.beginPath(); g.moveTo(0,0.3); g.bezierCurveTo(0.12,0.5,0.2,0.62,0.12,0.78); g.bezierCurveTo(0,0.86,-0.14,0.8,-0.12,0.64); g.bezierCurveTo(-0.1,0.5,-0.05,0.42,0,0.3); g.closePath(); g.fillStyle=l; g.fill();
+  },
+  bounce(g,c,d,l){
+    g.lineCap='round'; g.lineJoin='round';
+    g.beginPath(); g.moveTo(-0.8,0.75); g.lineTo(-0.3,-0.55); g.lineTo(0.15,0.35); g.lineTo(0.7,-0.65); g.lineWidth=0.3; g.strokeStyle=d; g.stroke();
+    g.beginPath(); g.moveTo(-0.8,0.75); g.lineTo(-0.3,-0.55); g.lineTo(0.15,0.35); g.lineTo(0.7,-0.65); g.lineWidth=0.16; g.strokeStyle=c; g.stroke();
+    g.beginPath(); g.moveTo(0.98,-0.98); g.lineTo(0.32,-0.78); g.lineTo(0.78,-0.28); g.closePath(); g.fillStyle=l; g.fill(); g.lineWidth=0.08; g.strokeStyle=d; g.stroke();
+    for(const [x,y,r] of [[-0.8,0.75,0.2],[-0.3,-0.55,0.11],[0.15,0.35,0.11]]){ g.beginPath(); g.arc(x,y,r,0,TAU); g.fillStyle=l; g.fill(); g.lineWidth=0.07; g.strokeStyle=d; g.stroke(); }
+  },
+  hook(g,c,d,l){
+    g.lineCap='round'; g.lineJoin='round';
+    // zincir halkaları
+    for(let i=0;i<3;i++){ g.beginPath(); g.ellipse(0.22,-0.85+i*0.3,0.12,0.17,0,0,TAU); g.lineWidth=0.12; g.strokeStyle=i%2?c:l; g.stroke(); }
+    // kanca gövdesi
+    g.beginPath(); g.moveTo(0.22,-0.1); g.lineTo(0.22,0.3); g.arc(-0.18,0.3,0.4,0,Math.PI,false); g.lineTo(-0.58,0.0); g.lineWidth=0.3; g.strokeStyle=d; g.stroke();
+    g.beginPath(); g.moveTo(0.22,-0.1); g.lineTo(0.22,0.3); g.arc(-0.18,0.3,0.4,0,Math.PI,false); g.lineTo(-0.58,0.0); g.lineWidth=0.17; g.strokeStyle=c; g.stroke();
+    // ucu
+    g.beginPath(); g.moveTo(-0.58,-0.22); g.lineTo(-0.95,0.1); g.lineTo(-0.3,0.12); g.closePath(); g.fillStyle=l; g.fill(); g.lineWidth=0.07; g.strokeStyle=d; g.stroke();
+  },
+  fist(g,c,d,l){
+    g.lineJoin='round';
+    for(const x of [-0.48,-0.16,0.16,0.48]){ g.beginPath(); g.arc(x,-0.32,0.28,0,TAU); g.fillStyle=c; g.fill(); g.lineWidth=0.07; g.strokeStyle=d; g.stroke(); }
+    g.beginPath(); g.moveTo(-0.76,-0.22); g.lineTo(-0.76,0.55); g.quadraticCurveTo(-0.76,1.0,-0.3,1.0); g.lineTo(0.3,1.0); g.quadraticCurveTo(0.76,1.0,0.76,0.55); g.lineTo(0.76,-0.22); g.closePath(); g.fillStyle=c; g.fill();
+    g.beginPath(); for(const x of [-0.32,0,0.32]){ g.moveTo(x,-0.5); g.lineTo(x,0.12); } g.lineWidth=0.1; g.strokeStyle=d; g.stroke();
+    g.beginPath(); g.moveTo(-0.62,0.44); g.quadraticCurveTo(0,0.1,0.58,0.44); g.lineWidth=0.14; g.strokeStyle=d; g.stroke();
+    // alev kıvılcımları
+    g.fillStyle=l; for(const [x,y] of [[-0.9,-0.65],[0.92,-0.6],[0.78,-0.95]]){ g.beginPath(); g.moveTo(x,y-0.14); g.lineTo(x+0.1,y); g.lineTo(x,y+0.14); g.lineTo(x-0.1,y); g.closePath(); g.fill(); }
+    g.beginPath(); g.moveTo(-0.76,0.0); g.lineTo(0.76,0.0); g.lineWidth=0.05; g.strokeStyle=l; g.stroke();
+  },
+  drop(g,c,d,l){
+    const dp=()=>{ g.beginPath(); g.moveTo(0,-1.04); g.bezierCurveTo(0.3,-0.55,0.76,-0.15,0.76,0.3); g.arc(0,0.3,0.76,0,Math.PI,false); g.bezierCurveTo(-0.76,-0.15,-0.3,-0.55,0,-1.04); g.closePath(); };
+    dp(); g.fillStyle=c; g.fill();
+    g.save(); dp(); g.clip(); g.beginPath(); g.arc(0.35,0.45,0.75,0,TAU); g.fillStyle=d; g.fill(); g.restore();
+    g.beginPath(); g.ellipse(-0.32,0.25,0.12,0.3,0.3,0,TAU); g.fillStyle=l; g.fill();
+    g.beginPath(); g.arc(-0.2,0.72,0.07,0,TAU); g.fill();
+    dp(); g.lineWidth=0.08; g.strokeStyle=d; g.stroke();
+  },
+  target(g,c,d,l){
+    g.lineCap='round';
+    g.beginPath(); g.arc(0,0,0.66,0,TAU); g.lineWidth=0.22; g.strokeStyle=d; g.stroke();
+    g.beginPath(); g.arc(0,0,0.66,0,TAU); g.lineWidth=0.12; g.strokeStyle=c; g.stroke();
+    g.beginPath(); g.arc(0,0,0.36,0,TAU); g.lineWidth=0.08; g.strokeStyle=c; g.stroke();
+    g.beginPath(); g.arc(0,0,0.16,0,TAU); g.fillStyle=l; g.fill();
+    g.beginPath(); for(const a of [0,Math.PI/2,Math.PI,Math.PI*1.5]){ g.moveTo(Math.cos(a)*0.46,Math.sin(a)*0.46); g.lineTo(Math.cos(a)*1.02,Math.sin(a)*1.02); } g.lineWidth=0.14; g.strokeStyle=l; g.stroke();
+  },
+  eye(g,c,d,l){
+    const ey=()=>{ g.beginPath(); g.moveTo(-1.02,0); g.quadraticCurveTo(0,-1.08,1.02,0); g.quadraticCurveTo(0,1.08,-1.02,0); g.closePath(); };
+    ey(); g.fillStyle=c; g.fill();
+    g.save(); ey(); g.clip();
+    g.beginPath(); g.arc(0,0,0.46,0,TAU); g.fillStyle=mixA(c,'#ffffff',0.25); g.fill();
+    g.beginPath(); g.arc(0,0,0.3,0,TAU); g.fillStyle=d; g.fill();
+    g.beginPath(); g.ellipse(0,0,0.1,0.3,0,0,TAU); g.fillStyle=l; g.fill();   // dikey göz bebeği
+    g.beginPath(); g.arc(-0.16,-0.18,0.08,0,TAU); g.fillStyle='#fff'; g.fill();
+    g.restore();
+    ey(); g.lineWidth=0.09; g.strokeStyle=d; g.stroke();
+    // kirpik çizgileri
+    g.beginPath(); for(const x of [-0.6,-0.2,0.2,0.6]){ const y=-Math.sqrt(Math.max(0,1-x*x))*0.52-0.02; g.moveTo(x,y); g.lineTo(x*1.1,y-0.22); } g.lineWidth=0.07; g.strokeStyle=l; g.stroke();
+  },
+  star(g,c,d,l){
+    const st=(rr,ri)=>{ g.beginPath(); for(let i=0;i<8;i++){ const a=-Math.PI/2+i*Math.PI/4, r=i%2?ri:rr; g.lineTo(Math.cos(a)*r,Math.sin(a)*r); } g.closePath(); };
+    st(1.02,0.34); g.fillStyle=d; g.fill();
+    st(0.9,0.3); g.fillStyle=c; g.fill();
+    st(0.5,0.18); g.fillStyle=l; g.fill();
+    g.beginPath(); g.arc(0,0,0.12,0,TAU); g.fillStyle='#fff'; g.fill();
+    for(const [x,y,r] of [[0.74,-0.74,0.13],[-0.76,0.62,0.09]]){ g.beginPath(); g.arc(x,y,r,0,TAU); g.fillStyle=l; g.fill(); }
+  },
+  yin(g,c,d,l){
+    g.beginPath(); g.arc(0,0,0.92,0,TAU); g.fillStyle=l; g.fill();
+    g.beginPath(); g.arc(0,0,0.92,Math.PI/2,Math.PI*1.5); g.arc(0,-0.46,0.46,-Math.PI/2,Math.PI/2,false); g.arc(0,0.46,0.46,-Math.PI/2,Math.PI/2,true); g.closePath(); g.fillStyle=d; g.fill();
+    g.beginPath(); g.arc(0,-0.46,0.16,0,TAU); g.fillStyle=l; g.fill();
+    g.beginPath(); g.arc(0,0.46,0.16,0,TAU); g.fillStyle=d; g.fill();
+    g.beginPath(); g.arc(0,0,0.92,0,TAU); g.lineWidth=0.12; g.strokeStyle=c; g.stroke();
+  }
+};
+function drawIcon2(g,name,x,y,s,c,d,l){
+  const f=ICONS2[name]; if(!f) return;
+  g.save(); g.translate(x,y); g.scale(s,s); g.lineJoin='round'; g.lineCap='round'; g.fillStyle=c; g.strokeStyle=c; g.lineWidth=0.2; f(g,c,d,l); g.restore();
+}
+
+/* ---------- yeni token ---------- */
+export function drawToken2(g,type,x,y,r,o){
+  o=o||{};
+  const th=HERO_THEME[type]||{c:'#9aa',icon:null};
+  const hasTeam=o.team!==undefined;
+  const ring=hasTeam?PAL.team[o.team]:th.c, ringD=hasTeam?PAL.teamDark[o.team]:mix(th.c,PAL.ink,0.5), ringL=hasTeam?PAL.teamLight[o.team]:'#fff';
+  // zemin gölgesi
+  g.beginPath(); g.ellipse(x+2,y+r*0.18,r*1.02,r*0.9,0,0,TAU); g.fillStyle='rgba(4,2,16,0.35)'; g.fill();
+  // takım rengi dış ışıma (hafif, okunurluk için)
+  drawGlow(g,ring,x,y,r*1.5,0.22);
+  if(o.aim!==undefined){   // yön: halkaya oturan ok başı
+    const ax=Math.cos(o.aim), ay=Math.sin(o.aim), k=Math.max(0.8,r/26);
+    g.beginPath(); g.moveTo(x+ax*(r+10*k),y+ay*(r+10*k)); g.lineTo(x+ax*(r-2)-ay*7*k,y+ay*(r-2)+ax*7*k); g.lineTo(x+ax*(r+1),y+ay*(r+1)); g.lineTo(x+ax*(r-2)+ay*7*k,y+ay*(r-2)-ax*7*k); g.closePath();
+    g.fillStyle=ringL; g.fill(); g.lineWidth=1.8*k; g.lineJoin='round'; g.strokeStyle=PAL.ink; g.stroke();
+  }
+  // dış ince mürekkep halka
+  g.beginPath(); g.arc(x,y,r,0,TAU); g.fillStyle=PAL.ink; g.fill();
+  // takım halkası: dikey gradyan (üst açık, alt koyu)
+  const rg=g.createLinearGradient(x,y-r,x,y+r); rg.addColorStop(0,mix(ring,'#ffffff',0.22)); rg.addColorStop(0.5,ring); rg.addColorStop(1,mix(ring,ringD,0.55));
+  g.beginPath(); g.arc(x,y,r-1.6,0,TAU); g.fillStyle=rg; g.fill();
+  // halka bevel: üst parlak yay, alt gölge yay
+  g.lineCap='round';
+  g.beginPath(); g.arc(x,y,r*0.86,-2.6,-0.6); g.lineWidth=r*0.07; g.strokeStyle='rgba(255,255,255,0.45)'; g.stroke();
+  g.beginPath(); g.arc(x,y,r*0.86,0.5,2.7); g.lineWidth=r*0.07; g.strokeStyle='rgba(8,6,32,0.35)'; g.stroke();
+  // halka içi işaretler: 8 küçük çentik (takım rengini okunur bırakır, metalik his)
+  g.beginPath(); for(let i=0;i<8;i++){ const a=i*TAU/8+Math.PI/8; g.moveTo(x+Math.cos(a)*r*0.78,y+Math.sin(a)*r*0.78); g.lineTo(x+Math.cos(a)*r*0.92,y+Math.sin(a)*r*0.92); }
+  g.lineWidth=Math.max(1,r*0.05); g.strokeStyle='rgba(8,6,32,0.3)'; g.stroke();
+  // iç disk kenarı (mürekkep) ve disk
+  const ri=r*0.72;
+  g.beginPath(); g.arc(x,y,ri+1.8,0,TAU); g.fillStyle=PAL.ink; g.fill();
+  const gr=g.createRadialGradient(x-ri*0.3,y-ri*0.4,ri*0.05,x,y,ri);
+  gr.addColorStop(0,mix(th.c,'#ffffff',0.08)); gr.addColorStop(0.45,mix(th.c,PAL.ink,0.4)); gr.addColorStop(1,mix(th.c,PAL.ink,0.78));
+  g.beginPath(); g.arc(x,y,ri,0,TAU); g.fillStyle=gr; g.fill();
+  // alt kenar ışığı (rim light) kahraman renginde
+  g.save(); g.beginPath(); g.arc(x,y,ri,0,TAU); g.clip();
+  const rl=g.createRadialGradient(x,y+ri*0.55,ri*0.3,x,y+ri*0.4,ri*1.05); rl.addColorStop(0,rgba(th.c,0)); rl.addColorStop(0.75,rgba(th.c,0)); rl.addColorStop(1,rgba(th.c,0.6));
+  g.fillStyle=rl; g.fillRect(x-ri,y-ri,ri*2,ri*2);
+  // ince iç halka
+  g.beginPath(); g.arc(x,y,ri*0.88,0,TAU); g.lineWidth=Math.max(1,ri*0.05); g.strokeStyle=rgba(th.c,0.35); g.stroke();
+  g.restore();
+  // simge: arkasına hafif parıltı, gölge kopyası, ana, parlak kenar
+  if(th.icon){
+    const s=ri*0.62, iy=y+ri*0.02;
+    drawGlow(g,th.c,x,iy,ri*0.9,0.35);
+    const c=mix(th.c,'#ffffff',0.78), d=mix(th.c,PAL.ink,0.6), l='#ffffff';
+    g.save(); g.globalAlpha=0.55; drawIcon2(g,th.icon,x+ri*0.06,iy+ri*0.09,s,PAL.ink,PAL.ink,PAL.ink); g.restore();
+    drawIcon2(g,th.icon,x,iy,s,c,d,l);
+  }
+  // cam parlaması (üst sol)
+  g.beginPath(); g.ellipse(x-ri*0.3,y-ri*0.5,ri*0.42,ri*0.22,-0.6,0,TAU); g.fillStyle='rgba(255,255,255,0.1)'; g.fill();
+  if(o.flash>0){ g.beginPath(); g.arc(x,y,r,0,TAU); g.fillStyle='rgba(255,255,255,'+(o.flash*0.7).toFixed(3)+')'; g.fill(); }
+}
+
+/* ---------- sayfa ---------- */
+const CW=340, CH=190, COLS=3, ROWS=Math.ceil(HEROES.length/COLS);
+const cv=document.getElementById('c'); const dpr=2; cv.width=CW*COLS*dpr; cv.height=CH*ROWS*dpr; cv.style.width=CW*COLS+'px'; cv.style.height=CH*ROWS+'px';
+const g=cv.getContext('2d'); g.scale(dpr,dpr);
+g.fillStyle=PAL.ground; g.fillRect(0,0,CW*COLS,CH*ROWS);
+// hafif zemin dokusu
+for(let i=0;i<120;i++){ const x=Math.random()*CW*COLS, y=Math.random()*CH*ROWS, r=60+Math.random()*120; const gr=g.createRadialGradient(x,y,0,x,y,r); gr.addColorStop(0,rgba(i%2?PAL.groundA:PAL.groundC,0.5)); gr.addColorStop(1,rgba(PAL.groundA,0)); g.fillStyle=gr; g.fillRect(x-r,y-r,r*2,r*2); }
+HEROES.forEach((h,i)=>{
+  const cx=(i%COLS)*CW, cy=Math.floor(i/COLS)*CH;
+  g.strokeStyle='rgba(255,255,255,0.08)'; g.strokeRect(cx+0.5,cy+0.5,CW-1,CH-1);
+  g.fillStyle=PAL.text; g.font='bold 13px system-ui'; g.textAlign='left'; g.fillText(NAMES[h]||h,cx+12,cy+20);
+  g.fillStyle=PAL.muted; g.font='11px system-ui'; g.fillText('eski',cx+40,cy+36); g.fillText('yeni',cx+160,cy+36);
+  const r=27, y1=cy+72;
+  drawToken(g,h,cx+36,y1,r,{team:0,aim:-0.6}); drawToken(g,h,cx+100,y1,r,{team:1,aim:2.5});
+  drawToken2(g,h,cx+160,y1,r,{team:0,aim:-0.6}); drawToken2(g,h,cx+224,y1,r,{team:1,aim:2.5});
+  // yeni büyük (menü kartı boyutu) ve küçük (uzak zoom)
+  drawToken2(g,h,cx+290,cy+72,40,{});
+  drawToken(g,h,cx+36,cy+150,16,{team:0}); drawToken(g,h,cx+76,cy+150,16,{team:1});
+  drawToken2(g,h,cx+160,cy+150,16,{team:0}); drawToken2(g,h,cx+200,cy+150,16,{team:1});
+  g.fillStyle=PAL.muted; g.font='10px system-ui'; g.fillText('uzak',cx+100,cy+154); g.fillText('uzak',cx+224,cy+154);
+});
+window.drawToken2=drawToken2; window.ICONS2=ICONS2;
+</script></body></html>

@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><title>Zemin Denemesi</title>
+<style>body{margin:0;background:#0d0f26;color:#ece8ff;font-family:system-ui;padding:16px}canvas{display:block;border-radius:10px;margin-bottom:8px}h1{font-size:18px;margin:0 0 6px}p{color:#9b9ac4;font-size:13px;margin:0 0 10px}</style>
+</head><body>
+<h1>Zemin, kaya ve çalı: eski (üst) / yeni (alt)</h1>
+<p>İkisi de offscreen canvas'a bir kez çizilir (aynı yöntem, paintMap). Yeni: gürültü dokulu zemin, kaldırım taşı koridor (aşınmış orta, yosunlu kenar), katlı obsidyen kaya (iki kademe, facet, rim light, liken), yumuşak yaprak kümeli çalı (sert dış çizgi yok).</p>
+<canvas id="a"></canvas>
+<canvas id="b"></canvas>
+<p id="t"></p>
+<script type="module">
+import { PAL, rgba, mix } from '../../palette.js';
+import { paintMap, rng32, drawGlow, drawCrystal } from '../../art.js';
+const TAU=Math.PI*2;
+function toRgb(c){ if(c[0]==='#'){ const n=parseInt(c.slice(1),16); return [(n>>16)&255,(n>>8)&255,n&255]; } const m=c.match(/[\d.]+/g); return [+m[0],+m[1],+m[2]]; }
+function mixA(a,b,t){ const x=toRgb(a), y=toRgb(b); return 'rgb('+Math.round(x[0]+(y[0]-x[0])*t)+','+Math.round(x[1]+(y[1]-x[1])*t)+','+Math.round(x[2]+(y[2]-x[2])*t)+')'; }
+// küçük dünya parçası: bir koridor, dikdörtgen + daire kaya, iki çalı, bir üs
+const M={ W:1600, H:640, fountainR:160,
+  LANES:[{ id:'top', name:'Koridor 1', active:true, width:300, pts:[[-100,520],[250,330],[700,210],[1200,230],[1700,420]] }],
+  WALLS:[{ x:640, y:360, w:620, h:200 }, { c:[270,120], r:110 }, { poly:[[1350,40],[1560,20],[1600,180],[1420,230],[1300,150]] }],
+  BUSHES:[{ poly:[[480,40],[700,20],[760,110],[650,190],[470,150]] }, { c:[1180,540], r:85 }],
+  BASES:[{x:-400,y:900},{x:2200,y:-500}] };
+
+/* ---------- yardımcılar ---------- */
+function shapeP(g,w,round){
+  if(w.c){ g.beginPath(); g.arc(w.c[0],w.c[1],w.r,0,TAU); }
+  else if(w.poly){ g.beginPath(); w.poly.forEach(([x,y],i)=> i?g.lineTo(x,y):g.moveTo(x,y)); g.closePath(); }
+  else { const r=Math.min(round||0,w.w/2,w.h/2),x=w.x,y=w.y,ww=w.w,h=w.h; g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+ww,y,x+ww,y+h,r); g.arcTo(x+ww,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+ww,y,r); g.closePath(); }
+}
+function bboxOf(w){
+  if(w.c) return { x:w.c[0]-w.r, y:w.c[1]-w.r, w:w.r*2, h:w.r*2 };
+  if(w.poly){ const xs=w.poly.map(p=>p[0]), ys=w.poly.map(p=>p[1]), x=Math.min(...xs), y=Math.min(...ys); return { x, y, w:Math.max(...xs)-x, h:Math.max(...ys)-y }; }
+  return { x:w.x, y:w.y, w:w.w, h:w.h };
+}
+/* şekli merkezine doğru k kadar küçültür (ikinci kademe için) */
+function inset(w,k){
+  if(w.c) return { c:w.c, r:Math.max(10,w.r-k) };
+  if(w.poly){ const cx=w.poly.reduce((s,p)=>s+p[0],0)/w.poly.length, cy=w.poly.reduce((s,p)=>s+p[1],0)/w.poly.length;
+    return { poly:w.poly.map(([x,y])=>{ const dx=x-cx, dy=y-cy, L=Math.hypot(dx,dy)||1, f=Math.max(0.2,1-k/L); return [cx+dx*f,cy+dy*f]; }) }; }
+  return { x:w.x+k, y:w.y+k, w:Math.max(20,w.w-2*k), h:Math.max(20,w.h-2*k) };
+}
+function laneSamples(lane, step){
+  const out=[]; let acc=0; const p=lane.pts;
+  for(let i=0;i<p.length-1;i++){
+    const dx=p[i+1][0]-p[i][0], dy=p[i+1][1]-p[i][1], L=Math.hypot(dx,dy); if(!L) continue;
+    const ux=dx/L, uy=dy/L; let d=acc;
+    while(d<L){ out.push({ x:p[i][0]+ux*d, y:p[i][1]+uy*d, nx:-uy, ny:ux, ux, uy }); d+=step; }
+    acc=d-L;
+  }
+  return out;
+}
+function polyPath(g,lane){ g.beginPath(); lane.pts.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y)); }
+
+/* Değer gürültüsü dokusu: küçük rastgele piksel canvas'ı yumuşatılarak büyütülür, iki oktav. Bir kez üretilir, pattern olarak döşenir. */
+function noiseTile(R, size, scale){
+  const s=document.createElement('canvas'); s.width=s.height=size; const sg=s.getContext('2d');
+  const img=sg.createImageData(size,size);
+  for(let i=0;i<size*size;i++){ const v=(R()*255)|0; img.data[i*4]=img.data[i*4+1]=img.data[i*4+2]=v; img.data[i*4+3]=255; }
+  sg.putImageData(img,0,0);
+  const big=document.createElement('canvas'); big.width=big.height=size*scale; const bg=big.getContext('2d');
+  bg.imageSmoothingEnabled=true; bg.imageSmoothingQuality='high';
+  bg.drawImage(s,0,0,big.width,big.height);
+  return big;
+}
+
+/* ---------- yeni harita boyama ---------- */
+export function paintMap2(g, M){
+  const W=M.W, H=M.H, R=rng32(20261010);
+  // 1) zemin: taban + büyük yumuşak lekeler + gürültü dokusu (overlay) + ince grain
+  g.fillStyle=PAL.ground; g.fillRect(0,0,W,H);
+  const blot=[PAL.groundA,PAL.groundB,PAL.groundC,PAL.groundD];
+  for(let i=0;i<Math.round(W*H/9000);i++){
+    const x=R()*W, y=R()*H, r=120+R()*320, col=blot[i%blot.length];
+    const gr=g.createRadialGradient(x,y,0,x,y,r); gr.addColorStop(0,rgba(col,0.65)); gr.addColorStop(1,rgba(col,0));
+    g.fillStyle=gr; g.fillRect(x-r,y-r,r*2,r*2);
+  }
+  const n1=noiseTile(R,32,16), n2=noiseTile(R,128,4);   // kaba ve ince oktav
+  g.save(); g.globalCompositeOperation='overlay'; g.globalAlpha=0.28; g.fillStyle=g.createPattern(n1,'repeat'); g.fillRect(0,0,W,H);
+  g.globalAlpha=0.16; g.fillStyle=g.createPattern(n2,'repeat'); g.fillRect(0,0,W,H); g.restore();
+  // ot ve tohumlar
+  const tufts=(col,n,len)=>{ g.beginPath(); for(let i=0;i<n;i++){ const x=R()*W, y=R()*H, h=len*(0.6+R()*0.8), lean=(R()-0.5)*6; g.moveTo(x,y); g.quadraticCurveTo(x+lean*0.5,y-h*0.6,x+lean,y-h); g.moveTo(x+3,y+1); g.quadraticCurveTo(x+3+lean*0.3,y-h*0.4,x+3+lean*0.7,y-h*0.75); } g.strokeStyle=col; g.lineWidth=1.5; g.lineCap='round'; g.stroke(); };
+  tufts(rgba(PAL.tuft,0.45),Math.round(W*H/1500),10); tufts(rgba(PAL.tuftDark,0.5),Math.round(W*H/2000),9); tufts(rgba(PAL.bushB,0.35),Math.round(W*H/4000),12);
+  // yüzen spor ışıkları (küçük, seyrek, parıltılı)
+  for(let i=0;i<Math.round(W*H/40000);i++){ const x=R()*W, y=R()*H, c=[PAL.spirit,PAL.gold,PAL.arcane][i%3]; drawGlow(g,c,x,y,10+R()*8,0.5); g.beginPath(); g.arc(x,y,1.6,0,TAU); g.fillStyle=rgba(c,0.9); g.fill(); }
+
+  // 2) koridor: omuz gölgesi, harç tabanı, kaldırım taşları, aşınmış orta, yosunlu kenar, rünler
+  g.lineJoin='round'; g.lineCap='round';
+  for(const lane of M.LANES){
+    const Wd=lane.width;
+    polyPath(g,lane); g.strokeStyle=rgba(PAL.ink,0.35); g.lineWidth=Wd+80; g.stroke();
+    polyPath(g,lane); g.strokeStyle=PAL.laneEdge; g.lineWidth=Wd+24; g.stroke();
+    polyPath(g,lane); g.strokeStyle=mix(PAL.laneRim,PAL.laneBody,0.5); g.lineWidth=Wd; g.stroke();   // harç / kum gövde
+    polyPath(g,lane); g.strokeStyle=rgba(PAL.laneCore,0.5); g.lineWidth=Wd*0.5; g.stroke();
+    // taşlar: yol boyunca jitterli ızgara
+    const stepL=40, stepN=42, sm=laneSamples(lane,stepL);
+    g.save(); polyPath(g,lane); g.lineWidth=Wd; g.stroke(); // (clip için yol şekli) 
+    g.restore();
+    g.save();
+    // klip: yol gövdesi
+    polyPath(g,lane); g.lineWidth=Wd; g.strokeStyle='rgba(0,0,0,0)'; // not: stroke clip yok; alternatif: taşlar zaten Wd içinde üretiliyor
+    g.restore();
+    const half=Wd/2-8;
+    for(let i=0;i<sm.length;i++){
+      const s=sm[i], rowOff=(i%2)*stepN*0.5;
+      for(let off=-half+rowOff; off<=half; off+=stepN){
+        if(R()<0.05) continue;   // eksik taş
+        const jx=(R()-0.5)*8, jy=(R()-0.5)*8, cx=s.x+s.nx*off+s.ux*jx, cy=s.y+s.ny*off+s.uy*jy;
+        const rx=15+R()*7, ry=14+R()*6, rot=Math.atan2(s.uy,s.ux)+(R()-0.5)*0.3, k=5+((R()*3)|0);
+        const wear=1-Math.min(1,Math.abs(off)/half);   // ortada daha açık (aşınma)
+        const base=mixA(mixA(PAL.laneBody,PAL.laneCore,wear*0.9),PAL.pebble,R()*0.22);
+        const pts=[]; for(let j=0;j<k;j++){ const a=rot+j/k*TAU, rr=0.78+R()*0.3; pts.push([cx+Math.cos(a)*rx*rr,cy+Math.sin(a)*ry*rr]); }
+        const path=(dx,dy)=>{ g.beginPath(); pts.forEach(([x,y],j)=> j?g.lineTo(x+dx,y+dy):g.moveTo(x+dx,y+dy)); g.closePath(); };
+        g.globalAlpha=0.45+0.55*(1-wear*0.8);   // ortadaki taşlar aşınmış: kum gövdeye karışır
+        path(1.5,2.5); g.fillStyle=rgba(PAL.ink,0.3); g.fill();             // gölge
+        path(0,0); g.fillStyle=base; g.fill();
+        path(-1,-1.2); g.lineWidth=1.3; g.strokeStyle='rgba(255,255,255,0.08)'; g.stroke();   // üst-sol kenar ışığı
+        g.globalAlpha=1;
+        if(R()<0.25){ g.beginPath(); g.moveTo(cx-rx*0.4,cy+ry*0.2); g.lineTo(cx+rx*0.1,cy-ry*0.1); g.lineTo(cx+rx*0.45,cy+ry*0.35); g.lineWidth=1; g.strokeStyle=rgba(PAL.laneEdge,0.5); g.stroke(); }   // çatlak
+      }
+    }
+    // orta aşınma parıltısı ve kenar yosunu
+    polyPath(g,lane); g.strokeStyle=rgba(PAL.laneCore,0.22); g.lineWidth=Wd*0.35; g.stroke();
+    for(const s of sm){ for(const side of [-1,1]){ if(R()<0.5) continue; const off=(Wd/2-2+R()*10)*side, x=s.x+s.nx*off, y=s.y+s.ny*off; for(let j=0;j<3;j++){ g.beginPath(); g.arc(x+(R()-0.5)*14,y+(R()-0.5)*8,3+R()*4,0,TAU); g.fillStyle=rgba([PAL.bushA,PAL.bushB,PAL.bush][j],0.55); g.fill(); } } }
+    for(let i=0;i<sm.length;i+=8){ const s=sm[i]; drawGlow(g,PAL.rune,s.x,s.y,22,0.35); g.beginPath(); g.moveTo(s.x,s.y-9); g.lineTo(s.x+6,s.y); g.lineTo(s.x,s.y+9); g.lineTo(s.x-6,s.y); g.closePath(); g.fillStyle=rgba(PAL.rune,0.28); g.fill(); g.lineWidth=1.5; g.strokeStyle=rgba(PAL.rune,0.55); g.stroke(); }
+  }
+  g.lineCap='butt';
+
+  // 3) kayalar: iki kademeli obsidyen
+  for(const w of M.WALLS){
+    const bb=bboxOf(w), area=bb.w*bb.h;
+    // yumuşak gölge (3 kat), yan yüz, dış şekil
+    for(const [dx,dy,a] of [[14,34,0.16],[9,24,0.2],[4,14,0.24]]){ g.save(); g.translate(dx,dy); shapeP(g,w,40); g.fillStyle=rgba('#040210',a); g.fill(); g.restore(); }
+    g.save(); g.translate(0,18); shapeP(g,w,40); g.fillStyle=PAL.rockSide; g.fill(); g.lineWidth=8; g.lineJoin='round'; g.strokeStyle=PAL.rockEdge; g.stroke(); g.restore();
+    // yan yüzde dikey oluklar
+    g.save(); g.translate(0,18); shapeP(g,w,40); g.clip(); g.beginPath(); for(let i=0;i<bb.w/14;i++){ const x=bb.x+i*14+R()*6; g.moveTo(x,bb.y+bb.h-30); g.lineTo(x+(R()-0.5)*4,bb.y+bb.h+20); } g.strokeStyle=rgba(PAL.rockEdge,0.6); g.lineWidth=2; g.stroke(); g.restore();
+    shapeP(g,w,40); g.fillStyle=PAL.rock; g.fill();
+    g.save(); shapeP(g,w,40); g.clip();
+    const lg=g.createLinearGradient(bb.x,bb.y,bb.x+bb.w*0.4,bb.y+bb.h); lg.addColorStop(0,rgba(PAL.rockLight,0.35)); lg.addColorStop(0.5,rgba(PAL.rockTop,0.1)); lg.addColorStop(1,rgba(PAL.rockEdge,0.35));
+    g.fillStyle=lg; g.fillRect(bb.x,bb.y,bb.w,bb.h);
+    // facetler: keskin kenarlı çokgenler, her biri kendi gradyanıyla
+    const nb=Math.max(8,Math.min(140,Math.round(area/6000)));
+    for(let i=0;i<nb;i++){
+      const cx=bb.x+R()*bb.w, cy=bb.y+R()*bb.h, rr=24+R()*70, k=3+((R()*3)|0), a0=R()*TAU;
+      const fg=g.createLinearGradient(cx-rr,cy-rr,cx+rr,cy+rr); const li=R()<0.5; fg.addColorStop(0,rgba(li?PAL.rockLight:PAL.rockTop,0.3)); fg.addColorStop(1,rgba(PAL.rockEdge,0.3));
+      g.beginPath(); for(let j=0;j<k;j++){ const aa=a0+j/k*TAU, rd=rr*(0.5+R()*0.6); g.lineTo(cx+Math.cos(aa)*rd,cy+Math.sin(aa)*rd); } g.closePath();
+      g.fillStyle=fg; g.fill(); g.lineWidth=1; g.strokeStyle=rgba(PAL.rockEdge,0.35); g.stroke();
+    }
+    // ikinci kademe (plato): içe çekilmiş şekil, kendi gölgesi ve rim light'ı
+    const w2=inset(w,Math.min(bb.w,bb.h)*0.22);
+    g.save(); g.translate(3,10); shapeP(g,w2,30); g.fillStyle=rgba('#040210',0.45); g.fill(); g.restore();
+    g.save(); g.translate(0,6); shapeP(g,w2,30); g.fillStyle=PAL.rockSide; g.fill(); g.restore();
+    shapeP(g,w2,30); g.fillStyle=mix(PAL.rock,PAL.rockTop,0.6); g.fill(); g.lineWidth=3; g.strokeStyle=PAL.rockEdge; g.stroke();
+    g.save(); shapeP(g,w2,30); g.clip();
+    const b2=bboxOf(w2); for(let i=0;i<nb/3;i++){ const cx=b2.x+R()*b2.w, cy=b2.y+R()*b2.h, rr=16+R()*40, k=3+((R()*3)|0), a0=R()*TAU; g.beginPath(); for(let j=0;j<k;j++){ const aa=a0+j/k*TAU, rd=rr*(0.5+R()*0.6); g.lineTo(cx+Math.cos(aa)*rd,cy+Math.sin(aa)*rd); } g.closePath(); g.fillStyle=R()<0.5?rgba(PAL.rockLight,0.16):rgba(PAL.rockEdge,0.2); g.fill(); }
+    g.save(); g.translate(-3,-3); shapeP(g,w2,30); g.lineWidth=6; g.strokeStyle=rgba(PAL.rockLight,0.55); g.stroke(); g.restore();
+    g.restore();
+    // çatlaklar
+    g.beginPath(); for(let i=0;i<Math.max(3,nb/4);i++){ let x=bb.x+R()*bb.w, y=bb.y+R()*bb.h; g.moveTo(x,y); for(let j=0;j<5;j++){ x+=(R()-0.5)*60; y+=(R()-0.3)*40; g.lineTo(x,y); } } g.strokeStyle=rgba(PAL.rockEdge,0.6); g.lineWidth=2; g.stroke();
+    // liken lekeleri (biyolüminesan yeşil) ve kristal kümeleri
+    for(let i=0;i<nb/4;i++){ const cx=bb.x+R()*bb.w, cy=bb.y+R()*bb.h; shapeP(g,w,40); if(!g.isPointInPath(cx,cy)) continue; for(let j=0;j<5;j++){ g.beginPath(); g.arc(cx+(R()-0.5)*18,cy+(R()-0.5)*12,2+R()*4,0,TAU); g.fillStyle=rgba(PAL.bushB,0.35); g.fill(); } }
+    const nc=Math.max(1,Math.min(7,Math.round(area/50000)));
+    for(let i=0;i<nc;i++){
+      const cx=bb.x+bb.w*(0.12+R()*0.76), cy=bb.y+bb.h*(0.15+R()*0.7);
+      shapeP(g,w,40); if(!g.isPointInPath(cx,cy)) continue;
+      drawGlow(g,PAL.crystal,cx,cy-8,46,0.5);
+      const shards=[[-16,6,6,16,-0.35],[-6,2,8,24,-0.12],[4,0,10,30,0.05],[15,5,6,18,0.3],[0,8,5,12,0]];
+      for(const [dx,dy,sw,sh,tilt] of shards){ g.save(); g.translate(cx+dx,cy+dy); g.rotate(tilt); drawCrystal(g,0,0,sw,sh,PAL.crystal,mix(PAL.crystal,PAL.arcaneDark,0.6),'#e8fffa',PAL.rockEdge); g.restore(); }
+      g.beginPath(); g.arc(cx,cy+10,22,0,TAU); g.fillStyle=rgba(PAL.crystal,0.12); g.fill();
+    }
+    // üst-sol rim light ve dış çizgi
+    g.save(); g.translate(-3,-3); shapeP(g,w,40); g.lineWidth=8; g.strokeStyle=rgba(PAL.rockLight,0.5); g.stroke(); g.restore();
+    g.restore();
+    shapeP(g,w,40); g.lineWidth=6; g.lineJoin='round'; g.strokeStyle=PAL.rockEdge; g.stroke();
+  }
+
+  // 4) çalılar: yumuşak gölge, yaprak kümeleri (koyu -> açık), uç ışıkları; sert dış çizgi yok
+  for(const b of M.BUSHES){
+    const bb=bboxOf(b), area=bb.w*bb.h;
+    for(const [dx,dy,a] of [[8,16,0.18],[4,8,0.25]]){ g.save(); g.translate(dx,dy); shapeP(g,b,30); g.fillStyle=rgba('#040210',a); g.fill(); g.restore(); }
+    shapeP(g,b,30); g.fillStyle=PAL.bushEdge; g.fill();
+    g.save(); shapeP(g,b,30); g.clip();
+    // yaprak kümeleri: büyükten küçüğe, koyudan açığa (şekle kırpılı)
+    const layers=[[PAL.bush,26,0.95,0],[mixA(PAL.bush,PAL.bushA,0.6),18,0.9,2],[PAL.bushA,12,0.75,4],[PAL.bushB,8,0.4,6]];
+    layers.forEach(([col,rad,al,lift])=>{
+      const n=Math.round(area/(rad*rad*2.2));
+      for(let i=0;i<n;i++){
+        const x=bb.x+R()*bb.w, y=bb.y+R()*bb.h, r=rad*(0.6+R()*0.7), yy=y-lift;
+        const gr=g.createRadialGradient(x-r*0.3,yy-r*0.35,r*0.1,x,yy,r); gr.addColorStop(0,mixA(col,'#ffffff',0.1)); gr.addColorStop(1,mixA(col,PAL.bushEdge,0.5));
+        g.beginPath(); g.arc(x,yy,r,0,TAU); g.fillStyle=gr; g.globalAlpha=al; g.fill(); g.globalAlpha=1;
+      }
+    });
+    // kenar karartma (vinyet): çalı hacimli görünür, dış çizgi yerine
+    const vg=g.createRadialGradient(bb.x+bb.w/2,bb.y+bb.h/2,Math.min(bb.w,bb.h)*0.2,bb.x+bb.w/2,bb.y+bb.h/2,Math.max(bb.w,bb.h)*0.62); vg.addColorStop(0,rgba(PAL.bushEdge,0)); vg.addColorStop(1,rgba(PAL.bushEdge,0.7));
+    g.fillStyle=vg; g.fillRect(bb.x,bb.y,bb.w,bb.h);
+    // tek tek yaprak uçları
+    const n=Math.round(area/1400);
+    for(let i=0;i<n;i++){ const x=bb.x+R()*bb.w, y=bb.y+R()*bb.h, a=R()*TAU, L=10+R()*12, wd=3+R()*3; g.save(); g.translate(x,y); g.rotate(a); g.beginPath(); g.moveTo(0,0); g.quadraticCurveTo(L*0.5,-wd,L,0); g.quadraticCurveTo(L*0.5,wd,0,0); g.fillStyle=rgba(R()<0.4?PAL.bushC:PAL.bushB,0.45); g.fill(); g.beginPath(); g.moveTo(0,0); g.lineTo(L,0); g.lineWidth=0.8; g.strokeStyle=rgba(PAL.bushTip,0.3); g.stroke(); g.restore(); }
+    g.restore();
+    shapeP(g,b,30); g.lineWidth=3; g.lineJoin='round'; g.strokeStyle=rgba(PAL.bushEdge,0.8); g.stroke();
+    // uç ışıkları (biyolüminesans) ve yumuşak üst parıltı
+    for(let i=0;i<area/14000;i++){ const x=bb.x+R()*bb.w, y=bb.y+R()*bb.h; shapeP(g,b,30); if(!g.isPointInPath(x,y)) continue; drawGlow(g,PAL.bushTip,x,y,9,0.5); g.beginPath(); g.arc(x,y,1.5,0,TAU); g.fillStyle=rgba(PAL.bushTip,0.95); g.fill(); }
+    drawGlow(g,PAL.bushC,bb.x+bb.w/2,bb.y+bb.h/2,Math.max(bb.w,bb.h)*0.7,0.08);
+  }
+  g.strokeStyle='rgba(4,2,16,0.9)'; g.lineWidth=12; g.strokeRect(0,0,W,H);
+}
+
+/* ---------- sayfa: ikisini de offscreen'e çiz, süreyi ölç ---------- */
+const scale=0.7;
+function show(id, fn){
+  const off=document.createElement('canvas'); off.width=M.W; off.height=M.H;
+  const t0=performance.now(); fn(off.getContext('2d'),M); const dt=performance.now()-t0;
+  const cv=document.getElementById(id); cv.width=M.W*scale*2; cv.height=M.H*scale*2; cv.style.width=M.W*scale+'px'; cv.style.height=M.H*scale+'px';
+  const g=cv.getContext('2d'); g.imageSmoothingQuality='high'; g.drawImage(off,0,0,cv.width,cv.height);
+  return dt;
+}
+const t1=show('a',paintMap), t2=show('b',paintMap2);
+document.getElementById('t').textContent='Çizim süresi (bir kez, offscreen): eski '+t1.toFixed(0)+' ms, yeni '+t2.toFixed(0)+' ms (1600x640 parça).';
+window.paintMap2=paintMap2;
+</script></body></html>
