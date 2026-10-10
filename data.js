@@ -513,8 +513,10 @@ export const MINION_CALL = 1.5, MINION_CALL_R = 450;   // minyon çağrısı: 45
 /* Yeniden doğma: 10 sn + dakika başına 1,5 sn, en fazla 40 sn (20. dakikada). */
 /* Üsse dönüş (B): sabit 8 sn kanallanır; hareket, saldırı, yetenek ya da hasar keser */
 export const RECALL = { time:8 };   // sabit 8 sn kanallama (her yerden)
-export const RESPAWN = { base:10, cap:40, capMin:20 };   // 10 sn, 20. dakikada 40 sn (doğrusal), sonrası 40'ta sabit
-export const respawnTime = t => Math.min(RESPAWN.cap, RESPAWN.base+(RESPAWN.cap-RESPAWN.base)*(t/60)/RESPAWN.capMin);
+/* Yeniden doğma: başta kısa, sonra hızla uzar (karesel): base + k*dakika², en fazla cap.
+   6 sn (0. dk), ~9 (5), ~17 (10), ~31 (15), 50 (20+). (Eski: 10 sn'den 20. dakikada 40'a doğrusal.) */
+export const RESPAWN = { base:6, k:0.11, cap:50 };
+export const respawnTime = t => Math.min(RESPAWN.cap, RESPAWN.base+RESPAWN.k*(t/60)**2);
 export const XP_NEED = lvl => 180 + 54*(lvl-1);         // seviyeden sonrakine gereken XP (10. seviye ortalama ~15 dk)
 export const HERO_KILL_XP = 150, STRUCT_XP = 100, XP_RADIUS = 600;
 export const KEY_LABELS = { p:'Pasif', r:'Sağ Tık', e:'E', s:'Boşluk' };

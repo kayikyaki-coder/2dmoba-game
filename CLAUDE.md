@@ -46,7 +46,7 @@ Haxball tarzı yuvarlak token karakterli 2D MOBA. Tarayıcıda çalışır, şim
 - Harita (map.js): oval, 5200x2200, iki koridor. Koridor 1 (üst) aktif: kuleler ve minyonlar; Koridor 2 (alt) şimdilik boş. Arada kayalarla ayrılmış orman geçitleri. Duvarlar geçilmez, mermiler üstünden geçer. Minyonlar koridor yolunu izler. Botlar nav.js ile yol bulur (navDir, slideDir).
 - Savaş sisi: görüş 700 (minyon 500). Kamera yatay takip, tekerlekle zoom (en fazla yaklaşma yaklaşık 1500 birim genişlik).
 - XP: yakın minyon 25, menzilli 20, kahraman 150, kule 100. Ölünce seviye kalır. 10. seviye ortalama ~15 dk.
-- Yeniden doğma: 10 sn + dakikada 1,5 sn, 20. dakikada 40 sn, sonrası 40'ta sabit (data.js RESPAWN/respawnTime). Dalga 3 yakın + 2 menzilli. Koridor (aktif) ~5200 uzunlukta, eğri. Kule, kendi altında kahramana vuranı menzilden çıkana dek hedefler.
+- Yeniden doğma (10.10.2026): başta kısa, sonra uzun: 6 + 0,11 x dakika², en fazla 50 (0. dk 6 sn, 10. dk ~17, 15. dk ~31, 20. dk 50; data.js RESPAWN/respawnTime; eskiden 10'dan 40'a doğrusal). Dalga 3 yakın + 2 menzilli. Koridor (aktif) ~5200 uzunlukta, eğri. Kule, kendi altında kahramana vuranı menzilden çıkana dek hedefler.
 - Bot: ai.js (v2, genel; yetenekleri türüne göre kullanır), eski bot ai_v1.js (karşılaştırma için).
 - Bot dövüş tahmini (FE ağırlıkları) gerçek maçlardan öğreniliyor: `tools/calib.js` (paralel: scratch cal.sh). Bot değişince yeniden çalıştır.
 - Üsse dönüş (B): her yerden sabit 8 sn kanallanır (data.js RECALL.time), hareket/saldırı/yetenek/hasar keser. Bot yürüme süresi 8 sn'den kısaysa B'ye basmaz, yürür.
