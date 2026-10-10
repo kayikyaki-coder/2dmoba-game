@@ -10,3 +10,4 @@ tools/autobalance_init.json
 assets/sd/
 .~lock.*#
 assets/hf_raw/
+tools/teams2v2_result.json

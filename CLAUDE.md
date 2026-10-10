@@ -69,6 +69,8 @@ Haxball tarzı yuvarlak token karakterli 2D MOBA. Tarayıcıda çalışır, şim
 
 - Katmanlı dövüş (10.10.2026): canı olmayan her büyük eşyaya +100 can (items.js ITEM_BASE_HP, 43 eşya, fiyat aynı; esyalar.xlsx güncellenmedi). Can yenileme seviyeyle artar (STATS regen.per): menzilli/büyücü 0,6, Gölge 0,7, İkili 0,8, Savaşçı/Alev 0,9, Zincirli 1,4 (+pasif). Ölçüm (40 maç, önce -> sonra): Ruh v Savaşçı %100 -> %100, İkili v Okçu %55 -> %18, Zincirli v Büyücü %93 -> %85.
 
+- 2v2 takım taraması (10.10.2026): `node tools/teams2v2.js [--rounds 1] [--top 5] [--report 1]` 66 takımın ortak kahramanı olmayan bütün eşleşmeleri (1485 maç/tur, 4 çekirdekte ~50 dk), en iyi N takım + bireysel tablo (maç, kazanma, K/D/A, en iyi dost, en zor rakip). Sonuç tools/teams2v2_result.json (gitignore, yarıda kalırsa devam eder). runMatch2v2 artık heroes (kahraman başına K/D/A) da döndürür. Denge ölçümleri artık 2v2 ile yapılacak.
+
 ## Açık sorular
 - Savaşçı atılışı dost minyonlar tarafından engellensin mi (şu an içinden geçiyor)?
 

@@ -77,6 +77,7 @@ export function runMatch2v2({ a, b, levelA=1, levelB=1, aTeam=0, seed=1, maxTime
     jointA:joint[A], jointB:joint[B],
     apartA:cnt[A] ? apart[A]/cnt[A] : null, nearA:cnt[A] ? near[A]/cnt[A] : null,
     apartB:cnt[B] ? apart[B]/cnt[B] : null, nearB:cnt[B] ? near[B]/cnt[B] : null,
-    firstKill:S.stats.firstKill, firstTower:S.stats.firstTower
+    firstKill:S.stats.firstKill, firstTower:S.stats.firstTower,
+    heroes:S.heroes.map(h=>({ type:h.type, side:h.team===A?'A':'B', kills:h.kills, deaths:h.deaths, assists:h.assists }))
   };
 }
