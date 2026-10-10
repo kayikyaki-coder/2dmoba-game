@@ -47,7 +47,8 @@ export const HERO_THEME = {
   artillery: { c:'#9a7ae6', icon:'target' },
   shadow:    { c:'#7a68dc', icon:'eye' },
   spirit:    { c:'#4fe3c0', icon:'star' },
-  dual:      { c:'#e6bd4a', icon:'yin' }
+  dual:      { c:'#e6bd4a', icon:'yin' },
+  roller:    { c:'#c9a45a', icon:'ball' }
 };
 
 /* CSS değişkenlerini palete eşitler (index.html varsayılanlarıyla aynı değerler) */

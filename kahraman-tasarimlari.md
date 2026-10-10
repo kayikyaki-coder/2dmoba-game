@@ -91,3 +91,13 @@ Support şimdilik yok. Space yetenekleri, aksi yazmıyorsa 5. seviyede açılır
 - Uzak E (Hızlı Ateş): bekleme 12/11/10/9/8 sn, anında. 4 sn +%15/20/25/30/35 saldırı hızı.
 - Yakın sağ tık (Sıçrayış Darbesi): bekleme 13/12/11/10/9 sn. 550 menzilde seçilen rakibe sıçrar, 150 yarıçapta 60/100/140/180/220 + ek SG %100 fiziksel, 1,5 sn %30 yavaşlatma.
 - Yakın E (Darbe): bekleme 14/13/12/11/10 sn, anında. 150 menzildeki rakibi 300 birim iter; 50/75/100/125/150 + rakibin azami canının %8'i fiziksel; duvara çarparsa 0,75 sn sersemler.
+
+## Gülle: kesinleşen tasarım (oyuna eklendi)
+
+- Rol: hareket eden tank, yakın dövüş. Üsten hızlı gelip gank atmak için.
+- Statlar: can 920 (+46), yenileme 8 (+1,0), hasar 66 (+3,5), saldırı hızı 0,90 (+0,03), menzil 115 (hedefli), hareket 195 (Momentum dolunca ~250), boyut 30, kütle 2,6.
+- Pasif (Momentum, 0-100): aynı yönde yürüdükçe saniyede 55 artar (~1,8 sn'de dolar). Yön sapması derece başına 0,5 düşürür, 80 derece ve üstü ani dönüş sıfırlar; yürümüyorsa saniyede 140 söner. Dolunca +%28 hareket hızı. Düz vuruş ya da yetenek isabeti ek fiziksel hasar verir: (30'dan 10. seviyede 90'a + ek SG %30) x momentum/100; momentum 60 ve üstündeyse rakibi gidiş yönünde 100 birim iter (0,15 sn). İsabet momentumu sıfırlar.
+- Sağ tık (Yuvarlan): bekleme 13/12/11/10 sn. Basılı tuttukça mesafe 300'den 900'e (1 sn'de) uzar, bırakınca o yöne 1300 hızla yuvarlanır (birimlerin içinden geçer, duvar ve yapıda durur, kök engeller). İnişte 130 yarıçapta 60/90/120/150 + ek canın %4'ü fiziksel, 0,6/0,65/0,7/0,75 sn sersemletme (minyonlar dahil). Momentum isabeti de uygulanır.
+- E (Kabuk): bekleme 16/15/14/13 sn, anında, 2,5 sn. Kütle 3 kat, itilemez ve çekilemez (Kanca, Darbe, momentum itmesi, geri tepme işlemez; Kanca'nın hasarı yine gelir), %25/30/35/40 hasar azaltma, düz vuruş menzili +60, düz vuruşlar ek 15/25/35/45 + ek canın %2'si fiziksel ve 1 sn %20 yavaşlatma.
+- Boşluk (Bilardo): 5. seviyede, bekleme 45/36 sn. 3 sn durdurulamaz top (sersemletme, itme, çekme işlemez; düz vuruş ve yetenek yok): 620 hızla sürekli ileri gider, imleç yönünde başlar ve saniyede 1,6 radyan imlece döner. Duvar, harita sınırı ve yapılardan yansır. Değdiği her rakibe (kule hariç; aynı birime 0,8 sn'de bir) 120/180 + ek canın %5'i fiziksel ve 160 birim itme; itilen duvara çarparsa 0,6 sn sersemler. Bitince momentum dolu.
+- Açık: Şok Dalgası (susturma, yavaşlatma) Kabuk'a işler; Kabuk yalnız yer değiştirmeye karşı.

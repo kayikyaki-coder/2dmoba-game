@@ -348,10 +348,32 @@ function drawHero(h){
     ctx.setLineDash([]); ctx.strokeStyle='rgba(255,210,120,0.5)'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(h.x,h.y,R.radius-8,0,Math.PI*2); ctx.stroke();
     ctx.restore();
   }
+  if(h.ic && h.ic.mom>5 && !st.ball){   // Gülle Momentum: arkada hız çizgileri (yoğunluk momentumla), eşik üstünde altın
+    const m=h.ic.mom/100, dx=h.ic.mhx||0, dy=h.ic.mhy||0, px=-dy, py=dx, hot=h.ic.mom>=h.def.skills.p.pushAt;
+    ctx.save(); ctx.lineCap='round'; ctx.strokeStyle=hot?'rgba(255,207,90,'+(0.35+0.5*m)+')':'rgba(230,220,255,'+(0.2+0.4*m)+')'; ctx.lineWidth=3;
+    for(const o of [-0.6,0,0.6]){
+      const sx=h.x-dx*(h.r+4)+px*o*h.r, sy=h.y-dy*(h.r+4)+py*o*h.r, L=(14+40*m)*(o===0?1.25:1);
+      ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(sx-dx*L,sy-dy*L); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  if(st.ball){   // Gülle Bilardo: dönen altın top izi
+    const B=st.ball;
+    ctx.save(); ctx.globalCompositeOperation='lighter';
+    for(let j=1;j<=4;j++){ ctx.beginPath(); ctx.arc(h.x-B.dx*j*16,h.y-B.dy*j*16,h.r*(1-j*0.12),0,TAU); ctx.fillStyle='rgba(255,200,90,'+(0.22-j*0.04)+')'; ctx.fill(); }
+    ctx.restore();
+  }
   ctx.beginPath(); ctx.ellipse(h.x+3,h.y+6,h.r,h.r*0.88,0,0,TAU); ctx.fillStyle='rgba(4,2,16,0.34)'; ctx.fill();
   if(st.giant){ ctx.beginPath(); ctx.arc(h.x,h.y,h.r+7,0,TAU); ctx.strokeStyle='rgba(255,207,90,0.85)'; ctx.lineWidth=4; ctx.stroke(); }
   drawToken(ctx,h.type,h.x,h.y,h.r,{ team:h.team, aim:h.aim, flash:h.flash>0?h.flash/0.12:0 });
   if(st.slow){ ctx.beginPath(); ctx.arc(h.x,h.y,h.r,0,TAU); ctx.fillStyle='rgba(92,200,255,0.3)'; ctx.fill(); }
+  if(st.shell){   // Gülle Kabuk: kalın altıgen zırh plakaları
+    const fade=Math.min(1,st.shell.t/0.3);
+    ctx.save(); ctx.globalAlpha=fade; ctx.strokeStyle='#e8d9a0'; ctx.lineWidth=5; ctx.beginPath();
+    for(let j=0;j<=6;j++){ const an=j*Math.PI/3+S.time*0.6; const R=h.r+6; if(j===0) ctx.moveTo(h.x+Math.cos(an)*R,h.y+Math.sin(an)*R); else ctx.lineTo(h.x+Math.cos(an)*R,h.y+Math.sin(an)*R); }
+    ctx.stroke(); ctx.fillStyle='rgba(232,217,160,0.16)'; ctx.fill(); ctx.restore();
+  }
+  if(st.ball){ ctx.beginPath(); ctx.arc(h.x,h.y,h.r+4,0,TAU); ctx.strokeStyle='#ffe08a'; ctx.lineWidth=4; ctx.stroke(); }
   if((a.state==='windup'||h.cast) && (h.team===S.player.team || (h.cast && h.def.skills[h.cast.k].type==='beam'))){ ctx.beginPath(); ctx.arc(h.x,h.y,h.r+1,0,TAU); ctx.lineWidth=2.5; ctx.strokeStyle='rgba(255,255,255,0.95)'; ctx.stroke(); }
   const ax=Math.cos(h.aim), ay=Math.sin(h.aim);
   if(h.form){   // İkili biçim işareti: uzak biçim mavi halka + yay, yakın biçim turuncu halka + çekiç
@@ -599,6 +621,14 @@ function drawHoldRange(){
     ctx.restore();
     holdLine(p, ang, sk.dist+p.r, p.r*2);
     holdCircle(p.x+Math.cos(ang)*sk.dist, p.y+Math.sin(ang)*sk.dist, p.r, null, 'rgba(255,170,90,0.9)', true);
+  } else if(sk.type==='roll'){   // Gülle Yuvarlan: basılı tutma süresiyle uzayan çizgi ve iniş alanı
+    const L=sk.dMin+(sk.dMax-sk.dMin)*Math.min(1, (performance.now()-(uiState.holdT||performance.now()))/1000/sk.charge);
+    holdLine(p, ang, L, p.r*2);
+    holdCircle(p.x+Math.cos(ang)*L, p.y+Math.sin(ang)*L, sk.radius, 'rgba(255,210,120,0.14)', 'rgba(255,215,130,0.9)');
+  } else if(sk.type==='shell'){
+    holdCircle(p.x,p.y,p.r+atkDef(p).range+sk.range,'rgba(232,217,160,0.05)','rgba(232,217,160,0.8)',true);
+  } else if(sk.type==='billiard'){
+    holdLine(p, ang, sk.speed*0.6, p.r*2);
   } else if(sk.type==='firering'){
     holdCircle(p.x,p.y,sk.radius,'rgba(255,120,40,0.08)','rgba(255,150,70,0.85)',true);
   } else if(sk.type==='shockwave'){
@@ -1046,7 +1076,8 @@ const HUD_NUM=[
   ['count','Mermi sayısı','n'],['shots','Atış sayısı','n'],['bounceCount','Sekme','n'],['back','Dönüş süresi','t'],['delay','Gecikme','t'],['missing','Eksik can başına','p'],['res','Zırh ve BD','n'],
   ['killPct','Son vuruşta can','p'],['nearPct','Yakındaki ölümde can','p'],['twinPct','Ok başına hasar','p'],['bouncePct','Sekme hasarı','p'],['regenPct','Can yenileme (5 sn)','p'],
   ['flowMin','Hız (1. seviye)','p'],['flowMax','Hız (10. seviye)','p'],['timerMax','Odak süresi (1. seviye)','t'],['timerMin','Odak süresi (10. seviye)','t'],
-  ['oppCd','Bekleme','t'],['oppBase','Ek hasar','n'],['oppMax','Azami can oranı','p'],['flowCd','Bekleme kısalması','t'],['flowHero','Kahramanda','t']
+  ['oppCd','Bekleme','t'],['dMin','En kısa mesafe','n'],['dMax','En uzun mesafe','n'],['charge','Dolma süresi','t'],['dr','Hasar azaltma','p'],['massMult','Kütle','x'],
+  ['ms','Hız (dolu)','p'],['gain','Dolma (sn başına)','n'],['dmgMin','Ek hasar (1. seviye)','n'],['dmgMax','Ek hasar (10. seviye)','n'],['pushAt','İtme eşiği','n'],['push','İtme','n'],['rehit','Aynı rakibe','t'],['oppBase','Ek hasar','n'],['oppMax','Azami can oranı','p'],['flowCd','Bekleme kısalması','t'],['flowHero','Kahramanda','t']
 ];
 const TYPE_DESC={
   volley:'Önündeki yelpazeye ok yağdırır.', haste:'Saldırı hızın bir süre artar.', bigarrow:'Harita boyunca giden dev ok; vurduğunu kısa süre dondurur.',
@@ -1064,13 +1095,17 @@ const TYPE_DESC={
   tether:'Rakibe zincir bağlar; kopmazsa kök salar.', blink:'Anında ışınlanırsın; aynı tuşa tekrar basınca geri dönersin.',
   mimic:'Son Zincir ya da Gölge Adımı daha güçlü tekrar edilir.', spiritburst:'Küre fırlatır; patlar, hasar verir ve yavaşlatır.',
   spiritshield:'Kalkan ve kısa hız artışı.', mantra:'Sonraki Ruh Patlaması ya da Kalkanı güçlenir.', groworb:'Mesafeyle büyüyüp hızlanan enerji küresi.',
-  leapslam:'Rakibe sıçrayıp inersin; alan hasarı ve yavaşlatma.', knockblow:'Rakibi iter; duvara çarparsa sersemler.', transform:'Uzak ve yakın biçim arasında geçiş yaparsın.'
+  leapslam:'Rakibe sıçrayıp inersin; alan hasarı ve yavaşlatma.', knockblow:'Rakibi iter; duvara çarparsa sersemler.', transform:'Uzak ve yakın biçim arasında geçiş yaparsın.',
+  roll:'Basılı tuttukça mesafe artar; bırakınca yuvarlanır, indiğin yerde rakipleri havaya atıp sersemletirsin.',
+  shell:'Kabuğa çekilirsin: ağırlaşır, itilemez ve çekilemezsin, hasar azalır; düz vuruş menzili artar, vuruşların yavaşlatır.',
+  billiard:'Durdurulamaz top olursun: hızla ileri gider, duvarlardan seker, değdiğin rakipleri itip vurursun. İmleçle hafifçe yönlendirilir.'
 };
 const PASS_DESC={
   archer:'Düz vuruşların rakibi yavaşlatır.', warrior:'Hasarın bir kısmı yakındaki rakiplere yayılır.', mage:'Rakip kahramanı her vuruşta yakar.',
   twin:'Her düz vuruş iki güdümlü ok atar.', bounce:'Düz vuruş yakındaki başka bir rakibe seker.', hook:'Canın sürekli ek yenilenir.',
   flame:'Yetenek sonrası ilk düz vuruş patlama çıkarır.', blood:'Yakında ölen rakipten can kazanırsın.', artillery:'Dolunca sağ tık ve E beklemesi çok kısalır.',
-  shadow:'Canı yarının altındaki rakibe vurunca ek hasar.', spirit:'Düz vuruşların yeteneklerin beklemesini kısaltır.', dual:'Yetenek kullanınca kısa süre hızlanırsın.'
+  shadow:'Canı yarının altındaki rakibe vurunca ek hasar.', spirit:'Düz vuruşların yeteneklerin beklemesini kısaltır.', dual:'Yetenek kullanınca kısa süre hızlanırsın.',
+  roller:'Düz giderken momentum biriktirip hızlanırsın; ani dönüş bozar. İsabet momentumu harcar: ek hasar, yüksekse rakibi iter.'
 };
 const HUD_STATS=[ ['dmg','SG'], ['asPct','Saldırı hızı'], ['crit','Kritik'], ['ls','Can çalma'], ['ap','YG'], ['ah','YH'], ['hp','Can'], ['armor','Zırh'], ['mr','Büyü direnci'], ['msPct','Hareket hızı'], ['lethal','Zırh delme'], ['regen','Yenileme'] ];
 

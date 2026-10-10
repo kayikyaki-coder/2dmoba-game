@@ -54,7 +54,7 @@ export function atkDef(h){
 }
 function atkDefCalc(h){
   const a=h.def.attack, T=STATS[h.type], B=h.bonus||{}, proj=a.type==='projectile';
-  return { type:a.type, knock:a.knock, range:stat(h,'range')+(proj?(B.rangeRanged||0):(B.rangeMelee||0)),
+  return { type:a.type, knock:a.knock, range:stat(h,'range')+(proj?(B.rangeRanged||0):(B.rangeMelee||0))+(h.st&&h.st.shell?h.st.shell.range:0),
     slow:stat(h,'atkSlow')*(B.atkSlowMult||1), windupRatio:stat(h,'windup'),
     projSpeed:T.projSpeed?stat(h,'projSpeed'):0, projRadius:T.projRadius?stat(h,'projRadius'):0,
     // not: düz vuruş artık hedefli (koni yok); angle ve eşya angleMult (Uzun Nişan) düz vuruşta etkisiz, yalnız eski veri olarak duruyor
@@ -71,7 +71,7 @@ export function makeHero(type, team, x, y, human){
     vx:0, vy:0, kx:0, ky:0, baseR:STATS[type].size.base, r:STATS[type].size.base, mass:STATS[type].mass.base, hp:STATS[type].hp.base, maxHp:STATS[type].hp.base,
     aim: team===0 ? 0 : Math.PI, atk:{ state:'ready', t:0, total:0, aim:0 },
     rank:{ r:0, e:0, s:d.skills.s.fixed?1:0 }, level:1, xp:0, gold:START_GOLD, items:[], bonus:null, ic:{}, stasis:0, build:null, dmgBy:{}, helpBy:{}, kills:0, deaths:0, assists:0, points:0, cd:{ r:0, e:0, s:0 }, cdMax:{ r:1, e:1, s:1 },
-    st:{ slow:null, freeze:0, asB:null, shield:null, spd:null, giant:null, burn:null, ignite:null, amp:null, bflame:null, titanSlow:null, shred:null, frenzy:null, fring:null, flow:null, silence:0, curse:null, root:0 },
+    st:{ slow:null, freeze:0, asB:null, shield:null, spd:null, giant:null, burn:null, ignite:null, amp:null, bflame:null, titanSlow:null, shred:null, frenzy:null, fring:null, flow:null, silence:0, curse:null, root:0, shell:null, ball:null },
     cast:null, dash:null, chan:null, pulled:null, dead:false, respawn:0, flash:0,
     // biçim değiştiren kahraman (İkili): biçim, biçime özel stat farkları, diğer biçimin beklemeleri (arka planda akar); diğerlerinde null
     form:d.meleeForm?'ranged':null, formStats:null, offCd:d.meleeForm?{ r:0, e:0 }:null, offMax:d.meleeForm?{ r:1, e:1 }:null,
@@ -156,6 +156,7 @@ export function moveMult(h){
   if(h.ic){
     if(h.ic.stride>0 && h.bonus && h.bonus.stride) m*=1+h.ic.stride*h.bonus.stride.msPer;   // Fırtına Adımı
     if(h.ic.hmsUntil>S.time) m*=1+h.ic.hmsN*h.ic.hmsAmt;                                    // Dikenli Çizme
+    if(h.ic.mom>0) m*=1+h.def.skills.p.ms*h.ic.mom/100;                                    // Gülle: Momentum
   }
   return m;
 }
@@ -264,6 +265,7 @@ export function applySlow(e, amt, t, decay){
   if(!c || amt>=c.amt || c.t<=0) e.st.slow = decay ? { amt, t, base:amt, total:t, decay:true } : { amt, t };
 }
 export function freezeHero(e, t){
+  if(e.st && e.st.ball) return;   // Gülle Bilardo: durdurulamaz
   ccHit(e);
   e.st.freeze = Math.max(e.st.freeze, t);
   e.cast=null; e.dash=null; e.chan=null;
@@ -285,6 +287,7 @@ export function passiveText(h){
   if(sk.flowCd!==undefined) return 'vuruş -'+String(sk.flowCd).replace('.',',')+' / -'+String(sk.flowHero).replace('.',',')+' sn';
   if(sk.missPct) return "sn'de eksik canın %"+Math.round(sk.missPct*100)+"'ü";
   if(sk.burnMin!==undefined) return "sn'de "+burnDps(sk,h.level).toFixed(1)+' yakar';
+  if(sk.gain!==undefined) return 'Momentum '+Math.round(h.ic.mom||0)+' (ek '+Math.round(momDmg(h)*(h.ic.mom||0)/100)+')';
   return '';
 }
 /* Yetenek gücü (YG): STATS'taki ap (ileride eşyalar ekleyecek) */
@@ -344,6 +347,7 @@ export function damage(e, amt, src, opts){
       if(e.bonus.ccShield && e.ic.drT>S.time) a*=1-e.bonus.ccShield.pct;      // Tanrı Kalkanı: kitle kontrolü sonrası hasar azaltma
       if(e.bonus.carry) a*=1-carryRed(e);                                      // Yük Taşıyıcı: taşınan altına göre hasar azaltma
     }
+    if(e.st.shell) a*=1-e.st.shell.dr;   // Gülle Kabuk: hasar azaltma
   }
   if(e.st && e.st.amp) a *= 1+e.st.amp.amt;
   if(e.kind==='hero' && e.recallCh && !opts.tiny) e.recallCh=null;   // hasar üsse dönüşü keser     // içten yanma: aldığı hasar artar
@@ -519,14 +523,14 @@ export function kill(e, src){
 }
 
 export function applyKnock(e,nx,ny,f){
-  if(e.kind==='struct') return;
+  if(e.kind==='struct' || unpushable(e)) return;
   e.kx += nx*f/e.mass; e.ky += ny*f/e.mass;
 }
 
 export function respawnHero(h){
   Object.assign(h,{ x:h.spawnX, y:h.spawnY, vx:0, vy:0, kx:0, ky:0, hp:h.maxHp, dead:false, flash:0,
     r:h.baseR, cast:null, dash:null, chan:null, recallCh:null, cd:{ r:0, e:0, s:0 },
-    st:{ slow:null, freeze:0, asB:null, shield:null, spd:null, giant:null, burn:null, ignite:null, amp:null, bflame:null, titanSlow:null, shred:null, frenzy:null, fring:null, flow:null, silence:0, curse:null, root:0 }, stasis:0, pulled:null });
+    st:{ slow:null, freeze:0, asB:null, shield:null, spd:null, giant:null, burn:null, ignite:null, amp:null, bflame:null, titanSlow:null, shred:null, frenzy:null, fring:null, flow:null, silence:0, curse:null, root:0, shell:null, ball:null }, stasis:0, pulled:null });
   h.atk = { state:'ready', t:0, total:0, aim:h.aim };
   if(h.offCd){   // İkili: beklemeler sıfırlanır, uzak biçimde doğar
     h.offCd.r=0; h.offCd.e=0; h.offMax.r=1; h.offMax.e=1;
@@ -862,7 +866,7 @@ export function tryCast(h, k, aim, cmd){
   // Arınma sersemken de kullanılır (tek istisna); Kum Saati dokunulmazlığında zaten updateHero buraya gelmez
   if(sk.type==='cleanse' ? (h.cast || h.dash) : !canAct(h)) return;
   if(h.st.silence>0 && sk.type!=='cleanse') return;   // susturulan yetenek kullanamaz (Arınma istisna: susturmayı kaldıran o)
-  if(h.st.root>0 && (sk.type==='dash' || sk.type==='tumble' || sk.type==='flameleap' || sk.type==='leapslam')) return;   // köklüyken atılış ve sıçrama yok (ışınlanma serbest)
+  if(h.st.root>0 && (sk.type==='dash' || sk.type==='tumble' || sk.type==='flameleap' || sk.type==='leapslam' || sk.type==='roll')) return;   // köklüyken atılış ve sıçrama yok (ışınlanma serbest)
   if(sk.type==='mimic' && !h.ic.last) return;   // Taklit: henüz tekrarlanacak yetenek yok
   let tgt=null;
   if(sk.type==='ignite' || sk.type==='bloodbolt'){
@@ -1113,6 +1117,19 @@ export function instantSkill(h, k, aim, cmd, tgt, opt){
   } else if(sk.type==='firering'){   // Alev Halkası: kahramanla hareket eden halka, süre boyunca zırh ve büyü direnci
     h.st.fring = { t:sk.dur, total:sk.dur, radius:sk.radius, dps:sk.dps[i]+(sk.ap||0)*apOf(h), slow:sk.slow, res:sk.res+(sk.resAp||0)*apOf(h) };
     fx({ type:'ring', owner:h, r0:h.r, r1:sk.radius, color:'#ff8a3d', lw:6, life:0.45 });
+  } else if(sk.type==='roll'){   // Gülle Yuvarlan: basılı tutma süresine (bot: imleç noktasına) göre mesafe, inişte rollLand
+    let L;
+    if(cmd && cmd.hold!==undefined) L=sk.dMin+(sk.dMax-sk.dMin)*Math.min(1, cmd.hold/sk.charge);
+    else if(cmd && cmd.tx!==undefined && isFinite(cmd.tx)) L=Math.max(sk.dMin, Math.min(sk.dMax, Math.hypot(cmd.tx-h.x, cmd.ty-h.y)));
+    else L=sk.dMax;
+    h.dash = { dx:Math.cos(aim), dy:Math.sin(aim), left:L, sk, rk, noHit:true, roll:true };
+  } else if(sk.type==='shell'){   // Gülle Kabuk
+    h.st.shell = { t:sk.dur, total:sk.dur, dr:sk.dr[i], range:sk.range, dmg:sk.dmg[i]+sk.hpPct*bonusHp(h), slow:sk.slow, slowDur:sk.slowDur, mass:sk.massMult };
+    fx({ type:'ring', owner:h, r0:h.r, r1:h.r+30, color:'#e8d9a0', lw:6, life:0.4 });
+  } else if(sk.type==='billiard'){   // Gülle Bilardo: durdurulamaz top (updateHero ballStep)
+    h.st.ball = { t:sk.dur, total:sk.dur, dx:Math.cos(aim), dy:Math.sin(aim), sk, dmg:sk.dmg[i]+sk.hpPct*bonusHp(h), hit:new Map() };
+    h.st.freeze=0; h.atk.state='ready';
+    fx({ type:'ring', owner:h, r0:h.r, r1:h.r+50, color:'#ffe08a', lw:6, life:0.5 });
   } else if(sk.type==='tumble'){   // Yan Atılış: hasarsız kısa kayış, window sn içindeki ilk düz vuruş 3 ok atar
     h.dash = { dx:Math.cos(aim), dy:Math.sin(aim), left:sk.dist, sk, rk, noHit:true };
     h.ic.tripleUntil = S.time+sk.window;
@@ -1242,6 +1259,8 @@ export function releaseAttack(h){
       fx({ type:'slash', owner:h, tgt:e, ang, crit, life:0.2 });
       damage(e, dmg, h, { basic:true, crit });
       onBasicHit(h, e);
+      if(h.st.shell && !e.dead && e.kind!=='struct'){ damage(e, h.st.shell.dmg, h, { type:'phys', noProc:true, noSplash:true }); if(!e.dead && e.st) applySlow(e, h.st.shell.slow, h.st.shell.slowDur); }   // Gülle Kabuk
+      if(h.ic.mom>0){ momHit(h, e); h.ic.mom=0; }   // Gülle Momentum: isabet harcar
       if(B.cleave){   // Kesici Vuruş: yalnız yakın dövüşte; hedefin arkasındaki koniye yayılır (eşya istisnası: normalde tek hedef)
         for(const u of foes(h.team,false)){
           if(u===e || u.dead || !inCone(e, ang, B.cleave.reach, B.cleave.half, u)) continue;
@@ -1270,7 +1289,7 @@ export function updateHero(h, cmd, dt){
 
   h.flash=Math.max(0,h.flash-dt);
   if(st.fring) ringTick(h, dt);   // Alev Halkası: süreli hasar ve yavaşlatma (süre aşağıda düşer)
-  for(const k of ['slow','asB','shield','spd','giant','amp','titanSlow','shred','frenzy','fring','flow']){ if(st[k]){ st[k].t-=dt; if(st[k].t<=0) st[k]=null; } }
+  for(const k of ['slow','asB','shield','spd','giant','amp','titanSlow','shred','frenzy','fring','flow','shell']){ if(st[k]){ st[k].t-=dt; if(st[k].t<=0) st[k]=null; } }
   if(st.slow && st.slow.decay) st.slow.amt=st.slow.base*st.slow.t/st.slow.total;   // Şok Dalgası: yavaşlatma doğrusal azalır
   if(st.silence>0) st.silence-=dt;
   if(st.root>0) st.root-=dt;
@@ -1303,13 +1322,14 @@ export function updateHero(h, cmd, dt){
 
   const tr=h.baseR*(1+(st.giant?st.giant.size:0));
   h.r += (tr-h.r)*Math.min(1,12*dt);
-  h.mass = stat(h,'mass')*Math.pow(h.r/h.baseR,2);
+  h.mass = stat(h,'mass')*Math.pow(h.r/h.baseR,2)*(st.shell ? st.shell.mass : 1)*(st.ball ? 10 : 1);   // Gülle: Kabuk 3 kat, top çok ağır
   h.aim = cmd.aim;
 
   if(st.freeze>0){ if(a.state==='windup') a.state='ready'; h.cast=null; h.dash=null; h.chan=null; }
 
   // Kanca ile çekiliyor: hareket, saldırı ve yetenek yok (zorla yer değiştirme)
   if(h.pulled){ pullStep(h, dt); return; }
+  if(st.ball){ ballStep(h, cmd, dt); return; }   // Gülle Bilardo: durdurulamaz top
 
   // Atılış (savaşçı sağ tık)
   if(h.dash){
@@ -1337,7 +1357,7 @@ export function updateHero(h, cmd, dt){
         stop=true; break;
       }
     }
-    if(stop || d.left<=0.01){ h.dash=null; h.vx=d.dx*40; h.vy=d.dy*40; if(d.leap) leapStrip(h, d); if(d.slam) leapSlam(h, d); }
+    if(stop || d.left<=0.01){ h.dash=null; h.vx=d.dx*40; h.vy=d.dy*40; if(d.leap) leapStrip(h, d); if(d.slam) leapSlam(h, d); if(d.roll) rollLand(h, d); }
     const kd=Math.exp(-6*dt); h.kx*=kd; h.ky*=kd;
     return;
   }
@@ -1419,6 +1439,7 @@ export function updateHero(h, cmd, dt){
   const kd=Math.exp(-6*dt); h.kx*=kd; h.ky*=kd;
   h.x+=(h.vx+h.kx)*dt; h.y+=(h.vy+h.ky)*dt;
   clampToWorld(h);
+  if(h.def.skills.p.gain!==undefined) momTick(h, mx, my, l>0 && ms>0, dt);   // Gülle: Momentum
 }
 
 /* Biçim değiştir (İkili): h.def, stat farkları ve r/e beklemeleri takas edilir (diğer biçimin beklemesi arka planda aktı, burada geri gelir) */
@@ -1446,6 +1467,7 @@ function leapSlam(h, d){
 }
 /* Darbe itmesi: u, (dx,dy) yönünde sk.push birimi sk.pushT sn'de kayar (zorla yer değiştirme: o sürede hareket, saldırı ve yetenek yok) */
 function shoveStart(u, src, dx, dy, sk){
+  if(unpushable(u)) return;   // Gülle Kabuk / Bilardo: itilemez
   ccHit(u);
   if(u.kind==='hero') u.recallCh=null;
   u.cast=null; u.dash=null; u.chan=null;
@@ -1458,7 +1480,7 @@ function shoveStep(u, dt){
   u.vx=0; u.vy=0; u.kx=0; u.ky=0;
   if(inWall(nx,ny,u.r)){   // duvara (ya da harita sınırına) çarptı: itme biter, sersemler
     u.pulled=null;
-    if(!(u.stasis>0)) freezeHero(u, pl.stun);
+    if(!(u.stasis>0) && pl.stun>0) freezeHero(u, pl.stun);
     fx({ type:'boom', x:u.x+pl.dx*u.r, y:u.y+pl.dy*u.r, r0:8, r1:u.r+22, color:'#ffe9b0', life:0.3 });
     return;
   }
@@ -1536,12 +1558,92 @@ function pullStep(u, dt){
 /* Kanca hedefe değdi: kahramansa sersemler, her iki durumda çekilme başlar */
 function hookPull(p, hit){
   const hk=p.hook, o=p.owner;
+  if(unpushable(hit)) return;   // Gülle Kabuk / Bilardo: çekilemez
   if(hit.kind==='hero'){
     if(hit.stasis>0) return;
     freezeHero(hit, hk.freeze); hit.recallCh=null;
   } else { hit.cast=null; if(hit.atk.state==='windup') hit.atk.state='ready'; }
   hit.dash=null;
   hit.pulled={ src:o, t:hk.pull, total:hk.pull, gap:hk.gap, ox:o.x, oy:o.y, or:o.r };
+}
+
+/* ---- Gülle ---- */
+/* Kabuk ya da Bilardo: itilemez, çekilemez (yalnız Gülle'de dolu) */
+export function unpushable(u){ return !!(u.st && (u.st.shell || u.st.ball)); }
+/* Momentum: aynı yönde yürüdükçe artar; yön sapması derece başına düşürür, ani dönüş sıfırlar; yürümüyorsa söner */
+function momTick(h, mx, my, moving, dt){
+  const p=h.def.skills.p, ic=h.ic; let m=ic.mom||0;
+  if(!moving) m-=p.decay*dt;
+  else {
+    if(ic.mhx!==undefined && m>0){
+      const c=Math.max(-1, Math.min(1, mx*ic.mhx+my*ic.mhy)), deg=Math.acos(c)*180/Math.PI;
+      if(deg>=p.breakDeg) m=0; else m-=deg*p.turnLoss;
+    }
+    m+=p.gain*dt; ic.mhx=mx; ic.mhy=my;
+  }
+  ic.mom=Math.max(0, Math.min(100, m));
+}
+export function momDmg(h){ const p=h.def.skills.p; return p.dmgMin+(p.dmgMax-p.dmgMin)*((h.level||1)-1)/(MAX_LEVEL-1)+p.ad*bonusAd(h); }
+/* Momentum isabeti: ek fiziksel hasar (momentumla orantılı), eşik üstündeyse gidiş yönünde itme. Harcamayı çağıran yapar. */
+function momHit(h, u){
+  const p=h.def.skills.p, m=h.ic.mom||0;
+  if(m<=1 || u.dead || u.kind==='struct') return;
+  damage(u, momDmg(h)*m/100, h, { type:'phys', noProc:true, noSplash:true });
+  if(m>=p.pushAt && !u.dead && !(u.stasis>0) && !u.pulled){
+    let dx=h.ic.mhx, dy=h.ic.mhy;
+    if(dx===undefined){ const ddx=u.x-h.x, ddy=u.y-h.y, l=Math.hypot(ddx,ddy)||1; dx=ddx/l; dy=ddy/l; }
+    shoveStart(u, h, dx, dy, { push:p.push, pushT:p.pushT, stun:0 });
+  }
+  fx({ type:'ring', owner:u, r0:u.r, r1:u.r+22, color:'#ffd27a', lw:4, life:0.3 });
+}
+/* Yuvarlan inişi: radius yarıçapta rakiplere (kule hariç) fiziksel hasar + sersemletme, momentum isabeti (gidiş yönünde) */
+function rollLand(h, d){
+  const sk=d.sk, i=d.rk-1, dm=sk.dmg[i]+sk.hpPct*bonusHp(h);
+  h.ic.mhx=d.dx; h.ic.mhy=d.dy;
+  let any=false;
+  for(const u of foes(h.team,false)){
+    if(Math.hypot(u.x-h.x,u.y-h.y)>sk.radius+u.r) continue;
+    damage(u, dm, h, { type:'phys', skill:true });
+    if(!u.dead && u.st && !(u.stasis>0)) freezeHero(u, sk.stun[i]);
+    if(h.ic.mom>0) momHit(h, u);
+    any=true;
+    fx({ type:'hit', x:u.x, y:u.y, big:true, life:0.2 });
+  }
+  if(any) h.ic.mom=0;
+  fx({ type:'boom', x:h.x, y:h.y, r0:20, r1:sk.radius, color:'#ffd27a', life:0.4 });
+}
+/* Bilardo: sürekli ileri giden top; imlece yavaşça döner, duvar/sınır/yapıdan seker, değdiği rakibi iter ve vurur */
+function ballStep(h, cmd, dt){
+  const B=h.st.ball, sk=B.sk;
+  const cur=Math.atan2(B.dy,B.dx), mt=sk.turn*dt, da=Math.max(-mt, Math.min(mt, angDiff(cmd.aim, cur))), a=cur+da;
+  B.dx=Math.cos(a); B.dy=Math.sin(a);
+  const ox=h.x, oy=h.y, len=sk.speed*dt;
+  let nx=h.x+B.dx*len, ny=h.y+B.dy*len, bounced=false;
+  if(nx<h.r || nx>WORLD.w-h.r){ B.dx=-B.dx; nx=Math.max(h.r, Math.min(WORLD.w-h.r, nx)); bounced=true; }
+  if(ny<h.r || ny>WORLD.h-h.r){ B.dy=-B.dy; ny=Math.max(h.r, Math.min(WORLD.h-h.r, ny)); bounced=true; }
+  const refl=(qx,qy)=>{ const l=Math.hypot(qx,qy); if(l<1e-9) return; qx/=l; qy/=l; const dot=B.dx*qx+B.dy*qy; if(dot<0){ B.dx-=2*dot*qx; B.dy-=2*dot*qy; bounced=true; } };
+  if(inWall(nx,ny,h.r)){ const p=pushOutWalls(nx,ny,h.r); refl(p.x-nx, p.y-ny); nx=p.x; ny=p.y; }
+  for(const s of S.structs){
+    if(s.dead) continue;
+    const dx=nx-s.x, dy=ny-s.y, dd=Math.hypot(dx,dy)||1, min=h.r+s.r;
+    if(dd<min){ refl(dx,dy); nx=s.x+dx/dd*min; ny=s.y+dy/dd*min; }
+  }
+  if(bounced) fx({ type:'boom', x:nx, y:ny, r0:h.r*0.6, r1:h.r+26, color:'#ffe08a', life:0.25 });
+  h.x=nx; h.y=ny; h.vx=B.dx*sk.speed; h.vy=B.dy*sk.speed; h.kx=0; h.ky=0;
+  fx({ type:'ghost', x:ox, y:oy, r:h.r, team:h.team, life:0.2 });
+  for(const u of foes(h.team,false)){
+    if(u.dead || dist(u,h)>h.r+u.r+sk.hitR) continue;
+    const last=B.hit.get(u.id); if(last!==undefined && S.time-last<sk.rehit) continue;
+    B.hit.set(u.id, S.time);
+    damage(u, B.dmg, h, { type:'phys', skill:true });
+    if(!u.dead && !(u.stasis>0) && !u.pulled){
+      let dx=u.x-h.x, dy=u.y-h.y; const l=Math.hypot(dx,dy)||1; dx=dx/l+B.dx*0.5; dy=dy/l+B.dy*0.5; const l2=Math.hypot(dx,dy)||1;
+      shoveStart(u, h, dx/l2, dy/l2, sk);
+    }
+    fx({ type:'hit', x:u.x, y:u.y, big:true, life:0.2 });
+  }
+  B.t-=dt;
+  if(B.t<=0){ h.st.ball=null; h.ic.mom=100; h.ic.mhx=B.dx; h.ic.mhy=B.dy; h.vx=B.dx*stat(h,'spd'); h.vy=B.dy*stat(h,'spd'); }
 }
 
 export function clampToWorld(h){

@@ -149,6 +149,7 @@ export const RECOMMENDED = {
   twin:    ['kraken','botrk','pd','ie','ldr','bt','runbow','fury'],
   bounce:  ['ie','pd','botrk','ldr','bt','bloodbow','nightfang','luck'],
   hook:    ['sunfire','warmog','randuin','visage','spellwall','ironwall','lastshield','godshield'],
+  roller:  ['sunfire','warmog','randuin','visage','titanic','stonebelt','godshield','fortress'],
   flame:   ['lich','spring','abyss','bloodtome','bloodcup','emberward','silverguard','agetome'],
   blood:   ['spring','blackflame','dcap','void','bloodcup','lifestone','abyss','agetome'],
   artillery:['blackflame','echo','dcap','void','glassbreak','frostrod','time','hourglass'],
@@ -163,7 +164,7 @@ export const RECOMMENDED = {
    (ikisini de veren), karışık kalmadıysa elde az olan direnç. */
 export const DEF = 'DEF';
 /* Kahramanın savunma havuzu: 'tank' (can ağırlıklı, dövüşçü/tank) ya da 'caster' (menzilli/büyücü) */
-export const DEF_CLASS = { hook:'tank', warrior:'tank', dual:'tank', flame:'tank' };   // diğerleri 'caster'
+export const DEF_CLASS = { hook:'tank', roller:'tank', warrior:'tank', dual:'tank', flame:'tank' };   // diğerleri 'caster'
 export const DEF_POOLS = {
   tank:   { armor:['randuin','thorn','ironwall','woundmail','stonebelt','steelboot','sunfire'],
             mr:   ['visage','spellwall','windcloak'],
@@ -175,7 +176,7 @@ export const DEF_POOLS = {
 /* Kahramanın verdiği hasarın tahmini fiziksel oranı (düz vuruş fiziksel; yetenekler türüne göre). Maçın başında,
    henüz hasar verisi yokken kullanılır; veri biriktikçe ölçülen oran öne geçer (sim.js foePhysShare). */
 export const DMG_PHYS = { archer:0.85, twin:0.95, warrior:1.0, mage:0.15, bounce:0.95, hook:0.70, flame:0.35, blood:0.10,
-  artillery:0.40, shadow:0.40, spirit:0.20, dual:0.65 };
+  artillery:0.40, shadow:0.40, spirit:0.20, dual:0.65, roller:1.0 };
 
 /* Botların eşya sıralamaları. default = seçilen ideal sıralama (tools/builds.js ile denenir). 'DEF' = esnek savunma yuvası.
    Not: yuva 5, yani her listenin ilk 5 büyük eşyası alınır; 6. giriş yedektir. */
@@ -206,6 +207,10 @@ export const BUILDS = {
     default:['sunfire',DEF,'warmog',DEF,DEF,DEF],   // can ağırlıklı çekirdek + esnek direnç yuvaları
     tank:   [DEF,'warmog',DEF,DEF,DEF,DEF],
     buyu:   ['abyss','sunfire','visage','warmog','randuin','fortress']
+  },
+  roller: {
+    default:['sunfire',DEF,'warmog',DEF,DEF,'titanic'],   // Gülle: Zincirli gibi can çekirdeği + esnek direnç yuvaları (3 esnek)
+    tank:   [DEF,'warmog',DEF,DEF,DEF,'sunfire']
   },
   flame: {
     default:['lich','spring',DEF,'bloodtome',DEF,'dcap'],   // yetenek sonrası vuruşlar, can ve YG ağırlıklı yakın dövüş büyücüsü (denenmedi)

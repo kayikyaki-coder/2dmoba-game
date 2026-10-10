@@ -119,6 +119,23 @@ export const STATS = {
     atkSlow:{ base:0.40, per:0 },
     angle:{ base:90, per:0 }
   },
+  roller: {   // Gülle: hareket eden tank (yakın dövüş). Zincirli/Savaşçı arası can, düşük temel hız (Momentum +%28 verir)
+    hp:{ base:920, per:46 },
+    regen:{ base:8, per:1.0 },
+    armor:{ base:10, per:0 },
+    mr:{ base:10, per:0 },
+    ah:{ base:0, per:0 },
+    ap:{ base:0, per:0 },
+    dmg:{ base:66, per:3.5 },
+    as:{ base:0.90, per:0.03 },
+    spd:{ base:195, per:3 },
+    range:{ base:115, per:0 },
+    size:{ base:30, per:0 },
+    mass:{ base:2.6, per:0 },
+    windup:{ base:0.27, per:0 },
+    atkSlow:{ base:0.40, per:0 },
+    angle:{ base:90, per:0 }
+  },
   flame: {
     hp:{ base:680, per:30 },        // denge: 560 idi
     regen:{ base:8, per:0.9 },        // denge: 4 idi, seviye başına: 0 idi
@@ -434,6 +451,32 @@ export const HEROES = {
       //   Ruh Patlaması: patlama burstRadius yarıçap, field sn yerde kalan alan (fieldSlow yavaşlatma, sürekli yenilenir), süre sonunda again oranında hasarla bir kez daha patlar.
       //   Ruh Kalkanı: kalkan shieldMult katı, üstündeki yavaşlatmalar kalkar (sersemletme, kök, susturma kalmaz).
       s:{ name:'Güçlendir', max:2, type:'mantra', cd:[20,16], window:6, burstRadius:250, field:1.5, fieldSlow:0.40, again:0.50, shieldMult:1.5, allyR:550 }
+    }
+  },
+  roller: {
+    id:'roller', name:'Gülle', letter:'G',
+    attack:{ type:'cone', knock:0 },
+    skills:{
+      // pasif: aynı yönde yürüdükçe momentum (0-100) saniyede gain artar; her tikte komut yönünün eski yönden sapması derece başına turnLoss düşürür,
+      //        breakDeg ve üstü ani dönüş sıfırlar; yürümüyorsa (ya da kontrol altında) saniyede decay söner. Momentum ms oranında hareket hızı verir.
+      //        Düz vuruş ya da yetenek isabeti ek fiziksel hasar (dmgMin..dmgMax seviyeyle + ad * ek SG) * momentum/100 verir; momentum pushAt üstündeyse
+      //        rakibi gidiş yönünde push birim iter (pushT sn). İsabet momentumu harcar (sıfırlar). Kahraman/minyon, kule değil.
+      p:{ name:'Momentum', gain:55, decay:140, turnLoss:0.5, breakDeg:80, ms:0.28, dmgMin:30, dmgMax:90, ad:0.30, pushAt:60, push:100, pushT:0.15 },
+      // sağ tık: basılı tutuldukça mesafe dMin'den dMax'a (charge sn'de) artar (bot imleç noktasına göre seçer); bırakınca o yöne speed hızıyla yuvarlanır
+      //          (birimlerin içinden geçer, duvarda ve yapıda durur, kök engeller). İnişte radius yarıçapta rakiplere (kule hariç) fiziksel hasar
+      //          dmg + hpPct * ek can, kahraman ve minyonlar stun sn sersemler (havaya atılır).
+      r:{ name:'Yuvarlan', max:4, type:'roll', cd:[13,12,11,10], dMin:300, dMax:900, charge:1, speed:1300, radius:130,
+          dmg:[60,90,120,150], hpPct:0.04, stun:[0.6,0.65,0.7,0.75] },
+      // E: anında, dur sn kabuk: kütle massMult katı, itilemez/çekilemez (kanca, Darbe, momentum itmesi, geri tepme), dr hasar azaltma,
+      //    düz vuruş menzili +range, düz vuruşlar rakiplere ek dmg + hpPct * ek can fiziksel hasar ve slowDur sn slow yavaşlatma
+      e:{ name:'Kabuk', max:4, type:'shell', cd:[16,15,14,13], dur:2.5, massMult:3, dr:[.25,.30,.35,.40], range:60,
+          dmg:[15,25,35,45], hpPct:0.02, slow:0.20, slowDur:1 },
+      // boşluk: dur sn durdurulamaz top: speed hızında sürekli ileri gider (imleç yönünde başlar, saniyede turn radyan imlece döner),
+      //         duvar, harita sınırı ve yapılardan seker; değdiği her rakibe (kule hariç; aynı birime rehit sn'de bir) fiziksel hasar
+      //         dmg + hpPct * ek can ve push birim itme (pushT sn); itilen duvara çarparsa stun sn sersemler. Topken sersemletme, itme, çekme işlemez;
+      //         düz vuruş ve yetenek yok. Bitince momentum dolu.
+      s:{ name:'Bilardo', max:2, type:'billiard', cd:[45,36], dur:3, speed:620, turn:1.6, hitR:8, rehit:0.8,
+          dmg:[120,180], hpPct:0.05, push:160, pushT:0.2, stun:0.6 }
     }
   },
   dual: {

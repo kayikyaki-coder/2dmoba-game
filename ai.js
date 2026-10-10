@@ -104,8 +104,8 @@ function findStand(b, u, want){
 
 /* Tehdit menzili: rakibin bize vurabileceği mesafe (hazır atılış dahil) */
 function threatR(e, b){
-  const k=skillKey(e,'dash'), lk=skillKey(e,'leapslam');
-  return reachTo(e,b) + (k && rdy(e,k) ? e.def.skills[k].dist : lk && rdy(e,lk) ? e.def.skills[lk].range*0.8 : 0) + 30;   // İkili'nin Sıçrayış Darbesi hazırsa o da tehdit
+  const k=skillKey(e,'dash'), lk=skillKey(e,'leapslam'), rl=skillKey(e,'roll');
+  return reachTo(e,b) + (k && rdy(e,k) ? e.def.skills[k].dist : lk && rdy(e,lk) ? e.def.skills[lk].range*0.8 : rl && rdy(e,rl) ? e.def.skills[rl].dMax*0.6 : 0) + 30;   // Gülle Yuvarlan da tehdit   // İkili'nin Sıçrayış Darbesi hazırsa o da tehdit
 }
 
 /* Kule s, b pos noktasındayken b'ye vurur mu? Kule en yakın birime vurur, şampiyona saldırana döner. */
@@ -209,6 +209,9 @@ function burstRaw(h, look=0){
     else if(sk.type==='knockblow') add('kblow', sk.dmg[i]+sk.hpPct*(S.heroes.find(u=>u.team!==h.team)||{ maxHp:0 }).maxHp);
     else if(sk.type==='spiritburst') add('sburst', sk.dmg[i]+(sk.ap||0)*apOf(h));
     else if(sk.type==='spiritshield') add('sshield', sk.shield[i]+(sk.ap||0)*apOf(h));
+    else if(sk.type==='roll') add('roll', sk.dmg[i]+sk.hpPct*bonusHp(h));                       // Gülle
+    else if(sk.type==='shell') add('rshell', h.maxHp*sk.dr[i]*0.5+(sk.dmg[i]+sk.hpPct*bonusHp(h))*2);
+    else if(sk.type==='billiard') add('ball', (sk.dmg[i]+sk.hpPct*bonusHp(h))*1.5);
     else if(sk.type==='mimic' && h.ic.last){   // Taklit: son yeteneğin hasarı, bonus kadar fazla
       const ms=h.def.skills[h.ic.last], mi=h.rank[h.ic.last]-1;
       if(mi>=0) add(ms.type, (ms.dmg[mi]+(ms.ap||0)*apOf(h))*(ms.type==='tether'?1.5:1)*(1+sk.bonus[i]));
@@ -220,9 +223,9 @@ function burstRaw(h, look=0){
 export const FE = {
   hitRR:0.085, hitRM:0.988, hitMR:0.181, hitMM:0.433,   // isabet: R=menzilli, M=yakın (saldıran, savunan)
   towerW:0.197, minionW:0.178, k:1.329,
-  w:{volley:0.104, bigarrow:0.275, dash:0.23, haste:0.595, giant:0.327, shield:2.344, fireball:0.344, ignite:0.407, igniteAmp:0.5, meteor:0.582, bomb:0.4, lock:0.3, boomerang:0.3, frenzy:0.4, hook:0.3, slam:0.34, shock:0.46, breath:0.322, leap:0.3, ring:0.4, bloodbolt:0.46, bloodnova:0.3, bloodcurse:0.4, beam:0.46, orb:0.45, art:0.17, tether:0.4, blink:0.35, sburst:0.391, sshield:0.425, gorb:0.34, lslam:0.37, kblow:0.35}
+  w:{volley:0.104, bigarrow:0.275, dash:0.23, haste:0.595, giant:0.327, shield:2.344, fireball:0.344, ignite:0.407, igniteAmp:0.5, meteor:0.582, bomb:0.4, lock:0.3, boomerang:0.3, frenzy:0.4, hook:0.3, slam:0.34, shock:0.46, breath:0.322, leap:0.3, ring:0.4, bloodbolt:0.46, bloodnova:0.3, bloodcurse:0.4, beam:0.46, orb:0.45, art:0.17, tether:0.4, blink:0.35, sburst:0.391, sshield:0.425, gorb:0.34, lslam:0.37, kblow:0.35, roll:0.4, rshell:0.6, ball:0.4}
 };
-const BONUS_T={ haste:1, giant:1, igniteAmp:1, frenzy:1 }, EHP_T={ shield:1, sshield:1 };
+const BONUS_T={ haste:1, giant:1, igniteAmp:1, frenzy:1 }, EHP_T={ shield:1, sshield:1, rshell:1 };
 /* Hazır hasar yeteneklerinin en uzun menzili (yoksa 0) */
 function skillReach(h){
   let r=0;
@@ -374,9 +377,9 @@ function allyDanger(b){
 function teamRank(b){ if(!AI.team) return 0; let r=0; for(const a of S.heroes) if(a!==b && a.team===b.team && a.id<b.id) r++; return r; }
 
 /* ---- Zor / Uzman karar katmanları ---- */
-const CC_TYPES = new Set(['hook','stunorb','shockwave','tether','slam','bomb','spiritburst','knockblow']);   // kontrol yetenekleri
-const INIT_TYPES = new Set(['dash','flameleap','leapslam','blink','tumble']);                               // dövüşe giriş yetenekleri
-const ESC_TYPES = new Set(['dash','tumble','flameleap','blink','cleanse','shield','leapslam']);              // kaçış yetenekleri
+const CC_TYPES = new Set(['hook','stunorb','shockwave','tether','slam','bomb','spiritburst','knockblow','roll']);   // kontrol yetenekleri
+const INIT_TYPES = new Set(['dash','flameleap','leapslam','blink','tumble','roll','billiard']);                               // dövüşe giriş yetenekleri
+const ESC_TYPES = new Set(['dash','tumble','flameleap','blink','cleanse','shield','leapslam','roll']);              // kaçış yetenekleri
 /* e kontrol altında mı (sersem, kök, çekiliyor)? */
 const isCC = e => e.st.freeze>0.2 || e.st.root>0.2 || !!e.pulled;
 /* Rakibin kaçış ve kontrol yetenekleri beklemede mi? (Zor: şimdi hazır değilse; Uzman: 1 sn içinde hazır olacaksa hazır sayar) Dönüş: adv çarpanı */
@@ -876,7 +879,7 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
     if(!rdy(b,k)) continue;
     const sk=b.def.skills[k];
     if(!acting && sk.type!=='cleanse') continue;
-    if(b.st.root>0 && (sk.type==='dash' || sk.type==='tumble' || sk.type==='flameleap' || sk.type==='leapslam')) continue;   // köklüyken atılış denenmez
+    if(b.st.root>0 && (sk.type==='dash' || sk.type==='tumble' || sk.type==='flameleap' || sk.type==='leapslam' || sk.type==='roll')) continue;   // köklüyken atılış denenmez
     if(b.st.silence>0 && sk.type!=='cleanse') continue;   // susturulmuşken yetenek denemez
     // Uzman: kontrol zinciri, rakip zaten sersemlemişse (dost ya da kendi) kontrolü sona sakla, hasarı kullan
     if(LP.chain && eVis && CC_TYPES.has(sk.type) && e.st.freeze>0.35 && !(e.pulled && e.pulled.src===b && sk.type==='slam')) continue;
@@ -1128,6 +1131,35 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
         let n=0; for(const m of S.minions) if(!m.dead && m.team!==b.team && dist(m,tgt)<sk.radius-10) n++;
         if(n>=3){ use=true; cmd.tx=tgt.x; cmd.ty=tgt.y; }
       }
+    } else if(sk.type==='roll'){
+      // Gülle Yuvarlan: canı azken tehlikedeyse üsse doğru kaçış; dövüşte rakibin tahmini yerine iniş (giriş/kovalama), iniş kule menzili dışında
+      if(eVis && !M.recall){
+        const reach=reachTo(b,e);
+        if(hpNow(b)<AI.recallHp*1.8 && d<threatR(e,b)+80){
+          const home=Math.atan2(b.spawnY-b.y, b.spawnX-b.x);
+          for(const o of [0,0.5,-0.5,1,-1]){
+            const a=home+o, L=sk.dMax*0.8, nx=b.x+Math.cos(a)*L, ny=b.y+Math.sin(a)*L;
+            if(leapOK(b,a,L) && hyp(nx-e.x,ny-e.y)>d+60){ use=true; cmd.aim=a; cmd.tx=nx; cmd.ty=ny; break; }
+          }
+        } else if(fight && !(e.stasis>0) && d>reach+30 && d-e.r<sk.dMax-20){
+          const t=d/sk.speed, px=e.x+((e.vx||0)+(e.kx||0))*t*0.7, py=e.y+((e.vy||0)+(e.ky||0))*t*0.7, a=Math.atan2(py-b.y, px-b.x), L=hyp(px-b.x,py-b.y);
+          if(L<=sk.dMax && leapOK(b,a,Math.max(sk.dMin,L)) && heroHitSafe(b,e,px,py)){ use=true; cmd.aim=a; cmd.tx=px; cmd.ty=py; }
+        }
+      }
+    } else if(sk.type==='shell'){
+      // Gülle Kabuk: dövüş başlarken (vuruş menzili yakını), hasar yerken, ya da rakibin kanca/Darbe tehdidi menzildeyken
+      if(eVis){
+        const hurt = S.time-(b.ic.lastHurt ?? -99) < 0.6 && d<600;
+        let pullThreat=false;
+        for(const kk of ['r','e','s']){ const es=e.def.skills[kk]; if(e.rank[kk]>0 && e.cd[kk]<=0.2 && (es.type==='hook' || es.type==='knockblow') && d<(es.range||200)+80) pullThreat=true; }
+        use = (fight && d<reachTo(b,e)+120) || (hurt && (fight || hpNow(b)<0.6)) || pullThreat;
+      }
+    } else if(sk.type==='billiard'){
+      // Gülle Bilardo: dövüşte rakip yakınken, üstünlük varsa ya da rakibin canı azsa; ya da yakında 2+ rakip kahraman
+      if(eVis && !M.recall && !(e.stasis>0)){
+        let foesN=0; for(const u of S.heroes) if(!u.dead && u.team!==b.team && canSee(b.team,u) && dist(u,b)<550) foesN++;
+        if((fight && d<450 && (!ev || ev.adv>=0.9 || hpNow(e)<0.4)) || (foesN>=2 && (fight || hpNow(b)>0.5))){ use=true; cmd.aim=Math.atan2(e.y-b.y, e.x-b.x); }
+      }
     } else if(sk.type==='knockblow'){
       // rakip erişimde: duvara ya da kendi kulemize doğru itiyorsa, öldürmeye yetiyorsa, kendimiz zorda ve rakip dibimizdeyse ya da dövüşü kaybediyorsak
       if(eVis && (fight || hpNow(e)<0.5) && !(e.stasis>0) && d-e.r<sk.range-10){
@@ -1176,6 +1208,7 @@ function botCommandCore(b, dt){
   const M=mem(b), dir=b.team===0?1:-1;
   const e=pickFoe(b,M,mode); M.foe=e;
   const eVis=!!e && !e.dead && (mode==='duel' || canSee(b.team,e));
+  if(b.st.ball){ if(eVis) cmd.aim=Math.atan2(e.y-b.y, e.x-b.x); return cmd; }   // Gülle Bilardo: topu rakibe yönlendir
 
   M.noiseT-=dt; if(M.noiseT<=0){ M.noiseT=0.6+rand()*0.6; M.noise=(rand()*2-1)*LVP(b).aimNoise; }
   M.jukeT-=dt;  if(M.jukeT<=0){ M.jukeT=0.3+rand()*0.5; M.juke=rand()<0.5?-1:1; }

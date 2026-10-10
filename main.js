@@ -29,7 +29,7 @@ function playerCommand(){
   if(!casting && mouse.down && tgt) aim=Math.atan2(tgt.y-p.y, tgt.x-p.x);
   const c={ mx:(keys.KeyD?1:0)-(keys.KeyA?1:0), my:(keys.KeyS?1:0)-(keys.KeyW?1:0),
     aim, attack:mouse.down, target:tgt,
-    rmb:!!keys.pressR, e:!!keys.pressE, space:!!keys.pressSpace, recall:!!keys.pressB, item:!!keys.press1, tx:mw.x, ty:mw.y };
+    rmb:!!keys.pressR, e:!!keys.pressE, space:!!keys.pressSpace, recall:!!keys.pressB, item:!!keys.press1, tx:mw.x, ty:mw.y, hold:keys.pressR ? keys.holdR : undefined };
   keys.pressR=keys.pressE=keys.pressSpace=keys.pressB=keys.press1=false;
   return c;
 }
@@ -125,11 +125,11 @@ canvas.addEventListener('mousedown',e=>{
     mouse.down=true;
     mouse.lock=enemyUnder(mouseWorld());   // rakibin üstüne tıklandıysa onu seç
   }
-  if(e.button===2){ if(e.ctrlKey) learnSkill(S.player,'r'); else uiState.hold='r'; }
+  if(e.button===2){ if(e.ctrlKey) learnSkill(S.player,'r'); else { uiState.hold='r'; uiState.holdT=performance.now(); } }
 });
 addEventListener('mouseup',e=>{
   if(e.button===0){ mouse.down=false; mouse.lock=null; }
-  if(e.button===2 && uiState.hold==='r'){ uiState.hold=null; keys.pressR=true; }   // sağ tık bırakınca at
+  if(e.button===2 && uiState.hold==='r'){ uiState.hold=null; keys.pressR=true; keys.holdR=(performance.now()-(uiState.holdT||performance.now()))/1000; }   // basılı tutma süresi (Gülle Yuvarlan)   // sağ tık bırakınca at
 });
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 

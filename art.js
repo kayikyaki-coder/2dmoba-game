@@ -89,6 +89,12 @@ const ICONS = {
     g.beginPath(); for(let i=0;i<8;i++){ const a=-Math.PI/2+i*Math.PI/4, rr=i%2?0.3:1.0; g.lineTo(Math.cos(a)*rr,Math.sin(a)*rr); } g.closePath(); g.fill();
     g.beginPath(); g.arc(0.72,-0.72,0.14,0,TAU); g.fill();
   },
+  ball(g,c,d){   // Gülle: hız çizgili top
+    g.beginPath(); g.arc(0.18,0.05,0.68,0,TAU); g.fill();
+    g.beginPath(); g.arc(0.18,0.05,0.68,0,TAU); g.lineWidth=0.1; g.strokeStyle=d; g.stroke();
+    g.beginPath(); g.arc(-0.05,-0.2,0.18,0,TAU); g.fillStyle=d; g.fill();
+    g.beginPath(); g.moveTo(-1.0,-0.35); g.lineTo(-0.6,-0.35); g.moveTo(-1.05,0.05); g.lineTo(-0.55,0.05); g.moveTo(-1.0,0.45); g.lineTo(-0.6,0.45); g.lineWidth=0.13; g.strokeStyle=c; g.stroke();
+  },
   yin(g,c,d){
     g.beginPath(); g.arc(0,0,0.9,0,TAU); g.lineWidth=0.14; g.stroke();
     g.beginPath(); g.arc(0,0,0.9,Math.PI/2,Math.PI*1.5); g.arc(0,-0.45,0.45,-Math.PI/2,Math.PI/2,false); g.arc(0,0.45,0.45,-Math.PI/2,Math.PI/2,true); g.closePath(); g.fill();
