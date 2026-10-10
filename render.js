@@ -111,6 +111,7 @@ function fireflySprite(){
   g.fillStyle=gr; g.fillRect(0,0,32,32); return _ff;
 }
 
+const SHOP_IMG=(typeof Image!=='undefined')?Object.assign(new Image(),{src:'assets/shop.png'}):{};
 function drawShops(){
   const pl=S.player, t=S.time;
   for(const team of [0,1]){
@@ -119,6 +120,12 @@ function drawShops(){
     const hov=mine && Math.hypot(uiState.mx-x,uiState.my-y)<=sp.r+10;
     ctx.save(); ctx.globalAlpha=mine?1:0.85;
     ctx.beginPath(); ctx.ellipse(x+5,y+44,68,16,0,0,TAU); ctx.fillStyle='rgba(4,2,16,0.38)'; ctx.fill();
+    if(SHOP_IMG.complete && SHOP_IMG.naturalWidth){   // Higgsfield görseli (assets/shop.png); yüklenmezse aşağıdaki canvas çizimi
+      const w=130, h=w*SHOP_IMG.naturalHeight/SHOP_IMG.naturalWidth;
+      if(hov) drawGlow(ctx,PAL.gold,x,y+8,95,0.35);
+      ctx.drawImage(SHOP_IMG,x-w/2,y+56-h,w,h);
+      for(const lx of [x-60,x+60]) drawGlow(ctx,PAL.gold,lx,y-6,26,0.25+0.12*Math.sin(t*3+lx));
+    } else {
     rrect(x-52,y-6,104,50,6); ctx.fillStyle='#3a2a5a'; ctx.fill(); ctx.lineWidth=4; ctx.strokeStyle=hov?PAL.gold:PAL.ink; ctx.stroke();   // tezgâh
     rrect(x-44,y+6,88,30,4); ctx.fillStyle='#53397f'; ctx.fill();
     ctx.lineWidth=2; ctx.strokeStyle='rgba(255,207,90,0.35)'; ctx.beginPath(); ctx.moveTo(x-40,y+14); ctx.lineTo(x+40,y+14); ctx.stroke();
@@ -132,6 +139,7 @@ function drawShops(){
     }
     ctx.beginPath(); ctx.arc(x,y+21,11,0,TAU); ctx.fillStyle=PAL.gold; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle=PAL.goldDark; ctx.stroke();   // altın
     ctx.beginPath(); ctx.arc(x,y+21,6.5,0,TAU); ctx.lineWidth=1.8; ctx.strokeStyle=PAL.goldDark; ctx.stroke();
+    }
     ctx.font='bold 18px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineWidth=4; ctx.strokeStyle='rgba(8,6,28,0.8)'; ctx.fillStyle=hov?PAL.gold:'#fff';
     ctx.strokeText('Mağaza',x,y-56); ctx.fillText('Mağaza',x,y-56);
     ctx.restore();
