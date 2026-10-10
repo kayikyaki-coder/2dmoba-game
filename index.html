@@ -65,6 +65,10 @@
   #shop .badge{flex:none;min-width:30px;padding:3px 4px;text-align:center;border-radius:4px;font-size:11px;font-weight:700;color:#fff;background:#3b3626;border:1px solid var(--gold)}
   #shop .badge.part{background:#2c3342;border-color:#7d8aa5}
   #shop .badge.lg{min-width:46px;padding:8px 6px;font-size:15px}
+  #shop .badge{position:relative;overflow:hidden}
+  #shop .badge:has(img.ico){width:34px;height:34px;min-width:34px;padding:0;box-sizing:border-box}
+  #shop .badge.lg:has(img.ico){width:58px;height:58px;min-width:58px}
+  #shop .badge img.ico{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
   #shop .cost{color:var(--gold);white-space:nowrap;font-weight:600}
   #shop .cost s{color:var(--muted);font-size:11px;margin-left:4px;font-weight:400}
   #shop .st{color:#9fd6ff;font-size:12px;margin-top:3px}
@@ -122,7 +126,7 @@
   #ui{padding:5px 12px;flex-wrap:nowrap}
   #ui .gt{font-weight:700;letter-spacing:.02em}
   #ui #menuBtn{margin-left:auto}
-  .ov{position:fixed;inset:0;z-index:50;background:linear-gradient(rgba(16,14,40,.55),rgba(12,10,30,.85)),url(assets/menu_bg.jpg) center/cover fixed,var(--bg);   /* menü arka planı: yerel Stable Diffusion (DreamShaper 8) */color:var(--text);overflow:auto;font-size:14px}
+  .ov{position:fixed;inset:0;z-index:50;background:linear-gradient(rgba(16,14,40,.55),rgba(12,10,30,.85)),url(assets/menu_bg2.jpg) center/cover fixed,var(--bg);   /* menü arka planı: Higgsfield GPT Image 2.5 (eski: assets/menu_bg.jpg, SD) */color:var(--text);overflow:auto;font-size:14px}
   .ov button{font:inherit;color:var(--text);cursor:pointer}
   .ov h2{margin:0 0 10px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
   .menu{display:none;gap:22px;padding:24px 28px 90px;align-items:flex-start;justify-content:center;flex-wrap:nowrap}
@@ -195,8 +199,10 @@
     .foot{padding:10px 14px}.foot .sum{display:none}.go{width:100%}
   }
   /* Gece Vahası görsel dili: menü ve kartlar */
-  .ov{background:radial-gradient(1100px 650px at 78% -8%,rgba(70,50,170,.55),rgba(0,0,0,0) 62%),radial-gradient(900px 600px at -5% 105%,rgba(20,110,120,.42),rgba(0,0,0,0) 58%),linear-gradient(rgba(16,14,40,.55),rgba(12,10,30,.85)),url(assets/menu_bg.jpg) center/cover fixed,var(--bg)}   /* menü arka planı: yerel Stable Diffusion (DreamShaper 8) */
-  .pause,.result{background:rgba(8,6,28,.84)}
+  .ov{background:radial-gradient(1100px 650px at 78% -8%,rgba(70,50,170,.55),rgba(0,0,0,0) 62%),radial-gradient(900px 600px at -5% 105%,rgba(20,110,120,.42),rgba(0,0,0,0) 58%),linear-gradient(rgba(16,14,40,.55),rgba(12,10,30,.85)),url(assets/menu_bg2.jpg) center/cover fixed,var(--bg)}   /* menü arka planı: Higgsfield GPT Image 2.5 (eski: assets/menu_bg.jpg, SD) */
+  .pause,.result{background:linear-gradient(rgba(8,6,28,.62),rgba(8,6,28,.86)),url(assets/pause_bg.jpg) center/cover fixed,rgba(8,6,28,.84)}   /* Higgsfield GPT Image 2.5 */
+  .menu{isolation:isolate}
+  .menu .mvid{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;pointer-events:none;filter:brightness(.62) saturate(1.05)}   /* Higgsfield MiniMax H3 Max döngü videosu; yüklenmezse CSS arka planı kalır */
   .menu .ttl{background:linear-gradient(90deg,var(--t0),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800}
   .menu .tag{color:var(--muted)}
   .hc{background:linear-gradient(160deg,#1a1d40,#13152f)}

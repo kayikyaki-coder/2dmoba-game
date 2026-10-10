@@ -162,6 +162,15 @@ function laneSamples(lane, step){
 
 /* Çalı ışıkböcekleri (render.js dinamik çizer) */
 export const bushLights=[];
+/* Higgsfield (GPT Image 2.5) dokuları: assets/tex. Yüklenince paintMap düşük alfayla desen olarak bindirir; yüklenmezse eski çizim aynen kalır. */
+const TEX={};
+export const texReady=(typeof Image==='undefined')?Promise.resolve():Promise.all(['ground','lane','rock','bush'].map(n=>new Promise(res=>{
+  const im=new Image(); im.onload=()=>{ TEX[n]=im; res(); }; im.onerror=()=>res(); im.src='assets/tex/'+n+'.jpg';
+})));
+function texFill(g,name,alpha,op,x,y,w,h){   // kırpılmış bölgeye desen bindir
+  const im=TEX[name]; if(!im) return;
+  g.save(); g.globalAlpha=alpha; g.globalCompositeOperation=op; g.fillStyle=g.createPattern(im,'repeat'); g.fillRect(x,y,w,h); g.restore();
+}
 
 /* M: { W, H, LANES, WALLS, BUSHES, BASES:[{x,y},{x,y}], fountainR } */
 export function paintMap(g, M){
@@ -175,6 +184,7 @@ export function paintMap(g, M){
     const gr=g.createRadialGradient(x,y,0,x,y,r); gr.addColorStop(0,rgba(col,0.6)); gr.addColorStop(1,rgba(col,0));
     g.fillStyle=gr; g.fillRect(x-r,y-r,r*2,r*2);
   }
+  texFill(g,'ground',0.55,'overlay',0,0,W,H);
   // 2) ot kümeleri (kısa çizgiler), toz taneleri, çiçek noktaları
   const tufts=(col,n,len)=>{
     g.beginPath();
@@ -203,6 +213,7 @@ export function paintMap(g, M){
     const on=lane.active; g.globalAlpha=on?1:0.55;
     const layers=[[lane.width+70,rgba(PAL.ink,0.28)],[lane.width+26,PAL.laneEdge],[lane.width+10,PAL.laneRim],[lane.width,PAL.laneBody],[lane.width*0.6,PAL.laneCore],[lane.width*0.3,rgba(PAL.laneCore,0.7)]];
     for(const [w,c] of layers){ polyPath(g,lane); g.strokeStyle=c; g.lineWidth=w; g.stroke(); }
+    if(TEX.lane){ g.save(); g.globalAlpha=0.35*(on?1:0.55); g.globalCompositeOperation='overlay'; polyPath(g,lane); g.strokeStyle=g.createPattern(TEX.lane,'repeat'); g.lineWidth=lane.width+10; g.stroke(); g.restore(); }
     const sm=laneSamples(lane,38);
     // toz ve gölge lekeleri: yolu düz renkten çıkarır
     for(let i=0;i<sm.length*2;i++){
@@ -248,6 +259,7 @@ export function paintMap(g, M){
     // yüz tonlaması: üstten ışık
     const lg=g.createLinearGradient(0,bb.y,0,bb.y+bb.h); lg.addColorStop(0,rgba(PAL.rockLight,0.28)); lg.addColorStop(0.5,rgba(PAL.rockTop,0.1)); lg.addColorStop(1,rgba(PAL.rockEdge,0.28));
     g.fillStyle=lg; g.fillRect(bb.x,bb.y,bb.w,bb.h);
+    texFill(g,'rock',0.5,'overlay',bb.x,bb.y,bb.w,bb.h);
     const nb=Math.max(6,Math.min(120,Math.round(area/9000)));
     for(let i=0;i<nb;i++){   // düzensiz yüzey parçaları
       const cx=bb.x+R()*bb.w, cy=bb.y+R()*bb.h, rr=30+R()*90, k=5+((R()*3)|0), a0=R()*TAU;
@@ -276,6 +288,7 @@ export function paintMap(g, M){
     shapeP(g,b,30); g.fillStyle=rgba(PAL.bushEdge,0.5); g.save(); g.translate(0,8); g.fill(); g.restore();
     shapeP(g,b,30); g.fillStyle=PAL.bush; g.fill();
     g.save(); shapeP(g,b,30); g.clip();
+    texFill(g,'bush',0.45,'source-over',bb.x,bb.y,bb.w,bb.h);
     const n=Math.round(area/700);
     const lc=[PAL.bushA,PAL.bushB,PAL.bushC];
     for(let i=0;i<n;i++){

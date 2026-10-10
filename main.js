@@ -147,6 +147,8 @@ const itemOf=id=>ITEMS[id]||PARTS[id];
 function statText(st){
   return STAT_LABELS.filter(([k])=>st[k]).map(([k,n,pct])=>'+'+(pct?Math.round(st[k]*100)+'%':st[k])+' '+n).join(', ');
 }
+/* Eşya görseli (Higgsfield GPT Image 2.5, assets/items/<id>.jpg); yüklenmezse img kalkar, kısaltma rozeti görünür */
+function icoImg(id){ return '<img class="ico" alt="" loading="lazy" src="assets/items/'+encodeURIComponent(id)+'.jpg" onerror="this.remove()">'; }
 function abbr(name){ const w=name.split(' '); return w.length>1?w.map(s=>s[0]).join('').slice(0,3):name.slice(0,3); }   // HUD ile aynı rozet
 /* Eşyanın durumu: own (alındı), slots (yuva dolu), gold (altın yetersiz), away (üste değil), ok (alınabilir) */
 function itemState(p, id){
@@ -212,7 +214,7 @@ function itemCard(p, id, cls){
   const it=itemOf(id), big=!!ITEMS[id], st=itemState(p,id), cost=itemCostFor(p,id);
   const b=document.createElement('button');
   b.className='it '+cls+' s-'+st.k+(id===shopSel?' sel':''); b.dataset.id=id;
-  let h='<div class="row"><span class="badge'+(big?'':' part')+'">'+esc(abbr(it.name))+'</span><span class="nm">'+esc(it.name)+'</span><span class="cost">'+(st.k==='own'?'':cost)+(cost!==it.cost&&st.k!=='own'?'<s>'+it.cost+'</s>':'')+'</span></div>'
+  let h='<div class="row"><span class="badge'+(big?'':' part')+'">'+esc(abbr(it.name))+icoImg(id)+'</span><span class="nm">'+esc(it.name)+'</span><span class="cost">'+(st.k==='own'?'':cost)+(cost!==it.cost&&st.k!=='own'?'<s>'+it.cost+'</s>':'')+'</span></div>'
     +'<div class="st">'+statText(it.stats)+'</div>';
   if(cls==='rec' && big){
     h+='<div class="ds">'+(it.desc?esc(it.desc):'&nbsp;')+'</div><div class="pts">';
@@ -241,7 +243,7 @@ function inventoryStrip(p){
     if(!id){ const e=document.createElement('div'); e.className='slot empty'; e.innerHTML='<span>Boş yuva</span>'; f.appendChild(e); continue; }
     const it=itemOf(id), big=!!ITEMS[id], b=document.createElement('button');
     b.className='it slot '+(big?'big':'part')+(id===shopSel?' sel':''); b.dataset.id=id; b.dataset.nobuy='1';
-    b.innerHTML='<div class="row"><span class="badge'+(big?'':' part')+'">'+esc(abbr(it.name))+'</span><span class="nm">'+esc(it.name)+'</span></div>'
+    b.innerHTML='<div class="row"><span class="badge'+(big?'':' part')+'">'+esc(abbr(it.name))+icoImg(id)+'</span><span class="nm">'+esc(it.name)+'</span></div>'
       +'<div class="st">'+(statText(it.stats)||'&nbsp;')+'</div>'+(big?'':'<div class="stt">Temel parça, yuva kaplar</div>')
       +'<div class="sellrow"><span class="sellb" data-act="sell" data-idx="'+i+'" title="Sağ tık da satar">Sat +'+sellValue(id)+'</span></div>';
     f.appendChild(b);
@@ -252,7 +254,7 @@ function detailPanel(p){
   const d=document.createDocumentFragment(), box=document.createElement('div'); box.className='detail'; d.appendChild(box);
   if(!shopSel){ box.innerHTML='<div class="hint">Bir eşyaya tıkla: yapım ağacı burada görünür. Çift tık, sağ tık ya da Al düğmesi satın alır.</div>'; return d; }
   const id=shopSel, it=itemOf(id), big=!!ITEMS[id], st=itemState(p,id), cost=itemCostFor(p,id), plan=planBuy(p,id);
-  let h='<div class="dhead"><span class="badge lg'+(big?'':' part')+'">'+esc(abbr(it.name))+'</span><div><div class="nm lg">'+esc(it.name)+'</div><div class="stt s-'+st.k+'">'+(big?'':'Temel parça · ')+st.t+'</div></div></div>'
+  let h='<div class="dhead"><span class="badge lg'+(big?'':' part')+'">'+esc(abbr(it.name))+icoImg(id)+'</span><div><div class="nm lg">'+esc(it.name)+'</div><div class="stt s-'+st.k+'">'+(big?'':'Temel parça · ')+st.t+'</div></div></div>'
     +'<div class="dcost">'+(st.k==='own'?'Envanterinde':'Bedel: <b>'+cost+'</b>'+(cost!==it.cost?' <s>'+it.cost+'</s> (elindeki parçalar düşüldü)':''))+'</div>'
     +'<div class="st">'+statText(it.stats)+'</div>'+(it.desc?'<div class="ds">'+esc(it.desc)+'</div>':'');
   if(big){

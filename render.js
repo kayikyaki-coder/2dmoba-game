@@ -1,7 +1,8 @@
 /* Çizim: durumu sadece okur. Tarayıcıya bağımlı. */
 import { TEAM_COLORS as DATA_TEAM, MAX_LEVEL, FOUNTAIN, XP_NEED, KEY_LABELS, VISION, FORMS } from './data.js';
 import { PAL, rgba, mix } from './palette.js';
-import { drawToken, drawGlow, drawCrystal, paintMap, bushLights } from './art.js';
+import { drawToken, drawGlow, drawCrystal, paintMap, bushLights, texReady } from './art.js';
+texReady.then(()=>{ fieldCache=null; });   // dokular gelince zemini bir kez yeniden çiz
 const TEAM_COLORS=PAL.team, TEAM_DARK=PAL.teamDark, TAU=Math.PI*2;   // takım renkleri görsel dilden (data.js'teki mavi/kırmızı yalnız sim'e)
 import { ITEMS, PARTS, SLOTS } from './items.js';
 import { MAP_W, MAP_H, LANES, WALLS, BUSHES, BASES, rayDist, wallsNear, bushAt } from './map.js';

@@ -111,8 +111,22 @@ export function settingsBlock() {
 
 /* ---- ana menü ---- */
 let menuEl = null;
+/* Menü arka plan videosu (Higgsfield MiniMax H3 Max, 5 sn döngü). Yüklenmezse ya da hareket azaltma açıksa kaldırılır, CSS görseli kalır. */
+function menuVideo(el) {
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const v = document.createElement('video');
+  v.className = 'mvid'; v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true; v.preload = 'auto';
+  v.poster = 'assets/menu_bg2.jpg';
+  for (const [src, type] of [['assets/menu_loop.webm', 'video/webm'], ['assets/menu_loop.mp4', 'video/mp4']]) {
+    const s = document.createElement('source'); s.src = src; s.type = type; v.append(s);
+  }
+  v.lastChild.addEventListener('error', () => v.remove());   // iki kaynak da açılmazsa
+  el.append(v);
+  const p = v.play(); if (p && p.catch) p.catch(() => {});
+}
 function buildMenu() {
   menuEl = $('div', 'ov menu'); menuEl.id = 'menu';
+  menuVideo(menuEl);
   const side = $('aside', 'side');
   side.append($('h1', 'ttl', esc(GAME_TITLE)), $('div', 'tag', '2D MOBA prototipi'));
   // mod
@@ -193,8 +207,8 @@ function sync() {
     ? HERO_NAMES[pick.hero] + ' + ' + nmOf(pick.ally) + ' karşı ' + nmOf(pick.foe) + ' + ' + nmOf(pick.foe2) + '  ·  ' + M.label + '  ·  ' + LEVELS.find(l => l.id === pick.level).label
     : HERO_NAMES[pick.hero] + ' karşı ' + nmOf(pick.foe) + '  ·  ' + M.label + '  ·  ' + LEVELS.find(l => l.id === pick.level).label;
 }
-export function showMenu() { if (!menuEl) buildMenu(); hidePause(); hideResult(); menuEl.style.display = 'flex'; menuEl.scrollTop = 0; sync(); }
-export function hideMenu() { if (menuEl) menuEl.style.display = 'none'; }
+export function showMenu() { if (!menuEl) buildMenu(); hidePause(); hideResult(); menuEl.style.display = 'flex'; menuEl.scrollTop = 0; const v = menuEl.querySelector('.mvid'); if (v) v.play().catch(() => {}); sync(); }
+export function hideMenu() { if (menuEl) { menuEl.style.display = 'none'; const v = menuEl.querySelector('.mvid'); if (v) v.pause(); } }
 
 /* ---- duraklatma ---- */
 let pauseEl = null;
