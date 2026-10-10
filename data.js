@@ -20,7 +20,7 @@ export const STATS = {
     mr:{ base:10, per:0 },          // büyü direnci: büyü hasarı 100/(100+mr) ile çarpılır
     ah:{ base:0, per:0 },           // yetenek hızı: bekleme süresi 100/(100+yh) ile çarpılır
     ap:{ base:0, per:0 },           // yetenek gücü (YG): eşyalardan gelir, yetenek oranlarıyla çarpılır
-    dmg:{ base:37, per:3 },         // düz vuruş hasarı (denge: 45 idi)
+    dmg:{ base:35, per:3 },         // düz vuruş hasarı (denge: 45, sonra 37 idi; 2v2 tur 3: %64)
     as:{ base:1.22, per:0.06 },     // saniyedeki saldırı sayısı (denge: 1.28 idi)
     spd:{ base:200, per:3 },        // hareket hızı
     range:{ base:310, per:0 },      // düz vuruş menzili
@@ -32,7 +32,7 @@ export const STATS = {
     projRadius:{ base:6, per:0 }    // ok kalınlığı
   },
   warrior: {
-    hp:{ base:900, per:40 },        // denge: 750 idi
+    hp:{ base:940, per:40 },        // denge: 750, sonra 900 idi (2v2 tur 3: %35)
     regen:{ base:10, per:0.9 },       // denge: 5 idi, seviye başına: 0 idi
     armor:{ base:10, per:0 },       // zırh: fiziksel hasar 100/(100+zırh) ile çarpılır
     mr:{ base:10, per:0 },          // büyü direnci: büyü hasarı 100/(100+mr) ile çarpılır
@@ -209,7 +209,7 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   dual: {   // uzak biçim temel alınır; yakın biçimin farkları HEROES.dual.melee.stats içinde
-    hp:{ base:450, per:30 },        // denge: 540 idi
+    hp:{ base:480, per:30 },        // denge: 540, sonra 450 idi (2v2 tur 3: %37)
     regen:{ base:3, per:0.8 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:10, per:0 },
     mr:{ base:10, per:0 },
@@ -379,7 +379,7 @@ export const HEROES = {
       // sağ tık: cast sn hazırlık (hazırlıkta castSlow yavaş), bitince imleç yönünde range uzunlukta, 2 x radius genişlikte şerit, anında;
       //          şeritteki bütün rakip birimlere (kule hariç) büyü hasarı dmg + ap * YG. Hazırlık sırasında şerit önizlemesi herkese görünür.
       r:{ name:'Uzun Işın', max:4, type:'beam', cd:[9,8,7,6], cast:0.4, castSlow:0.4, range:750, radius:35,
-          dmg:[80,120,160,200], ap:0.70 },   // denge: 70,110,150,190 idi
+          dmg:[75,112,150,188], ap:0.70 },   // denge: 70,110,150,190, sonra 80,120,160,200 idi (2v2 tur 3: %65)
       // E: cast sn hazırlık, düz giden mermi; ilk değdiği rakip birimde (minyon dahil, kule değil) durur. Büyü hasarı dmg + ap * YG;
       //    sersemletme gidilen mesafeyle stunMin'den (0 mesafe) stunMax'a (range) doğrusal. Minyon da sersemler.
       e:{ name:'Ağır Küre', max:4, type:'stunorb', cd:[14,13,12,11], cast:0.25, castSlow:0.4, range:700, speed:700, radius:26,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; menzil 750, yarıçap 22 idi

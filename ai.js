@@ -905,7 +905,9 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
         }
       }
     } else if(sk.type==='shield'){
-      use = (fight && d<450) || (eVis && d<300 && b.hp<b.maxHp*0.6) || (M.recall && eVis && d<500);
+      // yakın dövüşçü kalkanı vuruş menzili yakınında ya da hasar yerken açar (eskiden fight && d<450: dalıştan önce boşa gidiyordu)
+      const hurt = S.time-(b.ic.lastHurt??-99) < 0.6;
+      use = (fight && (ranged(b) ? d<450 : (d<reachTo(b,e)+90 || (hurt && d<450)))) || (eVis && d<300 && b.hp<b.maxHp*0.6) || (M.recall && eVis && d<500);
     } else if(sk.type==='giant'){
       use = (fight && d<210) || (quiet && tgt && tgt.kind==='struct' && dist(b,tgt)<reachTo(b,tgt)) || (quiet && near(220)>=3);
     } else if(sk.type==='fireball'){
