@@ -215,7 +215,7 @@ export const STATS = {
     mr:{ base:10, per:0 },
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:42, per:3.2 },        // denge: 50 idi
+    dmg:{ base:45, per:3.2 },        // denge: 50, sonra 42 idi (2v2 tur 4: %39)
     as:{ base:0.95, per:0.04 },
     spd:{ base:205, per:3 },
     range:{ base:330, per:0 },
