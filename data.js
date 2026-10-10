@@ -20,7 +20,7 @@ export const STATS = {
     mr:{ base:10, per:0 },          // büyü direnci: büyü hasarı 100/(100+mr) ile çarpılır
     ah:{ base:0, per:0 },           // yetenek hızı: bekleme süresi 100/(100+yh) ile çarpılır
     ap:{ base:0, per:0 },           // yetenek gücü (YG): eşyalardan gelir, yetenek oranlarıyla çarpılır
-    dmg:{ base:35, per:3 },         // düz vuruş hasarı (denge: 45, sonra 37 idi; 2v2 tur 3: %64)
+    dmg:{ base:33, per:2.8 },       // düz vuruş hasarı (denge: 45, sonra 37, 35 (+3) idi; 2v2 tur 6: %70)
     as:{ base:1.22, per:0.06 },     // saniyedeki saldırı sayısı (denge: 1.28 idi)
     spd:{ base:200, per:3 },        // hareket hızı
     range:{ base:310, per:0 },      // düz vuruş menzili
@@ -91,7 +91,7 @@ export const STATS = {
     mr:{ base:10, per:0 },
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:41, per:3 },         // denge: 48 idi
+    dmg:{ base:39, per:2.8 },       // denge: 48, sonra 41 (+3) idi (2v2 tur 6: %66)
     as:{ base:1.00, per:0.05 },     // denge: 1.15 idi
     spd:{ base:200, per:3 },
     range:{ base:310, per:0 },    // 450 idi, denge için 400
@@ -137,7 +137,7 @@ export const STATS = {
     angle:{ base:90, per:0 }
   },
   gladiator: {   // Gladyatör: yakın dövüşçü. Savaşçı'dan az can, Kızışma yığınlarıyla saldırı hızı tırmanır
-    hp:{ base:940, per:46 },
+    hp:{ base:980, per:46 },   // denge: 940 idi (2v2 tur 6: %39)
     regen:{ base:9, per:0.9 },
     armor:{ base:10, per:0 },
     mr:{ base:10, per:0 },
