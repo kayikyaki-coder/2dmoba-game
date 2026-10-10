@@ -173,13 +173,13 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   shadow: {
-    hp:{ base:680, per:26 },        // denge: 480 (+24) idi
+    hp:{ base:620, per:26 },        // denge: 480 (+24), sonra 680 idi (2v2 tur 1: %80)
     regen:{ base:3, per:0.7 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:10, per:0 },
     mr:{ base:10, per:0 },
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:60, per:2.5 },       // denge: 35 (+2) idi; kuşatma gücü yoktu (kuleye 200 hasar/maç)
+    dmg:{ base:54, per:2.5 },       // denge: 35 (+2), sonra 60 idi (2v2 tur 1: %80); kuşatma gücü yoktu (kuleye 200 hasar/maç)
     as:{ base:0.80, per:0.03 },
     spd:{ base:210, per:3 },
     range:{ base:270, per:0 },
