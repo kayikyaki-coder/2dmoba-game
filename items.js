@@ -136,6 +136,9 @@ export const ITEMS = {
   // Destek
   wavesong: { cat:'Destek', name:'Dalga Şarkısı',       cost:1100, parts:['ruby','ruby','mantle'],          stats:{ hp:200, mr:26 }, minionAs:0.10, desc:'600 menzildeki dost minyonların saldırı hızı %10 artar' }
 };
+/* Katmanlı dövüş (10.10.2026): canı olmayan her büyük eşyaya (nişancı ve büyücü dahil) küçük düz can. Fiyat değişmedi. */
+export const ITEM_BASE_HP = 100;
+for (const it of Object.values(ITEMS)) if (!it.stats.hp) it.stats.hp = ITEM_BASE_HP;
 
 
 /* Mağazada ortada gösterilen önerilen 8 eşya (kahraman başına) */

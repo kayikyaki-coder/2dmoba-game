@@ -67,6 +67,8 @@ Haxball tarzı yuvarlak token karakterli 2D MOBA. Tarayıcıda çalışır, şim
 - Kule hasarı (10.10.2026, data.js TOWER, towerChampHit/towerMinionHit; sim ve bot tahminleri aynı formül): şampiyona ilk vuruş 2 kat (champMult), aynı şampiyona art arda her vuruş +%40 (champStack, maxStack 4); minyona yakın 3, menzilli 2 vuruş (azami canın 1/n'i, minionHits).
 - Can çubukları (10.10.2026, render.js hpBar): sabit genişlik, her 100 canda ince, her 1000'de kalın çentik (yapılarda 250'lik, sıkışırsa yalnız 1000'likler), kalkan beyaz parça, kaybedilen can kısa süre açık iz (hpTrail, yalnız çizim). Eski çubukta en az genişlik vardı, düşük can dolu gibi görünüyordu.
 
+- Katmanlı dövüş (10.10.2026): canı olmayan her büyük eşyaya +100 can (items.js ITEM_BASE_HP, 43 eşya, fiyat aynı; esyalar.xlsx güncellenmedi). Can yenileme seviyeyle artar (STATS regen.per): menzilli/büyücü 0,6, Gölge 0,7, İkili 0,8, Savaşçı/Alev 0,9, Zincirli 1,4 (+pasif). Ölçüm (40 maç, önce -> sonra): Ruh v Savaşçı %100 -> %100, İkili v Okçu %55 -> %18, Zincirli v Büyücü %93 -> %85.
+
 ## Açık sorular
 - Savaşçı atılışı dost minyonlar tarafından engellensin mi (şu an içinden geçiyor)?
 

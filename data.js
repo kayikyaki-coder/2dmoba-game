@@ -15,7 +15,7 @@ export const MAX_LEVEL = 10;
 export const STATS = {
   archer: {
     hp:{ base:400, per:25 },        // maksimum can (denge: 430 idi)
-    regen:{ base:3, per:0 },        // 5 saniyede yenilenen can
+    regen:{ base:3, per:0.6 },        // 5 saniyede yenilenen can, seviye başına: 0 idi
     armor:{ base:10, per:0 },       // zırh: fiziksel hasar 100/(100+zırh) ile çarpılır
     mr:{ base:10, per:0 },          // büyü direnci: büyü hasarı 100/(100+mr) ile çarpılır
     ah:{ base:0, per:0 },           // yetenek hızı: bekleme süresi 100/(100+yh) ile çarpılır
@@ -33,7 +33,7 @@ export const STATS = {
   },
   warrior: {
     hp:{ base:900, per:40 },        // denge: 750 idi
-    regen:{ base:10, per:0 },       // denge: 5 idi
+    regen:{ base:10, per:0.9 },       // denge: 5 idi, seviye başına: 0 idi
     armor:{ base:10, per:0 },       // zırh: fiziksel hasar 100/(100+zırh) ile çarpılır
     mr:{ base:10, per:0 },          // büyü direnci: büyü hasarı 100/(100+mr) ile çarpılır
     ah:{ base:0, per:0 },           // yetenek hızı: bekleme süresi 100/(100+yh) ile çarpılır
@@ -50,7 +50,7 @@ export const STATS = {
   },
   mage: {
     hp:{ base:540, per:22 },        // denge: 470 idi
-    regen:{ base:3, per:0 },
+    regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:10, per:0 },       // zırh: fiziksel hasar 100/(100+zırh) ile çarpılır
     mr:{ base:10, per:0 },          // büyü direnci: büyü hasarı 100/(100+mr) ile çarpılır
     ah:{ base:0, per:0 },           // yetenek hızı: bekleme süresi 100/(100+yh) ile çarpılır
@@ -68,7 +68,7 @@ export const STATS = {
   },
   twin: {
     hp:{ base:450, per:25 },
-    regen:{ base:3, per:0 },
+    regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:10, per:0 },
     mr:{ base:10, per:0 },
     ah:{ base:0, per:0 },
@@ -86,7 +86,7 @@ export const STATS = {
   },
   bounce: {
     hp:{ base:410, per:24 },        // denge: 440 idi
-    regen:{ base:3, per:0 },
+    regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:10, per:0 },
     mr:{ base:10, per:0 },
     ah:{ base:0, per:0 },
@@ -104,7 +104,7 @@ export const STATS = {
   },
   hook: {
     hp:{ base:690, per:38 },        // denge: 800 (+45) idi
-    regen:{ base:6, per:0 },
+    regen:{ base:6, per:1.4 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:10, per:0 },
     mr:{ base:10, per:0 },
     ah:{ base:0, per:0 },
@@ -121,7 +121,7 @@ export const STATS = {
   },
   flame: {
     hp:{ base:680, per:30 },        // denge: 560 idi
-    regen:{ base:8, per:0 },        // denge: 4 idi
+    regen:{ base:8, per:0.9 },        // denge: 4 idi, seviye başına: 0 idi
     armor:{ base:10, per:0 },
     mr:{ base:10, per:0 },
     ah:{ base:0, per:0 },
@@ -138,7 +138,7 @@ export const STATS = {
   },
   blood: {
     hp:{ base:490, per:28 },        // denge: 520 idi
-    regen:{ base:3, per:0 },
+    regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:10, per:0 },
     mr:{ base:10, per:0 },
     ah:{ base:0, per:0 },
@@ -156,7 +156,7 @@ export const STATS = {
   },
   artillery: {
     hp:{ base:580, per:22 },        // denge: 440 (+20) idi
-    regen:{ base:3, per:0 },
+    regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:10, per:0 },
     mr:{ base:10, per:0 },
     ah:{ base:0, per:0 },
@@ -174,7 +174,7 @@ export const STATS = {
   },
   shadow: {
     hp:{ base:680, per:26 },        // denge: 480 (+24) idi
-    regen:{ base:3, per:0 },
+    regen:{ base:3, per:0.7 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:10, per:0 },
     mr:{ base:10, per:0 },
     ah:{ base:0, per:0 },
@@ -192,7 +192,7 @@ export const STATS = {
   },
   spirit: {
     hp:{ base:500, per:24 },
-    regen:{ base:3, per:0 },
+    regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:10, per:0 },
     mr:{ base:10, per:0 },
     ah:{ base:0, per:0 },
@@ -210,7 +210,7 @@ export const STATS = {
   },
   dual: {   // uzak biçim temel alınır; yakın biçimin farkları HEROES.dual.melee.stats içinde
     hp:{ base:450, per:30 },        // denge: 540 idi
-    regen:{ base:3, per:0 },
+    regen:{ base:3, per:0.8 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:10, per:0 },
     mr:{ base:10, per:0 },
     ah:{ base:0, per:0 },
