@@ -4,7 +4,7 @@ export const GAME_TITLE = 'Token Arena';   // geçici oyun adı, değiştirmek i
 
 export const HERO_NAMES = {
   archer:'Okçu', warrior:'Savaşçı', mage:'Ateş Büyücüsü', twin:'Çift Okçu', bounce:'Seken Okçu', hook:'Kancalı Tank',
-  flame:'Yakın Büyücü', blood:'Vampir', artillery:'Topçu Büyücü', shadow:'Işınlanan Büyücü', spirit:'Kalkan Büyücü', dual:'Biçim Değiştiren', roller:'Gülle'
+  flame:'Yakın Büyücü', blood:'Vampir', artillery:'Topçu Büyücü', shadow:'Işınlanan Büyücü', spirit:'Kalkan Büyücü', dual:'Biçim Değiştiren', roller:'Gülle', gladiator:'Gladyatör'
 };
 
 /* Menü kartları: rol etiketi, kısa açıklama, simge harfi, vurgu rengi */
@@ -21,7 +21,8 @@ export const HERO_INFO = {
   shadow:    { role:'Vur-kaç',    letter:'I', color:'#7d6bd0', desc:'Işınlanır, zincirle bağlar, zayıf düşeni bitirir.' },
   spirit:    { role:'Destek',     letter:'K', color:'#5fd3b0', desc:'Kendini kalkanla korur, yeteneklerini hızlı yeniler.' },
   dual:      { role:'Dövüşçü',    letter:'D', color:'#d8b04a', desc:'Uzak ve yakın biçim arasında geçiş yapar.' },
-  roller:    { role:'Tank',       letter:'G', color:'#c9a45a', desc:'Düz giderken hızlanır, yuvarlanıp sersemletir, kabuğa çekilir.' }
+  roller:    { role:'Tank',       letter:'G', color:'#c9a45a', desc:'Düz giderken hızlanır, yuvarlanıp sersemletir, kabuğa çekilir.' },
+  gladiator: { role:'Dövüşçü',    letter:'L', color:'#d9764a', desc:'Vurdukça hızlanır, arena kurar, meydan okuduğu rakibin zırhını çalar.' }
 };
 /* Vurgu renkleri görsel dilden (palette.js HERO_THEME): kart kenarı, simge diski ve etiket aynı renk */
 for (const k in HERO_INFO) if (HERO_THEME[k]) HERO_INFO[k].color = HERO_THEME[k].c;

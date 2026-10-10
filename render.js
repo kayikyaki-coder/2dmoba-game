@@ -7,7 +7,7 @@ const TEAM_COLORS=PAL.team, TEAM_DARK=PAL.teamDark, TAU=Math.PI*2;   // takım r
 import { ITEMS, PARTS, SLOTS } from './items.js';
 import { MAP_W, MAP_H, LANES, WALLS, BUSHES, BASES, rayDist, wallsNear, bushAt } from './map.js';
 import { HERO_NAMES } from './names.js';
-import { S, settings, stat, dist, atkDef, atkDmg, attackSpeed, timings, canLearn, passiveText, visiblePos, canSee } from './sim.js';
+import { S, settings, stat, dist, atkDef, atkDmg, attackSpeed, timings, canLearn, passiveText, visiblePos, canSee, arenaOf } from './sim.js';
 
 export const cam={ x:0, y:0 };
 export const uiState={ hold:null, aimTgt:null, mx:0, my:0 };   // girdiden gelen çizim bilgisi (basılı yetenek tuşu, nişan hedefi)
@@ -374,6 +374,20 @@ function drawHero(h){
     ctx.stroke(); ctx.fillStyle='rgba(232,217,160,0.16)'; ctx.fill(); ctx.restore();
   }
   if(st.ball){ ctx.beginPath(); ctx.arc(h.x,h.y,h.r+4,0,TAU); ctx.strokeStyle='#ffe08a'; ctx.lineWidth=4; ctx.stroke(); }
+  if(h.ic.duel && !h.ic.duel.tgt.dead){   // Gladyatör Meydan Okuma: hedefe zincirli bağ, hedefin çevresinde kırık kalkan işareti
+    const T=h.ic.duel.tgt, pulse=0.55+0.35*Math.sin(S.time*8);
+    ctx.save(); ctx.strokeStyle='rgba(255,122,74,'+pulse+')'; ctx.lineWidth=3; ctx.setLineDash([12,7]);
+    ctx.beginPath(); ctx.moveTo(h.x,h.y); ctx.lineTo(T.x,T.y); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(T.x,T.y,T.r+9,0,TAU); ctx.strokeStyle='rgba(255,122,74,0.85)'; ctx.lineWidth=3; ctx.setLineDash([8,6]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.restore();
+  }
+  if(h.ic.heavy && h.ic.heavy.until>=S.time){   // Gladyatör Ağır Darbe hazır: turuncu parıltı
+    ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.beginPath(); ctx.arc(h.x,h.y,h.r+6,0,TAU); ctx.strokeStyle='rgba(255,140,70,'+(0.5+0.3*Math.sin(S.time*12))+')'; ctx.lineWidth=4; ctx.stroke(); ctx.restore();
+  }
+  if(h.ic.frzUntil>S.time && h.ic.frzN>0){   // Gladyatör Kızışma: tokenin altında yığın noktaları
+    const n=h.ic.frzN, mx=h.def.skills.p.stacks;
+    for(let j=0;j<mx;j++){ const x=h.x+(j-(mx-1)/2)*9, y=h.y+h.r+9; ctx.beginPath(); ctx.arc(x,y,3.2,0,TAU); ctx.fillStyle=j<n?'#ffb070':'rgba(255,255,255,0.18)'; ctx.fill(); }
+  }
   if((a.state==='windup'||h.cast) && (h.team===S.player.team || (h.cast && h.def.skills[h.cast.k].type==='beam'))){ ctx.beginPath(); ctx.arc(h.x,h.y,h.r+1,0,TAU); ctx.lineWidth=2.5; ctx.strokeStyle='rgba(255,255,255,0.95)'; ctx.stroke(); }
   const ax=Math.cos(h.aim), ay=Math.sin(h.aim);
   if(h.form){   // İkili biçim işareti: uzak biçim mavi halka + yay, yakın biçim turuncu halka + çekiç
@@ -592,6 +606,21 @@ function drawHoldRange(){
     ctx.fillStyle='rgba(111,230,255,0.14)'; ctx.fill(); ctx.strokeStyle='rgba(140,235,255,0.85)'; ctx.lineWidth=2; ctx.stroke();
     ctx.restore();
     holdCircle(p.x+Math.cos(ang)*sk.range, p.y+Math.sin(ang)*sk.range, sk.blastEnd, 'rgba(111,230,255,0.08)', 'rgba(140,235,255,0.7)', true);
+  } else if(sk.type==='duel'){   // Gladyatör Meydan Okuma: menzil ve imlece en yakın görünen rakip kahraman
+    holdCircle(p.x,p.y,sk.range,'rgba(255,122,74,0.05)','rgba(255,140,90,0.85)',true);
+    let best=null, bd=1e9;
+    for(const u of S.heroes){
+      if(u.dead || u.team===p.team || !canSee(p.team,u) || dist(u,p)-u.r>sk.range) continue;
+      const dd=Math.hypot(u.x-uiState.mx,u.y-uiState.my); if(dd<bd){ bd=dd; best=u; }
+    }
+    if(best){ holdCircle(best.x,best.y,best.r+10,null,'#ff7a4a'); holdLine(p, Math.atan2(best.y-p.y,best.x-p.x), dist(best,p)-best.r, p.r*2); }
+  } else if(sk.type==='arena'){   // Gladyatör Arena: menzil ve imleçteki alan (menzile kırpılır)
+    holdCircle(p.x,p.y,sk.range,'rgba(255,176,112,0.03)','rgba(255,176,112,0.7)',true);
+    let tx=uiState.mx, ty=uiState.my; const d=Math.hypot(tx-p.x,ty-p.y);
+    if(d>sk.range){ tx=p.x+(tx-p.x)/d*sk.range; ty=p.y+(ty-p.y)/d*sk.range; }
+    holdCircle(tx,ty,sk.radius,'rgba(255,176,112,0.10)','rgba(255,200,140,0.9)');
+  } else if(sk.type==='heavy'){
+    holdCircle(p.x,p.y,p.r+atkDef(p).range,'rgba(255,154,90,0.05)','rgba(255,154,90,0.8)',true);
   } else if(sk.type==='leapslam' || sk.type==='knockblow'){   // yakın biçim: menzil ve imlece en yakın görünen rakip (kahraman ya da minyon); inişte alan / itme yönü
     holdCircle(p.x,p.y,sk.range,'rgba(255,154,77,0.05)','rgba(255,170,90,0.8)',true);
     let best=null, bd=1e9;
@@ -844,6 +873,17 @@ function drawProjectiles(){
   for(const z of S.zones||[]){
     if(!seenByPlayer(z.x,z.y)) continue;
     const p=1-Math.max(0,z.t)/z.total, bm=z.kind==='bomb', sh=z.kind==='shell';
+    if(z.kind==='arena'){   // Gladyatör Arena: kum rengi zemin, sahibinin takım renginde kalın halka, kenarda dişler; son saniyede yanıp söner
+      const col=PAL.team[z.team], blink=z.t<1 ? 0.5+0.5*Math.sin(S.time*20) : 1;
+      ctx.save();
+      ctx.beginPath(); ctx.arc(z.x,z.y,z.r,0,TAU); ctx.fillStyle='rgba(224,170,110,0.10)'; ctx.fill();
+      ctx.globalAlpha=0.9*blink; ctx.strokeStyle=col; ctx.lineWidth=5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(z.x,z.y,z.r-10,0,TAU); ctx.strokeStyle='rgba(255,210,150,0.55)'; ctx.lineWidth=2; ctx.setLineDash([6,10]); ctx.stroke(); ctx.setLineDash([]);
+      for(let j=0;j<16;j++){ const an=j*TAU/16; ctx.beginPath(); ctx.moveTo(z.x+Math.cos(an)*(z.r-2),z.y+Math.sin(an)*(z.r-2)); ctx.lineTo(z.x+Math.cos(an)*(z.r+9),z.y+Math.sin(an)*(z.r+9)); ctx.strokeStyle=col; ctx.lineWidth=4; ctx.stroke(); }
+      ctx.beginPath(); ctx.arc(z.x,z.y,z.r*(Math.max(0,z.t)/z.total),0,TAU); ctx.strokeStyle='rgba(255,220,170,0.25)'; ctx.lineWidth=2; ctx.stroke();
+      ctx.restore();
+      continue;
+    }
     if(z.kind==='spirit'){   // güçlü Ruh Patlaması alanı: yavaşlatan turkuaz alan, süre bitince küçülen iç halka
       ctx.save();
       ctx.beginPath(); ctx.arc(z.x,z.y,z.r,0,Math.PI*2); ctx.fillStyle='rgba(95,224,200,0.14)'; ctx.fill();
@@ -1077,7 +1117,9 @@ const HUD_NUM=[
   ['killPct','Son vuruşta can','p'],['nearPct','Yakındaki ölümde can','p'],['twinPct','Ok başına hasar','p'],['bouncePct','Sekme hasarı','p'],['regenPct','Can yenileme (5 sn)','p'],
   ['flowMin','Hız (1. seviye)','p'],['flowMax','Hız (10. seviye)','p'],['timerMax','Odak süresi (1. seviye)','t'],['timerMin','Odak süresi (10. seviye)','t'],
   ['oppCd','Bekleme','t'],['dMin','En kısa mesafe','n'],['dMax','En uzun mesafe','n'],['charge','Dolma süresi','t'],['dr','Hasar azaltma','p'],['massMult','Kütle','x'],
-  ['ms','Hız (dolu)','p'],['gain','Dolma (sn başına)','n'],['dmgMin','Ek hasar (1. seviye)','n'],['dmgMax','Ek hasar (10. seviye)','n'],['pushAt','İtme eşiği','n'],['push','İtme','n'],['rehit','Aynı rakibe','t'],['oppBase','Ek hasar','n'],['oppMax','Azami can oranı','p'],['flowCd','Bekleme kısalması','t'],['flowHero','Kahramanda','t']
+  ['ms','Hız (dolu)','p'],['gain','Dolma (sn başına)','n'],['dmgMin','Ek hasar (1. seviye)','n'],['dmgMax','Ek hasar (10. seviye)','n'],['pushAt','İtme eşiği','n'],['push','İtme','n'],['rehit','Aynı rakibe','t'],['oppBase','Ek hasar','n'],['oppMax','Azami can oranı','p'],['flowCd','Bekleme kısalması','t'],['flowHero','Kahramanda','t'],
+  ['asMin','Yığın başına saldırı hızı (1. seviye)','p'],['asMax','Yığın başına saldırı hızı (10. seviye)','p'],['stacks','En fazla yığın','n'],
+  ['healFlat','İyileşme','n'],['healPct','Verilen hasardan iyileşme','p'],['adFlat','Saldırı gücü','n'],['steal','Çalınan zırh ve BD','p']
 ];
 const TYPE_DESC={
   volley:'Önündeki yelpazeye ok yağdırır.', haste:'Saldırı hızın bir süre artar.', bigarrow:'Harita boyunca giden dev ok; vurduğunu kısa süre dondurur.',
@@ -1098,6 +1140,9 @@ const TYPE_DESC={
   leapslam:'Rakibe sıçrayıp inersin; alan hasarı ve yavaşlatma.', knockblow:'Rakibi iter; duvara çarparsa sersemler.', transform:'Uzak ve yakın biçim arasında geçiş yaparsın.',
   roll:'Basılı tuttukça mesafe artar; bırakınca yuvarlanır, indiğin yerde rakipleri havaya atıp sersemletirsin.',
   shell:'Kabuğa çekilirsin: ağırlaşır, itilemez ve çekilemezsin, hasar azalır; düz vuruş menzili artar, vuruşların yavaşlatır.',
+  heavy:'Düz vuruş beklemen sıfırlanır; sonraki vuruşun ek hasar verir, rakibi azalan biçimde yavaşlatır ve seni iyileştirir.',
+  arena:'İmlecin olduğu yeri kısa süre arenan yaparsın; içindeyken saldırı gücün, saldırı hızın ve hareket hızın artar.',
+  duel:'Yakındaki rakip kahramana atılırsın; süre boyunca zırhının ve büyü direncinin bir kısmını çalar, canını yakar ve verdiğin hasarla iyileşirsin.',
   billiard:'Durdurulamaz top olursun: hızla ileri gider, duvarlardan seker, değdiğin rakipleri itip vurursun. İmleçle hafifçe yönlendirilir.'
 };
 const PASS_DESC={
@@ -1105,6 +1150,7 @@ const PASS_DESC={
   twin:'Her düz vuruş iki güdümlü ok atar.', bounce:'Düz vuruş yakındaki başka bir rakibe seker.', hook:'Canın sürekli ek yenilenir.',
   flame:'Yetenek sonrası ilk düz vuruş patlama çıkarır.', blood:'Yakında ölen rakipten can kazanırsın.', artillery:'Dolunca sağ tık ve E beklemesi çok kısalır.',
   shadow:'Canı yarının altındaki rakibe vurunca ek hasar.', spirit:'Düz vuruşların yeteneklerin beklemesini kısaltır.', dual:'Yetenek kullanınca kısa süre hızlanırsın.',
+  gladiator:'Her düz vuruş isabeti saldırı hızını artıran bir yığın verir (4 sn, en fazla 5).',
   roller:'Düz giderken momentum biriktirip hızlanırsın; ani dönüş bozar. İsabet momentumu harcar: ek hasar, yüksekse rakibi iter.'
 };
 const HUD_STATS=[ ['dmg','SG'], ['asPct','Saldırı hızı'], ['crit','Kritik'], ['ls','Can çalma'], ['ap','YG'], ['ah','YH'], ['hp','Can'], ['armor','Zırh'], ['mr','Büyü direnci'], ['msPct','Hareket hızı'], ['lethal','Zırh delme'], ['regen','Yenileme'] ];
@@ -1284,6 +1330,11 @@ function hudChips(p,x,y,maxW){
   if(p.stasis>0) list.push({ t:'Dokunulmaz '+p.stasis.toFixed(1)+' sn', c:'#fff1b0', bg:'#5a4a1a' });
   if(p.recallCh) list.push({ t:'Üsse dönüş '+Math.max(0,p.recallCh.t).toFixed(1)+' sn', c:'#b8d8ff', bg:'#26406a' });
   if(p.form) list.push({ t:'Biçim: '+(p.form==='melee'?'Yakın':'Uzak'), c:p.form==='melee'?'#ffd7a8':'#bfe0ff', bg:p.form==='melee'?'#5a3a1c':'#26406a' });
+  if(p.ic.frzUntil>S.time && p.ic.frzN>0) list.push({ t:'Kızışma '+p.ic.frzN+'/'+p.def.skills.p.stacks, c:'#ffd7a8', bg:'#5a3a1c' });
+  if(p.ic.heavy && p.ic.heavy.until>=S.time) list.push({ t:'Ağır Darbe hazır', c:'#ffd7a8', bg:'#6a2f1c' });
+  if(p.ic.arenaUntil>S.time && arenaOf(p)) list.push({ t:'Arenada', c:'#ffe0b8', bg:'#5a3a1c' });
+  if(p.ic.duel) list.push({ t:'Meydan Okuma '+Math.max(0,p.ic.duel.t).toFixed(1)+' sn', c:'#ffc9b0', bg:'#6a2f1c' });
+  if(p.ic.duelLoss && p.ic.duelLoss.until>S.time) list.push({ t:'Zırhın çalındı', c:'#ffc9b0', bg:'#6a2f1c' });
   if(p.ic.focus) list.push({ t:'Odak hazır', c:'#e6dcff', bg:'#4a2f7a' });
   if(p.ic.mantra && S.time<=p.ic.mantra.until) list.push({ t:'Güçlendirme '+Math.max(0,p.ic.mantra.until-S.time).toFixed(1)+' sn', c:'#c8fff2', bg:'#1d5a4e' });
   if(p.ic.back) for(const k of ['r','e','s']){ const b=p.ic.back[k]; if(b && S.time<=b.until) list.push({ t:'Dönüş ('+HUD_KEY[k]+') '+Math.max(0,b.until-S.time).toFixed(1)+' sn', c:'#e0d6ff', bg:'#3d2f6a' }); }

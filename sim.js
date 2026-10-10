@@ -30,6 +30,12 @@ export function stat(h, k){
   if(F){ if(k==='dmg') v+=F.dmg; else if(k==='spd') v*=1+F.spd; }
   const R=h.st && h.st.fring;   // Alev Halkası: geçici zırh ve büyü direnci
   if(R && (k==='armor' || k==='mr')) v+=R.res;
+  const ic=h.ic;
+  if(ic && ic.arenaUntil>S.time && k==='dmg'){ const A=arenaOf(h); if(A) v+=A.ad; }   // Gladyatör Arena: alan içindeyken SG
+  if(ic && (k==='armor' || k==='mr')){   // Gladyatör Meydan Okuma: çalınan zırh ve BD (kazanan +, kaybeden -)
+    if(ic.duelGain && ic.duelGain.until>S.time) v+=ic.duelGain[k];
+    if(ic.duelLoss && ic.duelLoss.until>S.time) v-=ic.duelLoss[k];
+  }
   const B=h.bonus; if(!B) return v;
   if(FLAT_KEYS[k]) v+=B[k]||0;
   if(B.lvlStats && (k==='armor' || k==='mr' || k==='ah' || k==='spd')) v+=h.level||1;   // Yük Taşıyıcı: seviyen kadar zırh, BD, yetenek hızı, hareket hızı
@@ -157,6 +163,7 @@ export function moveMult(h){
     if(h.ic.stride>0 && h.bonus && h.bonus.stride) m*=1+h.ic.stride*h.bonus.stride.msPer;   // Fırtına Adımı
     if(h.ic.hmsUntil>S.time) m*=1+h.ic.hmsN*h.ic.hmsAmt;                                    // Dikenli Çizme
     if(h.ic.mom>0) m*=1+h.def.skills.p.ms*h.ic.mom/100;                                    // Gülle: Momentum
+    if(h.ic.arenaUntil>S.time){ const A=arenaOf(h); if(A) m*=1+A.ms; }                      // Gladyatör Arena
   }
   return m;
 }
@@ -166,7 +173,9 @@ export function attackSpeed(h){
   const B=h.bonus||{};
   return stat(h,'as') * (1 + (h.human ? settings.asBonus : 0)) * (1 + (h.st.asB ? h.st.asB.amt : 0)) * (1 + (h.st.frenzy ? h.st.frenzy.as : 0)) * (1+(B.asPct||0))
     * (h.st.titanSlow ? 1-h.st.titanSlow.amt : 1) * (h.ic.asUntil>S.time ? 1+h.ic.asAmt : 1)   // Kasırga Baltası
-    * (h.ic.asStackUntil>S.time ? 1+h.ic.asStackN*h.ic.asStackAmt : 1);   // Hız Çarkı
+    * (h.ic.asStackUntil>S.time ? 1+h.ic.asStackN*h.ic.asStackAmt : 1)   // Hız Çarkı
+    * (h.ic.frzUntil>S.time ? 1+h.ic.frzN*frzAmt(h) : 1)                   // Gladyatör Kızışma
+    * (h.ic.arenaUntil>S.time ? 1+arenaAs(h) : 1);                          // Gladyatör Arena
 }
 export function timings(h){
   const period = 1/attackSpeed(h), wind = stat(h,'windup')*period;
@@ -287,6 +296,7 @@ export function passiveText(h){
   if(sk.flowCd!==undefined) return 'vuruş -'+String(sk.flowCd).replace('.',',')+' / -'+String(sk.flowHero).replace('.',',')+' sn';
   if(sk.missPct) return "sn'de eksik canın %"+Math.round(sk.missPct*100)+"'ü";
   if(sk.burnMin!==undefined) return "sn'de "+burnDps(sk,h.level).toFixed(1)+' yakar';
+  if(sk.asMin!==undefined) return 'Kızışma '+(h.ic.frzUntil>S.time ? h.ic.frzN : 0)+'/'+sk.stacks+' (yığın %'+(frzAmt(h)*100).toFixed(1).replace('.',',')+')';
   if(sk.gain!==undefined) return 'Momentum '+Math.round(h.ic.mom||0)+' (ek '+Math.round(momDmg(h)*(h.ic.mom||0)/100)+')';
   return '';
 }
@@ -496,7 +506,9 @@ export function kill(e, src){
     e.deaths++;
     if(killer && killer.kind==='hero' && killer.team!==e.team){ killer.kills++; for(const a of takedownParticipants(e, killer)) if(a!==killer) a.assists++; }
     bloodHarvest(e, src, killer);
-    e.ic.bleed=null; e.st.curse=null; e.ic.tether=null; e.ic.back=null;   // Gölge: bağ ve dönüş noktası da biter   // Kan Hasadı iyileşmesi ve Kan Laneti ölünce biter
+    e.ic.bleed=null; e.st.curse=null; e.ic.tether=null; e.ic.back=null;
+    if(e.ic.duel) duelEnd(e); for(const g of S.heroes) if(g.ic.duel && g.ic.duel.tgt===e) duelEnd(g);   // Gladyatör: Meydan Okuma biter, çalınanlar döner
+    if(e.ic.frzN) e.ic.frzN=0; e.ic.heavy=null; e.ic.arenaUntil=0;   // Gölge: bağ ve dönüş noktası da biter   // Kan Hasadı iyileşmesi ve Kan Laneti ölünce biter
     awardHeroKillGold(e, killer);
     if(killer) for(const h of takedownParticipants(e, killer)) if(h.bonus && h.bonus.takedownCd && !h.dead) for(const k of ['r','e']) h.cd[k]*=1-h.bonus.takedownCd;   // Zaman Kumu: sağ tık ve E'nin kalan beklemesi (Boşluk hariç)
     if(killer) for(const h of takedownParticipants(e, killer)) if(h.bonus && h.bonus.takedownHeal && !h.dead){ const T=h.bonus.takedownHeal; h.ic.td={ left:h.maxHp*T.pct, rate:h.maxHp*T.pct/T.dur }; }
@@ -866,7 +878,7 @@ export function tryCast(h, k, aim, cmd){
   // Arınma sersemken de kullanılır (tek istisna); Kum Saati dokunulmazlığında zaten updateHero buraya gelmez
   if(sk.type==='cleanse' ? (h.cast || h.dash) : !canAct(h)) return;
   if(h.st.silence>0 && sk.type!=='cleanse') return;   // susturulan yetenek kullanamaz (Arınma istisna: susturmayı kaldıran o)
-  if(h.st.root>0 && (sk.type==='dash' || sk.type==='tumble' || sk.type==='flameleap' || sk.type==='leapslam' || sk.type==='roll')) return;   // köklüyken atılış ve sıçrama yok (ışınlanma serbest)
+  if(h.st.root>0 && (sk.type==='dash' || sk.type==='tumble' || sk.type==='flameleap' || sk.type==='leapslam' || sk.type==='roll' || sk.type==='duel')) return;   // köklüyken atılış ve sıçrama yok (ışınlanma serbest)
   if(sk.type==='mimic' && !h.ic.last) return;   // Taklit: henüz tekrarlanacak yetenek yok
   let tgt=null;
   if(sk.type==='ignite' || sk.type==='bloodbolt'){
@@ -880,6 +892,14 @@ export function tryCast(h, k, aim, cmd){
     if(!tgt) return;
   } else if(sk.type==='lockvolley'){
     // menzildeki görünen rakip kahramanlardan imlece en yakını; yoksa yetenek harcanmaz
+    const p=targetPoint(h, cmd, sk.range); let bd=1e9;
+    for(const u of S.heroes){
+      if(u.dead || u.team===h.team || !canSee(h.team,u) || dist(u,h)-u.r>sk.range) continue;
+      const dd=Math.hypot(u.x-p.x,u.y-p.y); if(dd<bd){ bd=dd; tgt=u; }
+    }
+    if(!tgt) return;
+  } else if(sk.type==='duel'){
+    // Meydan Okuma: menzildeki görünen rakip KAHRAMANLARDAN imlece en yakını; yoksa yetenek harcanmaz
     const p=targetPoint(h, cmd, sk.range); let bd=1e9;
     for(const u of S.heroes){
       if(u.dead || u.team===h.team || !canSee(h.team,u) || dist(u,h)-u.r>sk.range) continue;
@@ -1117,6 +1137,21 @@ export function instantSkill(h, k, aim, cmd, tgt, opt){
   } else if(sk.type==='firering'){   // Alev Halkası: kahramanla hareket eden halka, süre boyunca zırh ve büyü direnci
     h.st.fring = { t:sk.dur, total:sk.dur, radius:sk.radius, dps:sk.dps[i]+(sk.ap||0)*apOf(h), slow:sk.slow, res:sk.res+(sk.resAp||0)*apOf(h) };
     fx({ type:'ring', owner:h, r0:h.r, r1:sk.radius, color:'#ff8a3d', lw:6, life:0.45 });
+  } else if(sk.type==='heavy'){   // Gladyatör Ağır Darbe: düz vuruş beklemesi sıfırlanır, sonraki vuruş güçlü (gladHit)
+    h.ic.heavy={ until:S.time+sk.window, dmg:sk.dmg[i]+sk.ad*bonusAd(h), slow:sk.slow, slowDur:sk.slowDur, heal:sk.healFlat[i], healPct:sk.healPct };
+    if(h.atk.state==='recovery'){ h.atk.state='ready'; h.atk.t=0; }
+    fx({ type:'ring', owner:h, r0:h.r, r1:h.r+20, color:'#ff9a5a', lw:4, life:0.3 });
+  } else if(sk.type==='arena'){   // Gladyatör Arena: imleç yerinde (range'e kırpılır) alan; Gladyatör içindeyken güçlenir (stat/attackSpeed/moveMult)
+    let p=targetPoint(h, cmd, sk.range);
+    const dx=p.x-h.x, dy=p.y-h.y, l=Math.hypot(dx,dy);
+    if(l>sk.range) p={ x:h.x+dx/l*sk.range, y:h.y+dy/l*sk.range };
+    for(const z of S.zones) if(z.kind==='arena' && z.owner===h) z.dead=true;   // önceki arena kalkar
+    S.zones.push({ x:p.x, y:p.y, r:sk.radius, t:sk.dur, total:sk.dur, owner:h, team:h.team, kind:'arena', ad:sk.adFlat[i], as:sk.as[i], ms:sk.ms[i] });
+    h.ic.arenaUntil=S.time+sk.dur;
+    fx({ type:'boom', x:p.x, y:p.y, r0:30, r1:sk.radius, color:'#ffb070', life:0.45 });
+  } else if(sk.type==='duel'){   // Gladyatör Meydan Okuma: hedefe yapışan atılış, değince duelHit
+    const dx=tgt.x-h.x, dy=tgt.y-h.y, l=Math.hypot(dx,dy)||1;
+    h.dash = { dx:dx/l, dy:dy/l, left:Math.max(0,l-h.r-tgt.r), sk, rk, noHit:true, duel:tgt, tmax:0.9 };
   } else if(sk.type==='roll'){   // Gülle Yuvarlan: basılı tutma süresine (bot: imleç noktasına) göre mesafe, inişte rollLand
     let L;
     if(cmd && cmd.hold!==undefined) L=sk.dMin+(sk.dMax-sk.dMin)*Math.min(1, cmd.hold/sk.charge);
@@ -1261,6 +1296,7 @@ export function releaseAttack(h){
       onBasicHit(h, e);
       if(h.st.shell && !e.dead && e.kind!=='struct'){ damage(e, h.st.shell.dmg, h, { type:'phys', noProc:true, noSplash:true }); if(!e.dead && e.st) applySlow(e, h.st.shell.slow, h.st.shell.slowDur); }   // Gülle Kabuk
       if(h.ic.mom>0){ momHit(h, e); h.ic.mom=0; }   // Gülle Momentum: isabet harcar
+      if(h.def.skills.p.asMin!==undefined) gladHit(h, e);   // Gladyatör: Kızışma yığını, Ağır Darbe
       if(B.cleave){   // Kesici Vuruş: yalnız yakın dövüşte; hedefin arkasındaki koniye yayılır (eşya istisnası: normalde tek hedef)
         for(const u of foes(h.team,false)){
           if(u===e || u.dead || !inCone(e, ang, B.cleave.reach, B.cleave.half, u)) continue;
@@ -1294,6 +1330,7 @@ export function updateHero(h, cmd, dt){
   if(st.silence>0) st.silence-=dt;
   if(st.root>0) st.root-=dt;
   if(h.ic.tether) tetherTick(h, dt);   // Gölge: Zincir bağı
+  if(h.ic.duel){ duelTick(h, dt); if(h.dead) return; }   // Gladyatör: Meydan Okuma
   if(st.curse){ st.curse.t-=dt; if(st.curse.t<=0){ curseEnd(h); if(h.dead) return; } }   // Kan Laneti
   // Süreli hasarlar (yanma, içten yanma, Kara Alev)
   for(const k of ['burn','ignite','bflame']){
@@ -1333,7 +1370,13 @@ export function updateHero(h, cmd, dt){
 
   // Atılış (savaşçı sağ tık)
   if(h.dash){
-    const d=h.dash, sk=d.sk, len=Math.min(d.left, sk.speed*dt);
+    const d=h.dash, sk=d.sk;
+    if(d.duel){   // Meydan Okuma: hedefe yapışır (yön ve kalan mesafe her tik yenilenir)
+      const T=d.duel, dx=T.x-h.x, dy=T.y-h.y, l=Math.hypot(dx,dy)||1;
+      d.dx=dx/l; d.dy=dy/l; d.left=Math.max(0,l-h.r-T.r); d.tmax-=dt;
+      if(T.dead || d.tmax<=0) d.left=0;
+    }
+    const len=Math.min(d.left, sk.speed*dt);
     const ox=h.x, oy=h.y;
     h.x+=d.dx*len; h.y+=d.dy*len; d.left-=len;
     fx({ type:'ghost', x:ox, y:oy, r:h.r, team:h.team, life:0.25 });
@@ -1357,7 +1400,7 @@ export function updateHero(h, cmd, dt){
         stop=true; break;
       }
     }
-    if(stop || d.left<=0.01){ h.dash=null; h.vx=d.dx*40; h.vy=d.dy*40; if(d.leap) leapStrip(h, d); if(d.slam) leapSlam(h, d); if(d.roll) rollLand(h, d); }
+    if(stop || d.left<=0.01){ h.dash=null; h.vx=d.dx*40; h.vy=d.dy*40; if(d.leap) leapStrip(h, d); if(d.slam) leapSlam(h, d); if(d.roll) rollLand(h, d); if(d.duel) duelHit(h, d); }
     const kd=Math.exp(-6*dt); h.kx*=kd; h.ky*=kd;
     return;
   }
@@ -1565,6 +1608,55 @@ function hookPull(p, hit){
   } else { hit.cast=null; if(hit.atk.state==='windup') hit.atk.state='ready'; }
   hit.dash=null;
   hit.pulled={ src:o, t:hk.pull, total:hk.pull, gap:hk.gap, ox:o.x, oy:o.y, or:o.r };
+}
+
+/* ---- Gladyatör ---- */
+/* Kızışma: yığın başına saldırı hızı (seviyeyle asMin -> asMax) */
+export function frzAmt(h){ const p=h.def.skills.p; return p.asMin+(p.asMax-p.asMin)*((h.level||1)-1)/(MAX_LEVEL-1); }
+/* Gladyatör'ün içinde durduğu kendi arenası (yoksa null) */
+export function arenaOf(h){
+  for(const z of S.zones) if(z.kind==='arena' && z.owner===h && !z.dead && Math.hypot(h.x-z.x,h.y-z.y)<=z.r) return z;
+  return null;
+}
+function arenaAs(h){ const A=arenaOf(h); return A ? A.as : 0; }
+/* Düz vuruş isabeti: Kızışma yığını (süre yenilenir), bekleyen Ağır Darbe varsa ek hasar + azalan yavaşlatma + iyileşme */
+function gladHit(h, e){
+  const p=h.def.skills.p, ic=h.ic;
+  ic.frzN = ic.frzUntil>S.time ? Math.min(p.stacks, (ic.frzN||0)+1) : 1; ic.frzUntil=S.time+p.dur;
+  const H=ic.heavy;
+  if(H && H.until>=S.time && !e.dead){
+    ic.heavy=null;
+    const dealt=damage(e, H.dmg, h, { type:'phys', skill:true, noSplash:true })||0;
+    if(!e.dead && e.st && e.kind!=='struct') applySlow(e, H.slow, H.slowDur, true);
+    heal(h, H.heal+H.healPct*dealt);
+    fx({ type:'boom', x:e.x, y:e.y, r0:e.r*0.6, r1:e.r+30, color:'#ff9a5a', life:0.3 });
+  }
+}
+/* Meydan Okuma isabeti: hedef menzilde ise dur sn çalma + süreli büyü hasarı başlar */
+function duelHit(h, d){
+  const T=d.duel, sk=d.sk, i=d.rk-1;
+  if(T.dead || dist(h,T)>h.r+T.r+30 || T.stasis>0) return;
+  if(h.ic.duel) duelEnd(h);
+  const ar=stat(T,'armor')*sk.steal[i], mr=stat(T,'mr')*sk.steal[i], until=S.time+sk.dur;
+  h.ic.duel={ tgt:T, t:sk.dur, dps:T.maxHp*sk.hpPct[i]/sk.dur, healPct:sk.healPct };
+  h.ic.duelGain={ armor:ar, mr, until };
+  T.ic.duelLoss={ armor:ar, mr, until, src:h };
+  ccHit(T);
+  fx({ type:'ring', owner:T, r0:T.r, r1:T.r+40, color:'#ff7a4a', lw:5, life:0.45 });
+}
+/* Meydan Okuma süresi: hedefe saniye saniye büyü hasarı, hasarın healPct'i kadar iyileşme; süre ya da hedef bitince sona erer */
+function duelTick(h, dt){
+  const D=h.ic.duel, T=D.tgt;
+  if(T.dead){ duelEnd(h); return; }
+  const x=Math.min(dt, D.t);
+  const dealt=damage(T, D.dps*x, h, { type:'magic', dot:true, noSplash:true })||0;
+  heal(h, dealt*D.healPct);
+  D.t-=dt;
+  if(D.t<=0) duelEnd(h);
+}
+function duelEnd(h){
+  const D=h.ic.duel; h.ic.duel=null; h.ic.duelGain=null;
+  if(D && D.tgt.ic.duelLoss && D.tgt.ic.duelLoss.src===h) D.tgt.ic.duelLoss=null;
 }
 
 /* ---- Gülle ---- */
@@ -1820,6 +1912,7 @@ export function updateTower(s, dt){
 export function updateZones(dt){
   for(const z of S.zones){
     z.t-=dt;
+    if(z.kind==='arena'){ if(z.t<=0 || z.owner.dead) z.dead=true; continue; }   // Gladyatör Arena: yalnız sahibini güçlendirir (stat/attackSpeed/moveMult)
     if(z.kind==='spirit' && z.t>0){   // güçlü Ruh Patlaması alanı: içindekiler sürekli yenilenen yavaşlatma alır
       for(const u of foes(z.team,false)) if(u.st && Math.hypot(u.x-z.x,u.y-z.y)<=z.r+u.r) applySlow(u, z.slow, 0.15);
       continue;

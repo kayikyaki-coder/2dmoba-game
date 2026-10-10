@@ -48,7 +48,8 @@ export const HERO_THEME = {
   shadow:    { c:'#7a68dc', icon:'eye' },
   spirit:    { c:'#4fe3c0', icon:'star' },
   dual:      { c:'#e6bd4a', icon:'yin' },
-  roller:    { c:'#c9a45a', icon:'ball' }
+  roller:    { c:'#c9a45a', icon:'ball' },
+  gladiator: { c:'#e07a4a', icon:'helm' }
 };
 
 /* CSS değişkenlerini palete eşitler (index.html varsayılanlarıyla aynı değerler) */

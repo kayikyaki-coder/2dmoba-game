@@ -89,6 +89,11 @@ const ICONS = {
     g.beginPath(); for(let i=0;i<8;i++){ const a=-Math.PI/2+i*Math.PI/4, rr=i%2?0.3:1.0; g.lineTo(Math.cos(a)*rr,Math.sin(a)*rr); } g.closePath(); g.fill();
     g.beginPath(); g.arc(0.72,-0.72,0.14,0,TAU); g.fill();
   },
+  helm(g,c,d){   // Gladyatör: tepeli miğfer, yüz yarığı
+    g.beginPath(); g.moveTo(-0.62,0.95); g.lineTo(-0.62,-0.05); g.quadraticCurveTo(-0.62,-0.7,0,-0.72); g.quadraticCurveTo(0.62,-0.7,0.62,-0.05); g.lineTo(0.62,0.95); g.closePath(); g.fill();
+    g.beginPath(); g.moveTo(-0.42,0.02); g.lineTo(0.42,0.02); g.lineTo(0.42,0.2); g.lineTo(0.1,0.2); g.lineTo(0.1,0.82); g.lineTo(-0.1,0.82); g.lineTo(-0.1,0.2); g.lineTo(-0.42,0.2); g.closePath(); g.fillStyle=d; g.fill();
+    g.beginPath(); g.moveTo(-0.5,-0.78); g.quadraticCurveTo(0,-1.25,0.62,-0.95); g.quadraticCurveTo(0.2,-0.85,0.05,-0.66); g.quadraticCurveTo(-0.2,-0.72,-0.5,-0.78); g.closePath(); g.fillStyle=c; g.fill();
+  },
   ball(g,c,d){   // Gülle: hız çizgili top
     g.beginPath(); g.arc(0.18,0.05,0.68,0,TAU); g.fill();
     g.beginPath(); g.arc(0.18,0.05,0.68,0,TAU); g.lineWidth=0.1; g.strokeStyle=d; g.stroke();

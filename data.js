@@ -136,6 +136,23 @@ export const STATS = {
     atkSlow:{ base:0.40, per:0 },
     angle:{ base:90, per:0 }
   },
+  gladiator: {   // Gladyatör: yakın dövüşçü. Savaşçı'dan az can, Kızışma yığınlarıyla saldırı hızı tırmanır
+    hp:{ base:940, per:46 },
+    regen:{ base:9, per:0.9 },
+    armor:{ base:10, per:0 },
+    mr:{ base:10, per:0 },
+    ah:{ base:0, per:0 },
+    ap:{ base:0, per:0 },
+    dmg:{ base:67, per:3.5 },
+    as:{ base:0.90, per:0.025 },
+    spd:{ base:200, per:3 },
+    range:{ base:115, per:0 },
+    size:{ base:28, per:0 },
+    mass:{ base:2.3, per:0 },
+    windup:{ base:0.27, per:0 },
+    atkSlow:{ base:0.40, per:0 },
+    angle:{ base:90, per:0 }
+  },
   flame: {
     hp:{ base:680, per:30 },        // denge: 560 idi
     regen:{ base:8, per:0.9 },        // denge: 4 idi, seviye başına: 0 idi
@@ -477,6 +494,27 @@ export const HEROES = {
       //         düz vuruş ve yetenek yok. Bitince momentum dolu.
       s:{ name:'Bilardo', max:2, type:'billiard', cd:[45,36], dur:3, speed:620, turn:1.6, hitR:8, rehit:0.8,
           dmg:[120,180], hpPct:0.05, push:160, pushT:0.2, stun:0.6 }
+    }
+  },
+  gladiator: {
+    id:'gladiator', name:'Gladyatör', letter:'L',
+    attack:{ type:'cone', knock:0 },
+    skills:{
+      // pasif: her düz vuruş isabeti dur sn süren bir yığın verir (en fazla stacks; yeni vuruş süreyi yeniler);
+      //        yığın başına saldırı hızı asMin'den (1. seviye) asMax'a (10. seviye) doğrusal
+      p:{ name:'Kızışma', asMin:0.04, asMax:0.10, stacks:5, dur:4 },
+      // sağ tık: anında; düz vuruş beklemesi sıfırlanır, window sn içindeki sonraki düz vuruş ek fiziksel dmg + ad * ek SG,
+      //          slowDur sn azalan slow yavaşlatma (applySlow decay), Gladyatör healFlat + healPct * verilen ek hasar iyileşir
+      r:{ name:'Ağır Darbe', max:4, type:'heavy', cd:[8,7.5,7,6.5], window:5, dmg:[40,65,90,115], ad:0.5,
+          slow:0.40, slowDur:2, healFlat:[20,30,40,50], healPct:0.3 },
+      // E: imleç yerinde (range'e kırpılır) radius yarıçaplı alan dur sn Gladyatör'ün arenası olur (S.zones kind:'arena');
+      //    o içindeyken +adFlat SG, +as saldırı hızı, +ms hareket hızı. Rakibe doğrudan etkisi yok.
+      e:{ name:'Arena', max:4, type:'arena', cd:[16,15,14,13], range:600, radius:350, dur:5,
+          adFlat:[8,14,20,26], as:[.15,.20,.25,.30], ms:[.10,.12,.14,.16] },
+      // boşluk: range içindeki görünen rakip KAHRAMANA (imlece en yakın) atılır (hedefe yapışır, kök engeller, duvar/yapıda durur);
+      //         değince dur sn: rakibin zırh ve BD'sinin steal oranını çalar, rakibe azami canının hpPct'i kadar büyü hasarını
+      //         eşit dilimlerle verir, verdiği bu hasarın healPct'i kadar iyileşir. Süre bitince (ya da biri ölünce) çalınanlar döner.
+      s:{ name:'Meydan Okuma', max:2, type:'duel', cd:[40,32], range:400, speed:1100, dur:8, steal:[.30,.40], hpPct:[.20,.30], healPct:0.5 }
     }
   },
   dual: {

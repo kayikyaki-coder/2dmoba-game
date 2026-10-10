@@ -101,3 +101,12 @@ Support şimdilik yok. Space yetenekleri, aksi yazmıyorsa 5. seviyede açılır
 - E (Kabuk): bekleme 16/15/14/13 sn, anında, 2,5 sn. Kütle 3 kat, itilemez ve çekilemez (Kanca, Darbe, momentum itmesi, geri tepme işlemez; Kanca'nın hasarı yine gelir), %25/30/35/40 hasar azaltma, düz vuruş menzili +60, düz vuruşlar ek 15/25/35/45 + ek canın %2'si fiziksel ve 1 sn %20 yavaşlatma.
 - Boşluk (Bilardo): 5. seviyede, bekleme 45/36 sn. 3 sn durdurulamaz top (sersemletme, itme, çekme işlemez; düz vuruş ve yetenek yok): 620 hızla sürekli ileri gider, imleç yönünde başlar ve saniyede 1,6 radyan imlece döner. Duvar, harita sınırı ve yapılardan yansır. Değdiği her rakibe (kule hariç; aynı birime 0,8 sn'de bir) 120/180 + ek canın %5'i fiziksel ve 160 birim itme; itilen duvara çarparsa 0,6 sn sersemler. Bitince momentum dolu.
 - Açık: Şok Dalgası (susturma, yavaşlatma) Kabuk'a işler; Kabuk yalnız yer değiştirmeye karşı.
+
+## Gladyatör: kesinleşen tasarım (oyuna eklendi)
+
+- Rol: yakın dövüşçü (Dövüşçü). Uzun dövüşte saldırı hızı tırmanır, tek rakibe kilitlenir.
+- Statlar: can 940 (+46), yenileme 9 (+0,9), hasar 67 (+3,5), saldırı hızı 0,90 (+0,025), menzil 115 (hedefli), hareket 200, boyut 28, kütle 2,3.
+- Pasif (Kızışma): her düz vuruş isabeti 4 sn süren bir yığın verir, en fazla 5; yeni vuruş süreyi yeniler. Yığın başına saldırı hızı 1. seviyede %4, 10. seviyede %10 (doğrusal).
+- Sağ tık (Ağır Darbe): bekleme 8/7,5/7/6,5 sn, anında. Düz vuruş beklemesi sıfırlanır; 5 sn içindeki sonraki düz vuruş ek 40/65/90/115 + ek SG %50 fiziksel, rakibi 2 sn boyunca %40'tan azalan yavaşlatma, Gladyatör 20/30/40/50 + ek hasarın %30'u kadar iyileşir.
+- E (Arena): bekleme 16/15/14/13 sn. İmleç yerinde (600 menzil) 350 yarıçaplı alan 5 sn Gladyatör'ün arenası olur. İçindeyken +8/14/20/26 SG, +%15/20/25/30 saldırı hızı, +%10/12/14/16 hareket hızı. Rakibe doğrudan etkisi yok. Yeni Arena eskisini kaldırır.
+- Boşluk (Meydan Okuma): 5. seviyede, bekleme 40/32 sn. 400 menzildeki görünen rakip kahramana (imlece en yakın) 1100 hızla atılır, hedefe yapışır (kök engeller, duvar ve yapıda durur). Değince 8 sn: rakibin zırh ve BD'sinin %30/%40'ını çalar (rakip kaybeder, Gladyatör kazanır), rakibe azami canının %20/%30'u kadar büyü hasarını eşit dilimlerle verir, bu hasarın yarısı kadar iyileşir. Süre bitince ya da biri ölünce çalınanlar döner.
