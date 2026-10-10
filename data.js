@@ -238,7 +238,7 @@ export const HEROES = {
           count:[5,6,7,9], spread:0.7, range:400, ratio:1.15, repeat:0.30, speed:950, radius:5 },
       e:{ name:'Seri Atış', max:4, type:'haste', cd:[14,13,12,11], as:[.30,.35,.40,.45], dur:5 },
       s:{ name:'Kalın Ok', max:2, type:'bigarrow', cd:[20,16], cast:0.4, castSlow:0.5,
-          ratio:2.5, ap:0.5, freeze:1, speed:800, radius:34, range:6000 }   // dev ok: harita sonuna kadar gider
+          ratio:2.5, ap:0.5, freeze:1, speed:770, radius:34, range:6000 }   // dev ok: harita sonuna kadar gider; kaçılabilirlik: 700 uzaktan kaçılır (hız 800 idi)
     }
   },
   twin: {
@@ -279,7 +279,7 @@ export const HEROES = {
       p:{ name:'Yakma', burnMin:3, burnMax:10, dur:5, ap:0.02 },   // saniyede +0,02 YG
       // sağ tık: uzun menzilli, düz giden, ilk değdiğine çarpan ateş topu; bekleme kısa
       r:{ name:'Ateş Topu', max:4, type:'fireball', cd:[5,4.5,4,3.5], cast:0.2, castSlow:0.3,
-          dmg:[58,82,106,130], ap:0.6, speed:1100, radius:12, range:650 },   // denge: 52,75,98,120 idi
+          dmg:[58,82,106,130], ap:0.6, speed:870, radius:18, range:650 },   // denge: 52,75,98,120 idi; kaçılabilirlik: hız 1100, yarıçap 12 idi
       // E: basılı tut = menzili gör, bırak = 450 menzilde imlece en yakın rakibe (şampiyon ya da minyon, kule değil) güdümlü ateş;
       //    4 sn içten yanma + aldığı hasar artar
       e:{ name:'İç Ateş', max:4, type:'ignite', hold:true, cd:[12,11,10,9], range:400, speed:900,
@@ -298,7 +298,7 @@ export const HEROES = {
       p:{ name:'Sekme', bouncePct:0.40, bounceRange:200, bounceCount:1 },   // denge: bouncePct 0.50 idi
       // sağ tık: cast sn hazırlık, speed hızında range kadar gider, döner ve sahibini takip ederek geri gelir. Gidiş ve dönüş ayrı vurur.
       //          hasar = dmg + ad * toplam SG (fiziksel); değdiği her rakipten sonra çarpan decay ile çarpılır (en az minMult). Yapılara vurmaz.
-      r:{ name:'Bumerang', max:4, type:'boomerang', cd:[12,11,10,9], cast:0.2, castSlow:0, range:520, speed:750, radius:30,   // denge: cd 10,9,8,7 idi
+      r:{ name:'Bumerang', max:4, type:'boomerang', cd:[12,11,10,9], cast:0.2, castSlow:0, range:520, speed:650, radius:30,   // denge: cd 10,9,8,7 idi; kaçılabilirlik: hız 750 idi
           dmg:[30,50,70,90], ad:0.40, decay:0.85, minMult:0.40 },   // denge: dmg 50,80,110,140 / ad 0.70 idi
       // E: anında; sersemleme, yavaşlatma (ve ileride kök/susturma) kalkar, süreli hasarlara dokunmaz. Sersemken de kullanılabilir.
       e:{ name:'Arınma', max:4, type:'cleanse', cd:[18,16,14,12], spd:[.30,.35,.40,.45], dur:2 },
@@ -314,7 +314,8 @@ export const HEROES = {
       p:{ name:'Demir Gövde', missPct:0.015, combatT:4, combatMult:2 },   // denge: missPct 0.03 idi (0.015 oldu); saniyede eksik canın %1,5'i, savaşta (son 4 sn kahramanla hasar alışverişi) 2 katı
       // sağ tık: cast sn hazırlık, ince bir kanca fırlar (duvarın üstünden geçer); ilk değdiği rakip birimi (kahraman ya da minyon, kule değil)
       //          yakalar: büyü hasarı (dmg + ap * YG), kahramansa freeze sn sersemler, pull sn içinde Zincirli'nin önüne çeker (gap: ek boşluk).
-      r:{ name:'Kanca', max:4, type:'hook', cd:[18,16,14,12], cast:0.25, castSlow:0.5, range:700, speed:1600, radius:20,
+      r:{ name:'Kanca', max:4, type:'hook', cd:[18,16,14,12], cast:0.25, castSlow:0.5, range:600, speed:690, radius:30,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; menzil 700, hız 1600, yarıçap 20 idi
+         
           dmg:[70,110,150,190], ap:0.70, freeze:0.5, pull:0.4, gap:6 },
       // E: önünde range menzilli, angle derecelik koni (kenardan ölçülür); fiziksel hasar = dmg + ad * ek SG + hpPct * ek can;
       //    slow yavaşlatma slowDur sn; minyonlara da değer, kuleye değmez
@@ -381,7 +382,8 @@ export const HEROES = {
           dmg:[80,120,160,200], ap:0.70 },   // denge: 70,110,150,190 idi
       // E: cast sn hazırlık, düz giden mermi; ilk değdiği rakip birimde (minyon dahil, kule değil) durur. Büyü hasarı dmg + ap * YG;
       //    sersemletme gidilen mesafeyle stunMin'den (0 mesafe) stunMax'a (range) doğrusal. Minyon da sersemler.
-      e:{ name:'Ağır Küre', max:4, type:'stunorb', cd:[14,13,12,11], cast:0.25, castSlow:0.4, range:750, speed:700, radius:22,
+      e:{ name:'Ağır Küre', max:4, type:'stunorb', cd:[14,13,12,11], cast:0.25, castSlow:0.4, range:700, speed:700, radius:26,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; menzil 750, yarıçap 22 idi
+         
           dmg:[60,90,120,150], ap:0.45, stunMin:0.75, stunMax:1.5 },
       // boşluk: bekleme baştan harcanır. dur sn kanallama: hareket edemez (hareket komutu, sersemleme, susturma erken bitirir) ve düz vuruş,
       //         sağ tık, E yapamaz. Her Boşluk basışı (ilki dahil) imlece, range'e kırpılarak topçu atışı: delay sn sonra radius yarıçapta
@@ -401,7 +403,8 @@ export const HEROES = {
       //          kule durdurmaz ve hasar almaz. İlk değdiği rakip kahramana büyü hasarı (dmg + ap * YG) ve bağ: bağ süresince aradaki
       //          mesafe range'i geçerse kopar; bind sn dolunca bağ sağlamsa aynı hasar bir kez daha ve root sn kök (yürüyemez, atılış yapamaz;
       //          düz vuruş ve yetenek serbest).
-      r:{ name:'Zincir', max:4, type:'tether', cd:[12,11,10,9], cast:0.2, castSlow:0.4, range:650, speed:1500, radius:16,
+      r:{ name:'Zincir', max:4, type:'tether', cd:[12,11,10,9], cast:0.2, castSlow:0.4, range:600, speed:760, radius:22,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; menzil 650, hız 1500, yarıçap 16 idi
+         
           dmg:[60,90,120,150], ap:0.40, bind:2, root:1 },
       // E: anında, imlece en çok range uzağa ışınlanır (duvar içine düşerse en yakın boş noktaya). İndiği yerde radius yarıçapta
       //    rakip birimlere (kule hariç) büyü hasarı. Bekleme ilk kullanımda başlar. back sn içinde aynı tuşa tekrar basılırsa başladığı
@@ -422,7 +425,8 @@ export const HEROES = {
       p:{ name:'Ruh Akışı', flowCd:0.5, flowHero:1 },
       // sağ tık: cast sn hazırlık, speed hızında range menzilli küre. İlk değdiği rakip birimde (minyon dahil, kule değil) radius yarıçapta patlar
       //          (menzil sonuna kadar değmezse orada patlar): büyü hasarı dmg + ap * YG, slowDur sn slow yavaşlatma.
-      r:{ name:'Ruh Patlaması', max:4, type:'spiritburst', cd:[7,6.5,6,5.5], cast:0.25, castSlow:0.4, range:420, speed:900, radius:20,
+      r:{ name:'Ruh Patlaması', max:4, type:'spiritburst', cd:[7,6.5,6,5.5], cast:0.25, castSlow:0.4, range:420, speed:530, radius:22,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; hız 900, yarıçap 20 idi
+         
           blast:150, dmg:[90,130,170,210], ap:0.50, slow:0.20, slowDur:1 },
       // E: anında; kendine dur sn kalkan (shield + ap * YG) ve süre boyunca (kalkan kırılsa da) spd hareket hızı
       e:{ name:'Ruh Kalkanı', max:4, type:'spiritshield', cd:[12,11,10,9], dur:2.5, shield:[80,120,160,200], ap:0.50, spd:0.30 },
@@ -443,8 +447,8 @@ export const HEROES = {
       // uzak sağ tık: cast sn hazırlık, range menzilli küre; gidilen mesafeyle (0..1) yarıçap radius'tan radiusEnd'e, hız speed'den speedEnd'e,
       //   hasar çarpanı 1'den multEnd'e doğrusal büyür. İlk değdiği rakip birimde (minyon dahil, kule değil) ya da menzil sonunda patlar:
       //   patlama yarıçapı blast'tan blastEnd'e. Fiziksel hasar = dmg + ad * ek SG, çarpanla.
-      r:{ name:'Enerji Küresi', max:5, type:'groworb', cd:[8,7.5,7,6.5,6], cast:0.25, castSlow:0.3, range:1000,
-          radius:15, radiusEnd:35, speed:900, speedEnd:1600, multEnd:1.5, blast:100, blastEnd:160,
+      r:{ name:'Enerji Küresi', max:5, type:'groworb', cd:[8,7.5,7,6.5,6], cast:0.25, castSlow:0.3, range:850,   // kaçılabilirlik: menzil 1000, yarıçap 15, son hız 1600 idi
+          radius:20, radiusEnd:35, speed:900, speedEnd:1300, multEnd:1.5, blast:100, blastEnd:160,
           dmg:[70,105,140,175,210], ad:0.85 },   // denge: ad 1.10 idi
       // uzak E: anında, dur sn boyunca as kadar saldırı hızı
       e:{ name:'Hızlı Ateş', max:5, type:'haste', cd:[12,11,10,9,8], as:[.15,.20,.25,.30,.35], dur:4 },

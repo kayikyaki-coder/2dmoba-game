@@ -71,6 +71,9 @@ Haxball tarzı yuvarlak token karakterli 2D MOBA. Tarayıcıda çalışır, şim
 
 - 2v2 takım taraması (10.10.2026): `node tools/teams2v2.js [--rounds 1] [--top 5] [--report 1]` 66 takımın ortak kahramanı olmayan bütün eşleşmeleri (1485 maç/tur, 4 çekirdekte ~50 dk), en iyi N takım + bireysel tablo (maç, kazanma, K/D/A, en iyi dost, en zor rakip). Sonuç tools/teams2v2_result.json (gitignore, yarıda kalırsa devam eder). runMatch2v2 artık heroes (kahraman başına K/D/A) da döndürür. Denge ölçümleri artık 2v2 ile yapılacak.
 
+- Kaçılabilir yetenekler (10.10.2026): yarı menzildeki rakip görüp hemen yana adım atarsa temel hızla (200, tepki 0,15 sn) kaçar, vururken (%40 yavaş) kaçamaz. Kanca 600/690/30, Ateş Topu 650/870/18, Bumerang hız 650, Zincir 600/760/22, Ruh Patlaması hız 530/22, Ağır Küre 700/26, Enerji Küresi 850, yarıçap 20, son hız 1300, Kalın Ok hız 770 (menzil/hız/yarıçap; eskileri data.js yorumlarında).
+- Denge döngüsü (2v2, tools/teams2v2.js): hedef bütün kahramanlar %35-65. Tur 1: Gölge %80 -> nerf (can 620, SG 54). Tur 2: Gölge %69, Okçu %62, Savaşçı %34, İkili %32. Yapay zeka denetimi (tools/aiaudit2.js): zayıflar yeteneklerini fırsatta %96-99 kullanıyor; Savaşçı çok hasar yiyip az veriyor.
+
 ## Açık sorular
 - Savaşçı atılışı dost minyonlar tarafından engellensin mi (şu an içinden geçiyor)?
 
