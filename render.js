@@ -1149,6 +1149,14 @@ function hudSkillBox(p,k,x,y,sc,ox,oy){
     ctx.strokeStyle='rgba(235,220,255,0.3)'; ctx.lineWidth=3; ctx.lineCap='round';
     ctx.beginPath(); ctx.moveTo(x+12,y+12); ctx.lineTo(x+S0-12,y+S0-12); ctx.moveTo(x+S0-12,y+12); ctx.lineTo(x+12,y+S0-12); ctx.stroke(); ctx.lineCap='butt';
   }
+  // bekleme: saat yönünde açılan karartma (tuş etiketi ve kademe noktaları üstte kalsın)
+  if(cd>0){
+    ctx.save(); rrect(x,y,S0,S0,6); ctx.clip();
+    const frac=Math.min(1,cd/cdMax), a0=-Math.PI/2+(1-frac)*Math.PI*2, cy=y+S0/2;
+    ctx.fillStyle='rgba(0,0,0,0.66)'; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,S0,a0,Math.PI*1.5); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.22)'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+Math.cos(a0)*S0,cy+Math.sin(a0)*S0); ctx.stroke();
+    ctx.restore();
+  }
   // tuş etiketi
   hudText(HUD_KEY[k],x+6,y+13,10,learned?'#ffe066':'#6b7280','left',true);
   // ad (bekleme sürerken gizli, kilitli kutuda soluk)
@@ -1171,13 +1179,8 @@ function hudSkillBox(p,k,x,y,sc,ox,oy){
       hudText(lab,cx,y+S0-17,9,ov>0?'#8d96a8':'#8fdc9a','center',false,'alphabetic');
     }
   }
-  // bekleme: saat yönünde açılan karartma ve ortada büyük sayı
+  // bekleme sayısı (karartma yazılardan önce çizildi)
   if(cd>0){
-    ctx.save(); rrect(x,y,S0,S0,6); ctx.clip();
-    const frac=Math.min(1,cd/cdMax), a0=-Math.PI/2+(1-frac)*Math.PI*2, cy=y+S0/2;
-    ctx.fillStyle='rgba(0,0,0,0.66)'; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,S0,a0,Math.PI*1.5); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,0.22)'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+Math.cos(a0)*S0,cy+Math.sin(a0)*S0); ctx.stroke();
-    ctx.restore();
     const txt=cd>=1?String(Math.ceil(cd)):cd.toFixed(1);
     ctx.font='bold 28px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.lineWidth=4; ctx.strokeStyle='rgba(0,0,0,0.8)'; ctx.strokeText(txt,cx,y+34); ctx.fillStyle='#fff'; ctx.fillText(txt,cx,y+34);
@@ -1234,6 +1237,7 @@ function hudChips(p,x,y,maxW){
     ctx.font='bold 10px system-ui'; const w=ctx.measureText(ch.t).width+12;
     if(cx+w>x+maxW) break;
     ctx.fillStyle=ch.bg; rrect(cx,y,w,15,7); ctx.fill();
+    ctx.strokeStyle='rgba(8,4,28,0.85)'; ctx.lineWidth=1.5; rrect(cx,y,w,15,7); ctx.stroke();
     hudText(ch.t,cx+6,y+8,10,ch.c,'left',true,'middle');
     cx+=w+5;
   }
@@ -1286,7 +1290,7 @@ function hudPanel(p,W,H){
   const ht=Math.ceil(p.hp)+' / '+Math.ceil(p.maxHp)+(p.st.shield&&p.st.shield.amt>0?'  (+'+Math.ceil(p.st.shield.amt)+')':'');
   ctx.font='bold 12px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.lineWidth=3; ctx.strokeStyle='rgba(0,0,0,0.65)'; ctx.strokeText(ht,CX+CW/2,21); ctx.fillStyle='#fff'; ctx.fillText(ht,CX+CW/2,21);
-  hudChips(p,CX,36,CW);
+  hudChips(p,CX,-29,CW+180);   // panelin üstünde: + düğmeleriyle çakışmasın
   // yetenek kutuları
   ['p','r','e','s'].forEach((k,i)=>hudSkillBox(p,k,CX+i*(HUD_BOX+HUD_GAP),54,sc,ox,oy));
 
