@@ -1,0 +1,11 @@
+# yedekler ve geçici dosyalar
+old/
+node_modules/
+.claude/
+*.log
+tools/_*.mjs
+tools/evolve_best.json
+tools/autobalance_best.json
+tools/autobalance_init.json
+assets/sd/
+.~lock.*#

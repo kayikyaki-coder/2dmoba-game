@@ -1,0 +1,10 @@
+{
+  "name": "moba2d",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node tools/serve.js",
+    "simulate": "node tools/simulate.js",
+    "sim-ui": "node tools/ui.js"
+  }
+}

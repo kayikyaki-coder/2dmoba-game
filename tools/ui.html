@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Denge Simülasyonu</title>
+<style>
+  :root{--bg:#1a1d24;--panel:#232733;--text:#e8eaf0;--muted:#9aa1b0;--accent:#5689e5;--line:#343a49;--bad:#e56e56;--ok:#7ee07a}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px}
+  main{max-width:1000px;margin:0 auto;padding:20px 16px 60px}
+  h1{font-size:20px;margin:0 0 14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
+  .card h2{font-size:14px;margin:0 0 10px;color:var(--muted);font-weight:600}
+  .row{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end}
+  label{display:flex;flex-direction:column;gap:4px;color:var(--muted);font-size:12px}
+  input,select,button{font:inherit;color:var(--text);background:#2e3443;border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+  input[type=number]{width:90px}
+  input.txt{width:260px}
+  button{cursor:pointer}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;padding:9px 22px;font-size:15px}
+  button:disabled{opacity:.5;cursor:default}
+  .ov{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+  .ov .cur{color:var(--muted);font-size:12px;min-width:90px}
+  .hint{color:var(--muted);font-size:12px;margin-top:6px}
+  .bar{height:10px;background:#14171d;border-radius:5px;overflow:hidden;margin-top:12px;display:none}
+  .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+  table{border-collapse:collapse;width:100%;margin-top:6px}
+  th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{color:var(--muted);font-weight:600;font-size:12px}
+  .wrap{overflow-x:auto}
+  .win{font-weight:700}
+  .err{color:var(--bad);margin-top:10px}
+  .warn{background:#3b2f1f;border:1px solid #6b5326;color:#ffd98a;border-radius:8px;padding:8px 10px;margin-top:10px}
+  .seg{display:flex;flex-wrap:wrap;gap:6px}
+  .seg button{padding:7px 14px}
+  .seg button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .q{display:inline-block;width:15px;height:15px;line-height:14px;text-align:center;border:1px solid var(--line);border-radius:50%;font-size:11px;color:var(--muted);cursor:help;margin-left:4px}
+  .chk{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px}
+  .chk label{flex-direction:row;align-items:center;gap:6px;color:var(--text);font-size:13px}
+  .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .chips button{padding:2px 7px;font-size:12px;color:var(--muted)}
+  .mx td,.mx th{text-align:center;padding:6px 8px}
+  .mx td.nm,.mx th.nm{text-align:left}
+  .mx td small{display:block;font-size:10px;color:var(--muted)}
+  .mx .avg{border-left:2px solid var(--line);font-weight:700}
+  .sub{margin:14px 0 4px;color:var(--muted);font-size:12px;font-weight:600}
+  .pos{color:var(--ok)} .neg{color:var(--bad)} .dim{color:var(--muted)}
+  .hide{display:none!important}
+  details summary{cursor:pointer;color:var(--muted);margin-top:10px}
+  details p{color:var(--muted);margin:6px 0 0;line-height:1.5}
+</style>
+</head>
+<body>
+<main>
+  <h1>Denge Simülasyonu</h1>
+
+  <div class="card">
+    <h2>Mod</h2>
+    <div class="seg" id="modes">
+      <button data-m="single">Tek eşleşme</button>
+      <button data-m="matrix">Denge tablosu</button>
+      <button data-m="compare">Karşılaştır</button>
+      <button data-m="regress">Toplu öğrenme</button>
+    </div>
+    <div class="hint" id="modeHint"></div>
+  </div>
+
+  <div class="card">
+    <h2>Senaryo</h2>
+    <div class="row">
+      <label>Senaryo<select id="scKind"><option value="full">Tam maç</option><option value="duel">Düello</option><option value="lane">Koridor</option></select></label>
+      <label class="sc-duel hide">Seviye<input type="number" id="scLevel" min="1" max="10" value="6"></label>
+      <label class="sc-lane hide">İlk kaç dakika<input type="number" id="scMin" min="2" max="30" value="6"></label>
+      <label class="sc-full">Süre sınırı (dk)<input type="number" id="maxMin" min="5" max="120" value="20"></label>
+      <label>Seed<input type="number" id="seed" value="1"></label>
+    </div>
+    <div class="hint">Senaryolar hızlı ön elemedir, tam maçın yerini tutmaz.
+      <span class="q" title="Düello: kulesiz, minyonsuz açık alanda iki kahraman, ilk ölen kaybeder. Koridor: normal maçın ilk dakikaları, değeri (altın, eşya, XP) yüksek olan kazanır.">?</span></div>
+    <div class="sc-duel hide">
+      <div class="sub">Eşyalar (isteğe bağlı) <span class="q" title="Kahraman başına eşya kodları, virgülle. Örnek: ie, pd. Kodlara tıklayınca son seçilen kutuya eklenir.">?</span></div>
+      <div id="itemRows"></div>
+      <button id="addItem">+ Eşya listesi ekle</button>
+      <details><summary>Eşya kodları</summary><div class="chips" id="itemChips"></div></details>
+    </div>
+  </div>
+
+  <div class="card m-single">
+    <h2>Maç</h2>
+    <div class="row">
+      <label>Kahraman A<select id="a"></select></label>
+      <label>Seviye A<input type="number" id="levelA" min="1" max="10" value="1"></label>
+      <label>Kahraman B<select id="b"></select></label>
+      <label>Seviye B<input type="number" id="levelB" min="1" max="10" value="1"></label>
+      <label>Maç sayısı<input type="number" id="matches" min="2" max="20000" value="200"></label>
+    </div>
+    <label style="flex-direction:row;align-items:center;gap:8px;color:var(--text);margin-top:10px"><input type="checkbox" id="smart"> Akıllı durdurma (sonuç belli olunca dur)
+      <span class="q" title="Açıkken maç sayısı üst sınır olur. Sonuç yeterince belli olunca erken durur.">?</span></label>
+    <div class="hint">Her çiftte takımlar yarı yarıya yer değiştirir. Aynı seed aynı sonucu verir. Düello ve koridor senaryosunda seviye Senaryo kartındaki değerdir.</div>
+  </div>
+
+  <div class="card m-matrix hide">
+    <h2>Kahramanlar</h2>
+    <div class="row"><button id="hAll">Hepsi</button><button id="hNone">Hiçbiri</button>
+      <label>Çift başına en fazla maç<input type="number" id="mxMax" min="4" max="2000" value="60"></label></div>
+    <div class="chk" id="heroChk"></div>
+    <div class="hint">Sonucu belli olan çift erken durur.</div>
+  </div>
+
+  <div class="card m-single m-matrix" id="ovCard">
+    <h2>Stat denemeleri (dosyayı değiştirmez)</h2>
+    <div id="ovs"></div>
+    <button id="addOv">+ Stat değişikliği ekle</button>
+    <div class="m-single" style="margin-top:14px">
+      <label style="flex-direction:row;align-items:center;gap:8px;color:var(--text)"><input type="checkbox" id="sweepOn"> Bir statı aralıkla tara (her değer için ayrı satır)</label>
+      <div class="ov" id="sweepBox" style="display:none;margin-top:8px">
+        <select id="swHero"></select><select id="swStat"></select><select id="swField"><option value="base">base</option><option value="per">per</option></select>
+        <label style="flex-direction:row;align-items:center;gap:6px">başlangıç<input type="number" id="swFrom" step="any"></label>
+        <label style="flex-direction:row;align-items:center;gap:6px">bitiş<input type="number" id="swTo" step="any"></label>
+        <label style="flex-direction:row;align-items:center;gap:6px">adım<input type="number" id="swStep" step="any"></label>
+        <span class="cur" id="swCur"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card m-compare hide">
+    <h2>Önce (isteğe bağlı)</h2>
+    <div id="ovsB"></div>
+    <button id="addOvB">+ Stat değişikliği ekle</button>
+    <div class="hint">Boş bırakırsan "önce" mevcut değerlerdir.</div>
+  </div>
+  <div class="card m-compare hide">
+    <h2>Sonra (zorunlu)</h2>
+    <div id="ovsV"></div>
+    <button id="addOvV">+ Stat değişikliği ekle</button>
+    <div class="row" style="margin-top:10px"><label>Çift başına en fazla eş maç<input type="number" id="cmMax" min="4" max="2000" value="48"></label></div>
+    <div class="hint">"Sonra", önce ayarlarının üstüne uygulanır. Sadece değişen kahramanı içeren çiftler oynanır. Aynı tohumlar kullanılır, fark erken belli olur.</div>
+  </div>
+
+  <div class="card m-regress hide">
+    <h2>Parametreler</h2>
+    <div id="prs"></div>
+    <button id="addPr">+ Parametre ekle</button>
+    <div class="row" style="margin-top:10px"><label>Çift başına maç<input type="number" id="rgN" min="10" max="5000" value="60"></label></div>
+    <div class="hint">Her maçta parametreler aralıktan rastgele seçilir. Çarpan modu, mevcut değeri alt ve üst katsayıyla çarpar.</div>
+  </div>
+
+  <div class="card">
+    <button class="primary" id="run">Simülasyonu başlat</button>
+    <div class="hint" id="est"></div>
+    <div class="bar" id="bar"><i id="barI"></i></div>
+    <div class="hint" id="status"></div>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div class="card" id="resCard" style="display:none">
+    <h2 id="resTitle">Sonuç</h2>
+    <div id="warn"></div>
+    <div class="wrap" id="resBody"></div>
+    <details id="legend">
+      <summary>Sütunlar ne demek?</summary>
+      <p><b>A kazanma:</b> Kazanılan maçların oranı (zaman aşımına düşenler sayılmaz). %50 dengeli demek. <b>%95 aralık:</b> gerçek oranın büyük ihtimalle bu aralıkta olduğunu gösterir; maç sayısı arttıkça daralır. <b>Ort. süre / İlk kule / İlk kill:</b> oyun içi dakika:saniye. <b>Seviye:</b> maç sonunda ortalama seviye. <b>Zaman aşımı:</b> süre sınırında bitmeyen maç sayısı. <b>Takım0 kazanma:</b> sol takımın kazanma oranı, 50% civarı olmalı.</p>
+    </details>
+  </div>
+</main>
+
+<script>
+const NAMES = { archer:'Okçu', warrior:'Savaşçı', mage:'Ateş Büyücüsü', twin:'Çift Okçu', bounce:'Seken Okçu', hook:'Kancalı Tank', flame:'Yakın Büyücü', blood:'Vampir', artillery:'Topçu Büyücü', shadow:'Işınlanan Büyücü', spirit:'Kalkan Büyücü', dual:'Biçim Değiştiren' };   // names.js ile aynı
+const STAT_NAMES = { hp:'Can', regen:'Can yenileme (5 sn)', dmg:'Hasar', as:'Saldırı hızı', spd:'Hareket hızı', range:'Menzil', size:'Boyut', mass:'Kütle', windup:'Hazırlık oranı', atkSlow:'Vuruşta yavaşlama', projSpeed:'Mermi hızı', projRadius:'Mermi kalınlığı', angle:'Koni açısı' };
+const MODE_HINT = {
+  single:'İki kahramanı karşı karşıya oynatır.',
+  matrix:'Bütün kahraman çiftlerini oynatır, kare tablo çıkarır.',
+  compare:'Aynı tohumlarla önce ve sonra ayarını oynatır, farkı ölçer.',
+  regress:'Ayarları maç maç rastgele seçer, etkileri ve %50\'ye yaklaştıran değerleri tahmin eder.'
+};
+const $ = id => document.getElementById(id);
+let HEROES = {}, ITEMS = [], mode = 'single', lastItemInput = null;
+const hn = h => NAMES[h] || h, sn = s => STAT_NAMES[s] || s;
+const opt = (v,t) => { const o=document.createElement('option'); o.value=v; o.textContent=t; return o; };
+const val = v => Array.isArray(v) ? v.join(',') : v;
+
+function fillHero(sel, def){ sel.innerHTML=''; Object.keys(HEROES).forEach(h=>sel.appendChild(opt(h,hn(h)))); if(def) sel.value=def; }
+function fillStat(sel, hero){ const cur=sel.value; sel.innerHTML=''; Object.keys(HEROES[hero]).forEach(s=>sel.appendChild(opt(s,sn(s)))); if(HEROES[hero][cur]) sel.value=cur; }
+
+/* Stat değişikliği satırı (container: ovs, ovsB, ovsV) */
+function addOverride(container){
+  const d=document.createElement('div'); d.className='ov';
+  const h=document.createElement('select'), s=document.createElement('select'), f=document.createElement('select');
+  f.append(opt('base','1. seviye değeri (base)'), opt('per','seviye başına artış (per)'));
+  const v=document.createElement('input'); v.type='number'; v.step='any';
+  const cur=document.createElement('span'); cur.className='cur';
+  const x=document.createElement('button'); x.textContent='Sil'; x.onclick=()=>{ d.remove(); updEst(); };
+  fillHero(h);
+  const upd=()=>{ const t=HEROES[h.value][s.value]; cur.textContent=t?'şu an: '+t[f.value]:''; if(t) v.value=t[f.value]; };
+  h.onchange=()=>{ fillStat(s,h.value); upd(); updEst(); }; s.onchange=upd; f.onchange=upd;
+  fillStat(s,h.value); upd();
+  d.append(h,s,f,v,cur,x); d._get=()=>({ hero:h.value, stat:s.value, field:f.value, value:Number(v.value) });
+  container.appendChild(d); updEst();
+}
+const getOvs = c => [...c.querySelectorAll('.ov')].map(d=>d._get());
+
+/* Toplu öğrenme parametre satırı */
+function addParam(){
+  const d=document.createElement('div'); d.className='ov';
+  const h=document.createElement('select'), s=document.createElement('select'), f=document.createElement('select'), m=document.createElement('select');
+  f.append(opt('base','base'), opt('per','per'));
+  m.append(opt('range','Aralık (değer)'), opt('mult','Çarpan'));
+  const lo=document.createElement('input'), hi=document.createElement('input'); lo.type=hi.type='number'; lo.step=hi.step='any';
+  lo.title='alt'; hi.title='üst';
+  const cur=document.createElement('span'); cur.className='cur';
+  const x=document.createElement('button'); x.textContent='Sil'; x.onclick=()=>{ d.remove(); updEst(); };
+  fillHero(h);
+  const upd=()=>{
+    const t=HEROES[h.value][s.value]; if(!t) return; const c=t[f.value];
+    cur.textContent='şu an: '+c;
+    if(m.value==='mult'){ lo.value=0.85; hi.value=1.15; }
+    else { const r=v=>+(v).toPrecision(4); lo.value=r(c*0.85); hi.value=r(c*1.15); }
+  };
+  h.onchange=()=>{ fillStat(s,h.value); upd(); updEst(); }; s.onchange=upd; f.onchange=upd; m.onchange=upd;
+  fillStat(s,h.value); upd();
+  const al=document.createElement('span'); al.textContent='alt'; al.className='cur'; al.style.minWidth=0;
+  const ul=document.createElement('span'); ul.textContent='üst'; ul.className='cur'; ul.style.minWidth=0;
+  d.append(h,s,f,m,al,lo,ul,hi,cur,x);
+  d._get=()=>({ hero:h.value, stat:s.value, field:f.value, mult:m.value==='mult', lo:Number(lo.value), hi:Number(hi.value) });
+  $('prs').appendChild(d); updEst();
+}
+
+/* Düello eşya satırı */
+function addItemRow(){
+  const d=document.createElement('div'); d.className='ov';
+  const h=document.createElement('select'); fillHero(h);
+  const t=document.createElement('input'); t.className='txt'; t.placeholder='ie, pd'; t.onfocus=()=>{ lastItemInput=t; };
+  const x=document.createElement('button'); x.textContent='Sil'; x.onclick=()=>d.remove();
+  d.append(h,t,x); d._get=()=>[h.value,t.value]; lastItemInput=t;
+  $('itemRows').appendChild(d);
+}
+
+function setMode(m){
+  mode=m;
+  document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
+  $('modeHint').textContent=MODE_HINT[m];
+  for(const k of ['single','matrix','compare','regress'])
+    document.querySelectorAll('.m-'+k).forEach(e=>{ e.classList.toggle('hide', !(e.classList.contains('m-'+m))); });
+  updEst();
+}
+function updSc(){
+  const k=$('scKind').value;
+  document.querySelectorAll('.sc-duel').forEach(e=>e.classList.toggle('hide',k!=='duel'));
+  document.querySelectorAll('.sc-lane').forEach(e=>e.classList.toggle('hide',k!=='lane'));
+  document.querySelectorAll('.sc-full').forEach(e=>e.classList.toggle('hide',k!=='full'));
+  updEst();
+}
+function updSweep(){
+  const t=HEROES[$('swHero').value][$('swStat').value]; if(!t) return;
+  $('swCur').textContent='şu an: '+t[$('swField').value];
+}
+
+async function init(){
+  const j = await (await fetch('/api/stats')).json();
+  HEROES = j.heroes; ITEMS = j.items || [];
+  fillHero($('a'),'archer'); fillHero($('b'),'warrior');
+  fillHero($('swHero')); fillStat($('swStat'),$('swHero').value);
+  $('swHero').onchange=()=>{ fillStat($('swStat'),$('swHero').value); updSweep(); };
+  $('swStat').onchange=updSweep; $('swField').onchange=updSweep;
+  $('sweepOn').onchange=()=>{ $('sweepBox').style.display=$('sweepOn').checked?'flex':'none'; updSweep(); updEst(); };
+  $('addOv').onclick=()=>addOverride($('ovs')); $('addOvB').onclick=()=>addOverride($('ovsB')); $('addOvV').onclick=()=>addOverride($('ovsV'));
+  $('addPr').onclick=addParam; $('addItem').onclick=addItemRow;
+  $('run').onclick=run;
+  Object.keys(HEROES).forEach(h=>{
+    const l=document.createElement('label'), c=document.createElement('input'); c.type='checkbox'; c.checked=true; c.value=h; c.onchange=updEst;
+    l.append(c, hn(h)); $('heroChk').appendChild(l);
+  });
+  $('hAll').onclick=()=>{ document.querySelectorAll('#heroChk input').forEach(c=>c.checked=true); updEst(); };
+  $('hNone').onclick=()=>{ document.querySelectorAll('#heroChk input').forEach(c=>c.checked=false); updEst(); };
+  ITEMS.forEach(it=>{ const b=document.createElement('button'); b.textContent=it.id; b.title=it.name+' ('+it.cost+')';
+    b.onclick=()=>{ if(!lastItemInput){ addItemRow(); } const t=lastItemInput; t.value=t.value.trim() ? t.value.trim().replace(/,$/,'')+', '+it.id : it.id; t.focus(); };
+    $('itemChips').appendChild(b); });
+  document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+  $('scKind').onchange=updSc;
+  for(const id of ['matches','swFrom','swTo','swStep','maxMin','mxMax','cmMax','rgN','smart']) $(id).addEventListener('input',updEst);
+  $('smart').addEventListener('change',updEst);
+  setMode('single'); updSc();
+  const st = await (await fetch('/api/status')).json();
+  if(st.running){ setRunning(true); poll(); }
+}
+
+/* Tahmini süre: toplam maç x maç başına süre (son çalışmadan öğrenilir; senaryo türüne göre ayrı) */
+const spmKey = () => 'secPerMatch_'+$('scKind').value;
+const spmDef = { full:0.3, duel:0.02, lane:0.1 };
+function getSpm(){ const k=$('scKind').value; try{ const v=+localStorage.getItem(spmKey()); if(v>0) return v; }catch(e){} return spmDef[k]; }
+function sweepCount(){
+  if(!$('sweepOn').checked) return 1;
+  const a=+$('swFrom').value, b=+$('swTo').value, st=+$('swStep').value;
+  if(!$('swFrom').value||!$('swTo').value||!(st>0)) return 1;
+  return Math.max(1, Math.floor(Math.abs(b-a)/st+1e-9)+1);
+}
+const dur = s => s<60 ? Math.max(1,Math.round(s))+' sn' : s<3600 ? Math.round(s/60)+' dk' : (s/3600).toFixed(1)+' saat';
+const choose2 = n => n*(n-1)/2;
+const selHeroes = () => [...document.querySelectorAll('#heroChk input:checked')].map(c=>c.value);
+/* Dokunulan kahramanı içeren çift sayısı */
+const touchedPairs = list => { const n=Object.keys(HEROES).length, t=new Set(list.map(v=>v.hero)).size; return choose2(n)-choose2(n-t); };
+/* Üst sınır toplam maç ve açıklama */
+function plan(){
+  if(mode==='single'){
+    const n=sweepCount(), m=+$('matches').value||0;
+    return { tot:n*m, txt:(n>1?' ('+n+' değer x '+m+')':''), early:$('smart').checked };
+  }
+  if(mode==='matrix'){ const k=selHeroes().length, p=choose2(k), m=+$('mxMax').value||0; return { tot:p*m, txt:' ('+p+' çift x en fazla '+m+')', early:true }; }
+  if(mode==='compare'){ const p=touchedPairs(getOvs($('ovsV'))), m=+$('cmMax').value||0; return { tot:p*m*2, txt:' ('+p+' çift x en fazla '+m+' x 2)', early:true }; }
+  const p=touchedPairs([...$('prs').querySelectorAll('.ov')].map(d=>d._get())), m=+$('rgN').value||0;
+  return { tot:p*m, txt:' ('+p+' çift x '+m+')', early:false };
+}
+function updEst(){
+  if(!HEROES.archer) return;
+  const p=plan();
+  $('est').textContent='Toplam '+(p.early?'en fazla ':'')+p.tot+' maç'+p.txt+', tahmini süre: ~'+dur(p.tot*getSpm())+(p.early?' (erken bitebilir)':'');
+}
+let runStart=0, runEarly=false;
+function setRunning(r){ $('run').disabled=r; $('bar').style.display=r?'block':'none'; if(r){ $('err').textContent=''; } }
+
+async function run(){
+  const kind=$('scKind').value;
+  const opts = { mode, seed:+$('seed').value, maxTime:+$('maxMin').value*60, scenario:{ kind, level:+$('scLevel').value, minutes:+$('scMin').value, items:{} } };
+  if(kind==='duel') for(const d of document.querySelectorAll('#itemRows .ov')){ const [h,t]=d._get(); if(t.trim()) opts.scenario.items[h]=(opts.scenario.items[h]?opts.scenario.items[h]+',':'')+t; }
+  const bad = l => l.some(o=>!isFinite(o.value));
+  if(mode==='single'){
+    Object.assign(opts, { a:$('a').value, b:$('b').value, levelA:+$('levelA').value, levelB:+$('levelB').value, matches:+$('matches').value,
+      overrides:getOvs($('ovs')), sweep:null, smart:$('smart').checked });
+    if(bad(opts.overrides)){ $('err').textContent='Stat değişikliklerinde boş değer var'; return; }
+    if($('sweepOn').checked){
+      if(!$('swFrom').value||!$('swTo').value||!$('swStep').value){ $('err').textContent='Tarama için başlangıç, bitiş ve adım gir'; return; }
+      opts.sweep={ hero:$('swHero').value, stat:$('swStat').value, field:$('swField').value, from:+$('swFrom').value, to:+$('swTo').value, step:+$('swStep').value };
+    }
+  } else if(mode==='matrix'){
+    opts.heroes=selHeroes(); opts.max=+$('mxMax').value; opts.overrides=getOvs($('ovs'));
+    if(opts.heroes.length<2){ $('err').textContent='En az 2 kahraman seç'; return; }
+    if(bad(opts.overrides)){ $('err').textContent='Stat değişikliklerinde boş değer var'; return; }
+  } else if(mode==='compare'){
+    opts.ovBase=getOvs($('ovsB')); opts.ovVariant=getOvs($('ovsV')); opts.max=+$('cmMax').value;
+    if(!opts.ovVariant.length){ $('err').textContent='"Sonra" listesine en az bir stat değişikliği ekle'; return; }
+    if(bad(opts.ovBase)||bad(opts.ovVariant)){ $('err').textContent='Stat değişikliklerinde boş değer var'; return; }
+  } else {
+    const ps=[...$('prs').querySelectorAll('.ov')].map(d=>d._get());
+    if(!ps.length){ $('err').textContent='En az bir parametre ekle'; return; }
+    if(ps.some(p=>!isFinite(p.lo)||!isFinite(p.hi)||p.hi<=p.lo)){ $('err').textContent='Parametrelerde alt değer üstten küçük olmalı'; return; }
+    opts.params=ps.map(p=>p.hero+'.'+p.stat+'.'+p.field+'='+(p.mult?'*':'')+p.lo+':'+p.hi); opts.matches=+$('rgN').value;
+  }
+  const r=await fetch('/api/run',{ method:'POST', body:JSON.stringify(opts) });
+  const j=await r.json();
+  if(!r.ok){ $('err').textContent=j.error; return; }
+  runStart=performance.now(); runEarly=plan().early; spmKind=kind;
+  setRunning(true); $('status').textContent='Çalışıyor...'; $('barI').style.width='0%'; poll();
+}
+
+let spmKind='full';
+async function poll(){
+  const st = await (await fetch('/api/status')).json();
+  if(st.running){
+    $('barI').style.width=(st.done/st.total*100)+'%';
+    const el=(performance.now()-(runStart||performance.now()))/1000, left=st.done>0 ? el/st.done*(st.total-st.done) : st.total*getSpm();
+    $('status').textContent='Çalışıyor... %'+Math.round(st.done/st.total*100)+' ('+st.done+'/'+st.total+' maç), kalan en çok ~'+dur(left)+(runEarly?' (erken bitebilir)':'');
+    setTimeout(poll,500); return;
+  }
+  setRunning(false);
+  if(st.error){ $('err').textContent=st.error; $('status').textContent=''; return; }
+  if(st.result){ const r=st.result;
+    if(r.ran>=20){ try{ localStorage.setItem('secPerMatch_'+spmKind, r.seconds/r.ran); }catch(e){} updEst(); }
+    $('status').textContent='Bitti: '+r.seconds.toFixed(1)+' sn, '+r.ran+' maç'+(r.threads?', '+r.threads+' iş parçacığı':''); show(r); }
+}
+
+const pct = x => x===null||x===undefined?'-':(x*100).toFixed(1)+'%';
+const p0 = x => (x*100).toFixed(0)+'%';
+const mmss = s => { if(s===null) return '-'; s=Math.round(s); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
+const f1 = x => x===null?'-':x.toFixed(1);
+const ovLabel = l => l.map(v=>hn(v.hero)+' '+sn(v.stat)+' '+v.field+' = '+v.value).join(', ') || 'varsayılan';
+
+function show(r){
+  $('resCard').style.display='block'; $('warn').innerHTML='';
+  $('legend').style.display = r.mode==='single' ? '' : 'none';
+  ({ single:showSingle, matrix:showMatrix, compare:showCompare, regress:showRegress })[r.mode](r);
+}
+
+function showSingle(r){
+  const o=r.opts;
+  $('resTitle').textContent=hn(o.a)+(r.scenario==='tam maç'?' (sev '+o.levelA+') vs '+hn(o.b)+' (sev '+o.levelB+')':' vs '+hn(o.b)+' ('+r.scenario+')')+', '+o.matches+' maç'+(r.smart?' (en fazla)':'')+(r.rows.length>1?' x '+r.rows.length+' değer':'');
+  const allTO = r.rows.every(x=>x.decided===0), someTO = r.rows.some(x=>x.timeouts>0);
+  $('warn').innerHTML = allTO ? '<div class="warn">Hiçbir maç bitmedi (hepsi zaman aşımı), bu yüzden kazanma oranı hesaplanamadı. Süre sınırını artırmayı dene.</div>'
+    : someTO ? '<div class="warn">Bazı maçlar süre sınırında bitmedi (Zaman aşımı sütunu). Kazanma oranı sadece biten maçlara göre hesaplandı.</div>' : '';
+  const cols=['Ayar',hn(o.a)+' kazanma','%95 aralık'].concat(r.smart?['Maç','Durma nedeni']:[],['Ort. süre','İlk kule','İlk kill','Sev '+hn(o.a),'Sev '+hn(o.b),'Zaman aşımı','Takım0 kazanma']);
+  let h='<table><tr>'+cols.map(c=>'<th>'+c+'</th>').join('')+'</tr>';
+  for(const x of r.rows){
+    const c = x.aWin===null ? '' : x.aWin>0.55?'color:var(--ok)':x.aWin<0.45?'color:var(--bad)':'';
+    h+='<tr><td>'+x.label+'</td><td class="win" style="'+c+'">'+pct(x.aWin)+'</td><td>'+pct(x.ciLo)+' - '+pct(x.ciHi)+'</td>'+(r.smart?'<td>'+x.n+'</td><td>'+x.why+'</td>':'')+'<td>'+mmss(x.avgTime)+'</td><td>'+mmss(x.firstTower)+'</td><td>'+mmss(x.firstKill)+'</td><td>'+f1(x.levelA)+'</td><td>'+f1(x.levelB)+'</td><td>'+x.timeouts+'</td><td>'+pct(x.team0Win)+'</td></tr>';
+  }
+  $('resBody').innerHTML=h+'</table>';
+}
+
+/* Denge tablosu: satır kahramanının sütun kahramanına karşı kazanma oranı */
+function cellColor(p){
+  if(p>=0.45 && p<=0.55) return '';
+  const k=Math.min(0.6, 0.14+Math.abs(p-0.5)*1.0);
+  return p>0.55 ? 'background:rgba(126,224,122,'+k+')' : 'background:rgba(229,110,86,'+k+')';
+}
+function showMatrix(r){
+  $('resTitle').textContent='Denge tablosu, '+r.scenario+', '+r.heroes.length+' kahraman, '+r.ran+' maç';
+  const W={}, N={}, T={};   // W[x][y]: x'in y'ye karşı kazanma oranı
+  for(const h of r.heroes){ W[h]={}; N[h]={}; T[h]=0; }
+  for(const p of r.pairs){ W[p.a][p.b]=p.win; W[p.b][p.a]=1-p.win; N[p.a][p.b]=N[p.b][p.a]=p.n; }
+  const avg={}; for(const h of r.heroes){ const v=Object.values(W[h]); avg[h]=v.reduce((s,x)=>s+x,0)/v.length; }
+  const order=[...r.heroes].sort((x,y)=>avg[y]-avg[x]);
+  const TO=r.pairs.reduce((s,p)=>s+p.timeouts,0);
+  if(TO) $('warn').innerHTML='<div class="warn">Bazı maçlar süre sınırında bitti ('+TO+'), berabere sayıldı.</div>';
+  let h='<table class="mx"><tr><th>#</th><th class="nm">Kahraman</th>'+order.map(c=>'<th>'+hn(c)+'</th>').join('')+'<th class="avg">Ortalama</th></tr>';
+  order.forEach((row,i)=>{
+    h+='<tr><td class="dim">'+(i+1)+'</td><td class="nm"><b>'+hn(row)+'</b></td>';
+    for(const col of order){
+      if(row===col) h+='<td class="dim">-</td>';
+      else { const p=W[row][col]; h+='<td style="'+cellColor(p)+'" title="'+hn(row)+' vs '+hn(col)+'">'+p0(p)+'<small>'+N[row][col]+' maç</small></td>'; }
+    }
+    h+='<td class="avg" style="'+cellColor(avg[row])+'">'+p0(avg[row])+'</td></tr>';
+  });
+  $('resBody').innerHTML='<div class="hint" style="margin:0 0 6px">Satır kahramanının sütun kahramanına karşı kazanma oranı. %45-55 nötr, üstü yeşil, altı kırmızı. Satırlar ortalamaya göre sıralı.</div>'+h+'</table>'
+    +'<div class="hint">Ayar: '+ovLabel(r.overrides||[])+'</div>';
+}
+
+function showCompare(r){
+  $('resTitle').textContent='Önce ve sonra, '+r.scenario+', '+r.pairs.length+' çift, '+r.ran+' maç';
+  let h='<div class="hint" style="margin:0 0 6px">Önce: '+ovLabel(r.ovBase)+'<br>Sonra: '+ovLabel(r.ovVariantAll)+'</div>';
+  h+='<table><tr><th>Çift (A vs B)</th><th>Önce</th><th>Sonra</th><th>Fark (A için) ± %95</th><th>Eş maç</th><th>Durma nedeni</th></tr>';
+  for(const p of r.pairs){
+    const sig=Math.abs(p.diff)>p.ci, cls=!sig?'dim':p.diff>0?'pos':'neg';
+    h+='<tr><td>'+hn(p.a)+' vs '+hn(p.b)+'</td><td>'+p0(p.base)+'</td><td>'+p0(p.variant)+'</td><td class="win '+cls+'">'+(p.diff>=0?'+':'')+(p.diff*100).toFixed(1)+' ± '+(p.ci*100).toFixed(1)+' puan'+(sig?'':' (belirsiz)')+'</td><td>'+p.n+'</td><td>'+p.why+'</td></tr>';
+  }
+  $('resBody').innerHTML=h+'</table>';
+}
+
+function showRegress(r){
+  $('resTitle').textContent='Toplu öğrenme, '+r.scenario+', '+r.pairCount+' çift x '+r.n+' maç';
+  let h='<div class="sub" style="margin-top:0">Etkiler (ayar aralığın başından sonuna giderken A kahramanının kazanma oranı)</div>';
+  h+='<table><tr><th>Çift (A vs B)</th><th>Ayar</th><th>Aralık</th><th>Kazanma oranı</th><th>Güven</th></tr>';
+  for(const m of r.effects){
+    m.items.forEach((t,i)=>{ h+='<tr><td>'+(i===0?hn(m.a)+' vs '+hn(m.b):'')+'</td><td>'+t.name+'</td><td>'+val(t.from)+' &rarr; '+val(t.to)+'</td><td>'+p0(t.lo)+' &rarr; '+p0(t.hi)+'</td><td class="'+(t.significant?'pos':'dim')+'">'+(t.significant?'anlamlı':'belirsiz')+'</td></tr>'; });
+  }
+  h+='</table><div class="sub">Öneri</div><table><tr><th>Ayar</th><th>Şimdi</th><th>Önerilen</th></tr>';
+  for(const q of r.suggestion) h+='<tr><td>'+q.name+'</td><td>'+val(q.cur)+'</td><td class="win">'+val(q.val)+'</td></tr>';
+  h+='</table><div class="sub">Önerilen değerlerle tahmini kazanma oranı</div><table><tr><th>Çift (A vs B)</th><th>Tahmin</th></tr>';
+  for(const p of r.predictions){ const c=p.p>0.55?'pos':p.p<0.45?'neg':''; h+='<tr><td>'+hn(p.a)+' vs '+hn(p.b)+'</td><td class="win '+c+'">'+p0(p.p)+'</td></tr>'; }
+  h+='</table>';
+  $('resBody').innerHTML=h;
+  $('warn').innerHTML='<div class="warn">Öneri tahmindir, Karşılaştır ile doğrula.</div>';
+}
+init();
+</script>
+</body>
+</html>

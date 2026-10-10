@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Harita Editörü</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root { --bg:#14161a; --panel:#1d2026; --line:#2c313a; --txt:#d9dde3; --dim:#8a919c; --acc:#5aa7ff; --ok:#6fcf7f; --err:#ff6b6b; --warn:#f2c14e; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--txt); font:13px/1.35 system-ui,Segoe UI,sans-serif; overflow:hidden; }
+  #app { display:grid; grid-template-rows:auto 1fr auto; grid-template-columns:auto 1fr 330px; height:100%; }
+  #top { grid-column:1/4; display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:6px 8px; background:var(--panel); border-bottom:1px solid var(--line); }
+  #tools { display:flex; flex-direction:column; gap:3px; padding:6px; background:var(--panel); border-right:1px solid var(--line); overflow-y:auto; width:128px; }
+  #tools .grp { color:var(--dim); font-size:11px; margin-top:6px; }
+  #cv-wrap { position:relative; min-width:0; min-height:0; }
+  canvas#cv { position:absolute; inset:0; width:100%; height:100%; display:block; cursor:crosshair; touch-action:none; }
+  #side { background:var(--panel); border-left:1px solid var(--line); overflow-y:auto; padding:6px 8px; }
+  #help { grid-column:1/4; padding:4px 8px; background:var(--panel); border-top:1px solid var(--line); color:var(--dim); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  button, select, input { font:inherit; color:var(--txt); background:#262a32; border:1px solid #3a404b; border-radius:4px; padding:3px 7px; }
+  button { cursor:pointer; }
+  button:hover { background:#303642; }
+  button.on { background:#2a4a78; border-color:var(--acc); }
+  button.primary { background:#25623a; border-color:#3f9a5c; }
+  input[type=number] { width:70px; }
+  input[type=text] { width:100%; }
+  input[type=color] { padding:0; width:30px; height:24px; }
+  input[type=checkbox] { vertical-align:middle; }
+  fieldset { border:1px solid var(--line); border-radius:5px; margin:0 0 8px; padding:5px 7px 7px; }
+  legend { color:var(--acc); padding:0 4px; font-weight:600; }
+  .row { display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin:3px 0; }
+  .row label { color:var(--dim); }
+  .lane { border:1px solid var(--line); border-radius:4px; padding:4px; margin:3px 0; }
+  .lane.sel { border-color:var(--acc); background:#1f2a3a; }
+  .vtx { display:flex; gap:4px; align-items:center; margin:2px 0; }
+  .vtx input { width:68px; }
+  #msg { padding:2px 8px; border-radius:4px; }
+  #msg.ok { color:var(--ok); } #msg.err { color:var(--err); }
+  #coord { color:var(--dim); font-variant-numeric:tabular-nums; min-width:150px; }
+  #warns div { color:var(--warn); margin:2px 0; font-size:12px; }
+  #warns .none { color:var(--ok); }
+  .sp { flex:1; }
+  small { color:var(--dim); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="top">
+    <button id="bSave" class="primary" title="Ctrl+S">Kaydet</button>
+    <button id="bJson">JSON indir</button>
+    <button id="bPng">Paint için PNG indir</button>
+    <button id="bCheck">Denetle</button>
+    <span style="width:8px"></span>
+    <button id="bUndo" title="Ctrl+Z">Geri al</button>
+    <button id="bRedo" title="Ctrl+Y">Yinele</button>
+    <span style="width:8px"></span>
+    <label><input type="checkbox" id="cGrid" checked> Izgara</label>
+    <label><input type="checkbox" id="cSnap" checked> Yapıştır (25)</label>
+    <label><input type="checkbox" id="cBorder" checked> Sınır</label>
+    <label><input type="checkbox" id="cDim"> Şekilleri soluk göster</label>
+    <button id="bFit">Sığdır</button>
+    <span id="coord">x: -  y: -</span>
+    <span id="msg"></span>
+  </div>
+
+  <div id="tools"></div>
+
+  <div id="cv-wrap"><canvas id="cv"></canvas></div>
+
+  <div id="side">
+    <fieldset><legend>Harita boyutu</legend>
+      <div class="row"><label>w</label><input type="number" id="mapW" min="500" step="100"><label>h</label><input type="number" id="mapH" min="500" step="100"></div>
+    </fieldset>
+
+    <fieldset><legend>Koridorlar</legend>
+      <div id="laneList"></div>
+      <div class="row"><button id="bLaneAdd">Koridor ekle</button><small>Koridor aracı (K) ile noktaları düzenle</small></div>
+    </fieldset>
+
+    <fieldset><legend>Özellikler</legend>
+      <div id="props"><small>Bir şekil seç.</small></div>
+    </fieldset>
+
+    <fieldset><legend>Ayna</legend>
+      <div class="row">
+        <button id="bMirV" title="x = w/2 ekseninde">Seçiliyi dikey eksende aynala (kopya)</button>
+        <button id="bMirH" title="y = h/2 ekseninde">Seçiliyi yatay eksende aynala (kopya)</button>
+        <button id="bMirHalf">Bütün sol yarıyı sağa aynala</button>
+      </div>
+    </fieldset>
+
+    <fieldset><legend>Arka plan görseli</legend>
+      <div class="row"><input type="file" id="bgFile" accept="image/png,image/jpeg" style="width:100%"></div>
+      <div class="row"><small>Panodan yapıştırmak için Ctrl+V</small></div>
+      <div class="row"><label><input type="checkbox" id="bgShow" checked> Göster</label>
+        <label><input type="checkbox" id="bgKeep"> Oranı koru</label>
+        <button id="bgClear">Kaldır</button></div>
+      <div class="row"><label>Saydamlık</label><input type="range" id="bgAlpha" min="0" max="100" value="60" style="flex:1"></div>
+      <div id="bgInfo"><small>Görsel yok.</small></div>
+    </fieldset>
+
+    <fieldset><legend>Eskiz (kaydedilmez)</legend>
+      <div class="row"><label>Renk</label><input type="color" id="skColor" value="#ffd23f">
+        <label>Kalınlık</label><input type="range" id="skWidth" min="2" max="80" value="12" style="width:90px">
+        <label><input type="checkbox" id="skShow" checked> Göster</label></div>
+      <div class="row"><button id="bSkClear">Eskizi temizle</button><small>Kalem (B), Silgi (X). Tarayıcıda saklanır.</small></div>
+    </fieldset>
+
+    <fieldset><legend>Uyarılar</legend>
+      <div id="warns"><small>Kaydetmeden önce otomatik denetlenir.</small></div>
+    </fieldset>
+  </div>
+
+  <div id="help">V seç  |  Q/W/E duvar dikdörtgen/daire/çokgen  |  A/S/D çalı dikdörtgen/daire/çokgen  |  K koridor  |  Y yapılar  |  B kalem  X silgi  |  Orta tuş ya da Boşluk+sürükle kaydır  |  Tekerlek yakınlaştır  |  Del sil  Ctrl+D çoğalt  Ctrl+Z/Y  Ctrl+S kaydet  |  Çokgen: tıkla köşe ekle, çift tık/Enter bitir, Esc iptal  |  Sağ tık: köşe/nokta sil</div>
+</div>
+<script type="module" src="./mapeditor.js"></script>
+</body>
+</html>
