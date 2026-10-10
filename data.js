@@ -267,7 +267,7 @@ export const HEROES = {
       p:{ name:'Hasar Yayılımı', pct:.10, radius:100 },
       r:{ name:'Atılış', max:4, type:'dash', cd:[9,8.5,8,7.5], dist:300, speed:1000,
           ratio:[1.10,1.23,1.37,1.50], slow:0.10, slowDur:1, knock:250 },
-      e:{ name:'Kalkan', max:4, type:'shield', cd:[16,15,14,13], shield:[.10,.13,.16,.20], dur:5, spd:0.20 },
+      e:{ name:'Kalkan', max:4, type:'shield', cd:[16,15,14,13], shield:[.14,.18,.22,.26], dur:5, spd:0.20 },   // denge: kalkan .10,.13,.16,.20 idi (2v2 tur 3: %35)
       s:{ name:'Öfke', max:2, type:'giant', cd:[26,22], size:[.40,.50], dmg:[.40,.50], dur:[4,6] }
     }
   },
