@@ -215,6 +215,34 @@
   .card.win h2.res{color:var(--t0)}.card.lose h2.res{color:var(--t1)}
   #ui{background:linear-gradient(180deg,#171a3b,#12142e)}
   #ui .gt{background:linear-gradient(90deg,var(--t0),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+  /* otomatik alım düzenleyicisi (autobuy.js) */
+  .abx{position:fixed;inset:0;z-index:80;background:rgba(8,6,24,.72);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--text)}
+  .abx button,.abx input{font:inherit;color:var(--text)}
+  .abcard{width:min(980px,calc(100% - 24px));max-height:calc(100% - 40px);display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-sizing:border-box}
+  .abhead{display:flex;align-items:center;gap:14px;font-size:16px}.abhead b{flex:1}
+  .abtog,.abtog2{display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer}
+  .abx-close{background:none;border:0;font-size:18px;cursor:pointer}
+  .abnote{color:var(--muted);margin:6px 0 10px}
+  .abbody{display:flex;gap:14px;min-height:0;flex:1}
+  .ablist{width:330px;flex:none;overflow:auto}.abpick{flex:1;overflow:auto;min-width:0}
+  .abx h4{margin:10px 0 6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}.abx h4 span{float:right;text-transform:none;color:var(--gold)}
+  .abrow{display:flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 8px;margin-bottom:5px}
+  .abrow.spare{opacity:.7;border-style:dashed}
+  .abn{width:20px;height:20px;border-radius:50%;background:var(--gold);color:#222;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+  .abnm{flex:1;min-width:0;font-weight:600}.abnm small{display:block;font-weight:400;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .abrow button{background:var(--panel3);border:1px solid var(--line);border-radius:5px;padding:2px 7px;cursor:pointer}
+  .abrow button:disabled{opacity:.3;cursor:default}
+  .abbtns{display:flex;gap:6px;margin-top:8px}.abbtns button{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer}
+  .abempty{color:var(--muted);padding:10px 0}
+  .abpick input{width:100%;box-sizing:border-box;background:var(--panel3);border:1px solid var(--line);border-radius:6px;padding:6px 8px;margin-bottom:6px}
+  .abgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:5px}
+  .abit{text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:5px 7px;cursor:pointer}
+  .abit:hover:not(:disabled){border-color:var(--gold)}.abit:disabled{opacity:.4;cursor:default}.abit.has{border-color:var(--accent)}
+  .abit small{display:block;color:var(--muted);font-size:11px}.abit.def{width:100%;margin-bottom:4px}
+  @media (max-width:700px){.abbody{flex-direction:column;overflow:auto}.ablist{width:auto;overflow:visible}.abpick{overflow:visible}}
+  #shop .abtog2{margin-left:auto;color:var(--text)}#shop .sabEdit{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:3px 9px;color:var(--text);cursor:pointer;font:inherit}
+  #shop .abnext{color:var(--gold);font-size:12px}
+  .menu .abbtn{width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px}.menu .abbtn small{display:block;color:var(--muted)}
 </style>
 </head>
 <body>

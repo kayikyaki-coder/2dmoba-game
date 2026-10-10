@@ -1,7 +1,7 @@
 /* Bot yapay zekası (v3, fayda sistemi): tarayıcıya bağımlı değil, iki takımı da oynayabilir.
    Akış: algı -> karar (geri çekil / dövüş / koridor) -> hareket (konum + kaçınma + kule güvenliği) -> saldırı ve yetenekler.
    Eski bot karşılaştırma için ai_v1.js içinde. */
-import { WORLD, LANE_Y, TOWER, FOUNTAIN, respawnTime } from './data.js';
+import { WORLD, LANE_Y, TOWER, towerChampHit, towerMinionHit, FOUNTAIN, respawnTime } from './data.js';
 import { S, settings, rand, dist, atkDef, atkDmg, attackSpeed, timings, canSee, canAct, stat, burnDps, apOf, canShop, botShop, nextBuild, itemCostFor } from './sim.js';
 import { CRIT_MULT } from './items.js';
 import { lanePoint, laneProject, laneDir } from './map.js';
@@ -120,7 +120,7 @@ function heroHitSafe(b, e, px, py){
 /* Kule T saniyede tek hedefe ne kadar vurur (yığılan hasar dahil) */
 function towerDmgOver(T){
   let sum=0; const n=Math.ceil(T/TOWER.interval);
-  for(let i=0;i<n;i++) sum+=TOWER.dmg*(1+TOWER.stack*Math.min(i,TOWER.maxStack));
+  for(let i=0;i<n;i++) sum+=towerChampHit(i);
   return sum;
 }
 /* Tanksız kule dalışı değer mi? Rakip kahraman uzaktaysa ve ölmeden önce verebileceğimiz hasar yeterliyse dal.
@@ -134,7 +134,7 @@ function canDive(b, st, e, M){
   if(b.hp < (M.dive ? floor : b.maxHp*start)) return false;
   let myD=dps(b)*0.95;
   for(const m of S.minions) if(!m.dead && m.team===b.team && dist(m,st)<300) myD+=m.def.dmg/m.def.period;
-  const live=(b.hp-floor)/(TOWER.dmg*(1+TOWER.stack*3)/TOWER.interval);
+  const live=(b.hp-floor)/(towerChampHit(3)/TOWER.interval);
   return myD*live >= Math.min(st.hp, AI.diveMinDmg);
 }
 
@@ -180,7 +180,7 @@ const homeDir = b => b.team===0 ? -1 : 1;
 function burnOf(h){ const p=h.def.skills.p; return p.burnMin!==undefined ? burnDps(p,h.level)+(p.ap||0)*apOf(h) : 0; }
 /* Bir tarafın ham dövüş bileşenleri (b'nin e'ye karşı) */
 function sideComps(b, e){
-  const tw=TOWER.dmg*(1+TOWER.stack*2)/TOWER.interval;
+  const tw=towerChampHit(2)/TOWER.interval;
   let tower=0, minion=0;
   for(const s of S.structs){
     if(s.dead || s.sub==='nexus') continue;
@@ -323,7 +323,7 @@ function fightMove(b, e, M, ev){
 function incomingDps(m){
   let d=0;
   for(const u of S.minions) if(!u.dead && u.team!==m.team && u.atk.main===m) d+=u.def.dmg*(u.dmgMult||1)/u.def.period;
-  for(const s of S.structs) if(!s.dead && s.team!==m.team && s.tgt===m) d+=TOWER.dmg*(1+TOWER.stack*s.stacks)*TOWER.minionMult/TOWER.interval;
+  for(const s of S.structs) if(!s.dead && s.team!==m.team && s.tgt===m) d+=towerMinionHit(m)/TOWER.interval;
   return d;
 }
 /* m'ye önümüzdeki T saniyede inecek hasar olayları (zaman, miktar): minyon vuruşları, kule atışları, havadaki mermiler */
@@ -344,7 +344,7 @@ function hitEvents(m, T){
   }
   for(const s of S.structs){
     if(s.dead || s.team===m.team || s.tgt!==m) continue;
-    const fly=dist(s,m)/TOWER.boltSpeed, dmg=TOWER.dmg*(1+TOWER.stack*s.stacks)*TOWER.minionMult;
+    const fly=dist(s,m)/TOWER.boltSpeed, dmg=towerMinionHit(m);
     for(let t=Math.max(0,s.cd)+fly; t<=T; t+=TOWER.interval) ev.push([t,dmg]);
   }
   for(const bo of S.bolts) if(bo.target===m && bo.team!==m.team) ev.push([dist(bo,m)/bo.speed, bo.dmg]);

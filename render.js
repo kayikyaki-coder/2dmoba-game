@@ -150,11 +150,31 @@ function drawStructRange(s){
   ctx.restore();
 }
 
-function hpBar(x,y,w,frac,col,h){
-  h=h||6;
-  ctx.fillStyle='rgba(6,4,22,0.72)'; rrect(x-1.5,y-1.5,w+3,h+3,(h+3)/2); ctx.fill();
-  const fw=Math.max(h,w*Math.max(0,Math.min(1,frac)));
-  if(frac>0){ ctx.fillStyle=col; rrect(x,y,fw,h,h/2); ctx.fill(); ctx.fillStyle='rgba(255,255,255,0.22)'; rrect(x+1,y+0.8,Math.max(0,fw-2),h*0.35,h*0.17); ctx.fill(); }
+/* Can çubuğu: genişlik azami cana göre değil sabit; her 100 canda ince, her 1000'de kalın çentik (LoL gibi),
+   kalkan beyaz parça olarak canın ardına eklenir, kaybedilen can kısa süre açık renkli iz bırakır. */
+const hpTrail=new WeakMap();
+function hpBar(u,x,y,w,col,h,shield,unit){
+  h=h||6; shield=shield||0; unit=unit||100;
+  const hp=Math.max(0,u.hp), tot=Math.max(u.maxHp,hp+shield), sc=w/tot;
+  let tr=hpTrail.get(u); if(!tr){ tr={ v:hp, prev:hp, drop:-1, last:S.time }; hpTrail.set(u,tr); }
+  if(hp<tr.prev) tr.drop=S.time;
+  if(hp>tr.v) tr.v=hp; else if(S.time-tr.drop>0.4) tr.v=Math.max(hp, tr.v-u.maxHp*1.5*Math.max(0,Math.min(0.1,S.time-tr.last)));
+  tr.prev=hp; tr.last=S.time;
+  ctx.fillStyle='rgba(6,4,22,0.78)'; rrect(x-1.5,y-1.5,w+3,h+3,3); ctx.fill();
+  ctx.save(); rrect(x,y,w,h,2); ctx.clip();
+  if(tr.v>hp){ ctx.fillStyle='rgba(255,236,200,0.75)'; ctx.fillRect(x+hp*sc,y,(tr.v-hp)*sc,h); }
+  if(hp>0){ ctx.fillStyle=col; ctx.fillRect(x,y,hp*sc,h); ctx.fillStyle='rgba(255,255,255,0.22)'; ctx.fillRect(x,y+0.6,hp*sc,h*0.35); }
+  if(shield>0){ ctx.fillStyle='rgba(235,242,255,0.92)'; ctx.fillRect(x+hp*sc,y,shield*sc,h); }
+  // çentikler: unit (100; yapılarda 250) aralık çok sıkışırsa yalnız 1000'likler
+  const step=unit*sc>=3.5?unit:(1000*sc>=3.5?1000:0);
+  if(step){
+    ctx.fillStyle='rgba(6,4,22,0.85)';
+    for(let v=step; v<tot; v+=step){
+      const big=v%1000===0, tx=Math.round(x+v*sc);
+      if(big) ctx.fillRect(tx-1,y,2,h); else ctx.fillRect(tx-0.5,y,1,h*0.55);
+    }
+  }
+  ctx.restore();
 }
 function teamRing(x,y,r,team){ ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.lineWidth=2; ctx.strokeStyle=TEAM_COLORS[team]; ctx.stroke(); }
 const projTeam=p=>p.owner?p.owner.team:(p.team!==undefined?p.team:0);
@@ -200,7 +220,7 @@ function drawStruct(s){
     ctx.strokeStyle='rgba(255,106,88,0.4)'; ctx.lineWidth=2; ctx.stroke();
   }
   const bw=s.sub==='nexus'?130:90;
-  hpBar(s.x-bw/2, s.y-r-(s.sub==='nexus'?44:30), bw, s.hp/s.maxHp, c, 7);
+  hpBar(s, s.x-bw/2, s.y-r-(s.sub==='nexus'?44:30), bw, c, 8, 0, 250);
 }
 
 function drawMinion(m){
@@ -224,8 +244,8 @@ function drawMinion(m){
   if(m.st.slow){ body(); ctx.fillStyle='rgba(92,200,255,0.35)'; ctx.fill(); }
   if(m.flash>0){ body(); ctx.fillStyle=`rgba(255,255,255,${m.flash/0.12*0.7})`; ctx.fill(); }
   if(m.st.freeze>0){ body(); ctx.fillStyle='rgba(175,230,255,0.65)'; ctx.fill(); }
-  const bw=r*2.3;
-  hpBar(m.x-bw/2, m.y-r-12, bw, m.hp/m.maxHp, c, 4);
+  const bw=m.def.kind==='cone'?40:34;
+  hpBar(m, m.x-bw/2, m.y-r-12, bw, c, 5);
   if(settings.showHit){ ctx.beginPath(); ctx.arc(m.x,m.y,r,0,TAU); ctx.strokeStyle='#ff0'; ctx.lineWidth=1; ctx.stroke(); }
 }
 
@@ -398,18 +418,15 @@ function drawHero(h){
     ctx.beginPath(); ctx.arc(h.x,h.y,h.r+5,-Math.PI/2,-Math.PI/2+Math.PI*2*p);
     ctx.strokeStyle='rgba(255,255,255,0.55)'; ctx.lineWidth=2; ctx.stroke();
   }
-  const bw=h.r*2.4, bx=h.x-bw/2, by=h.y-h.r-18;
-  ctx.beginPath(); ctx.arc(bx-11,by+3.5,9.5,0,TAU); ctx.fillStyle=PAL.ink; ctx.fill();
+  const bw=74, bx=h.x-bw/2+6, by=h.y-h.r-20;
+  ctx.beginPath(); ctx.arc(bx-11,by+4.5,9.5,0,TAU); ctx.fillStyle=PAL.ink; ctx.fill();
   ctx.lineWidth=2.5; ctx.strokeStyle=TEAM_COLORS[h.team]; ctx.stroke();
   ctx.fillStyle='#fff'; ctx.font='bold 11px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(h.level,bx-11,by+4.5);
-  hpBar(bx,by,bw,h.hp/h.maxHp,TEAM_COLORS[h.team],7);
+  hpBar(h,bx,by,bw,TEAM_COLORS[h.team],9,st.shield?st.shield.amt:0);
   if(S.heroes.length>2 && h!==S.player){   // 2v2: dost ve rakip kahraman isimleri
     ctx.save(); ctx.font='bold 11px system-ui'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.lineJoin='round'; ctx.lineWidth=3; ctx.strokeStyle='rgba(6,4,22,0.85)';
     const nm=HERO_NAMES[h.type]||h.def.name, ny=h.y+h.r+6;
     ctx.strokeText(nm,h.x,ny); ctx.fillStyle=h.team===S.player.team?'#bff7ef':'#ffc2b9'; ctx.fillText(nm,h.x,ny); ctx.restore();
-  }
-  if(st.shield){
-    ctx.fillStyle='#e6f0ff'; rrect(bx,by,Math.max(3,Math.min(bw,bw*(st.shield.amt/h.maxHp))),3,1.5); ctx.fill();
   }
   if(st.root>0){   // kök: ayakta mor kesikli halka ve canın üstünde zincir işareti
     ctx.save(); ctx.setLineDash([5,5]); ctx.beginPath(); ctx.arc(h.x,h.y,h.r+4,0,Math.PI*2);

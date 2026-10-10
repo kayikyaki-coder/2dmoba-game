@@ -1,5 +1,5 @@
 /* Simülasyon: tarayıcıya bağımlı değil (document, window, canvas yok). */
-import { TICK, WORLD, LANE_Y, TEAM_COLORS, TEAM_DARK, MAX_LEVEL, STATS, HEROES, FORMS, TOWER, BASE_TOWER_HP, NEXUS, LAYOUT, FOUNTAIN, MINIONS, WAVE_ORDER, WAVE_FIRST, WAVE_INTERVAL, WAVE_GAP, OFF_TARGET_DMG, MINION_CALL, MINION_CALL_R, respawnTime, RECALL, MINION_SCALE, GOLD, minionGold, XP_NEED, HERO_KILL_XP, STRUCT_XP, XP_RADIUS, VISION } from './data.js';
+import { TICK, WORLD, LANE_Y, TEAM_COLORS, TEAM_DARK, MAX_LEVEL, STATS, HEROES, FORMS, TOWER, towerChampHit, towerMinionHit, BASE_TOWER_HP, NEXUS, LAYOUT, FOUNTAIN, MINIONS, WAVE_ORDER, WAVE_FIRST, WAVE_INTERVAL, WAVE_GAP, OFF_TARGET_DMG, MINION_CALL, MINION_CALL_R, respawnTime, RECALL, MINION_SCALE, GOLD, minionGold, XP_NEED, HERO_KILL_XP, STRUCT_XP, XP_RADIUS, VISION } from './data.js';
 import { ITEMS, PARTS, SLOTS, START_GOLD, CRIT_MULT, BUILDS, DEF, DEF_CLASS, DEF_POOLS, DMG_PHYS } from './items.js';
 import { structPos, SPAWN_OFF, pushOutWalls, pushOutWallsInto, PUSH, wallsFar, inWall, sightBlocked, bushAt, BUSHES, lanePoint, laneProject, laneLength, laneDir } from './map.js';
 
@@ -1264,6 +1264,7 @@ export function releaseAttack(h){
 
 /* ---- kahraman güncelleme ---- */
 export function updateHero(h, cmd, dt){
+  if(h.autoBuy && canShop(h)) botShop(h);   // oyuncunun otomatik alımı: h.build sırasıyla, altın yettikçe (botlarla aynı kural)
   if(h.dead){ h.respawn-=dt; if(h.respawn<=0) respawnHero(h); return; }
   const st=h.st, a=h.atk, at=atkDef(h);
 
@@ -1705,8 +1706,9 @@ export function updateTower(s, dt){
   if(!tgt){ s.stacks=0; s.last=null; return; }
   if(s.cd<=0){
     if(s.last===tgt) s.stacks=Math.min(s.stacks+1,TOWER.maxStack); else { s.stacks=0; s.last=tgt; }
-    let dmg=TOWER.dmg*(1+TOWER.stack*s.stacks);
-    if(tgt.kind==='minion') dmg*=TOWER.minionMult;
+    let dmg;
+    if(tgt.kind==='minion') dmg=towerMinionHit(tgt);
+    else dmg=towerChampHit(s.stacks);
     S.bolts.push({ x:s.x, y:s.y, target:tgt, dmg, team:s.team, src:s, speed:TOWER.boltSpeed, stacks:s.stacks });
     s.cd=TOWER.interval;
   }

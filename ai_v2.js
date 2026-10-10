@@ -1,7 +1,7 @@
 /* BOT v2 (fayda sistemi öncesi), karşılaştırma için saklanıyor. Güncel bot ai.js içinde.
    Akış: algı -> karar (geri çekil / dövüş / koridor) -> hareket (konum + kaçınma + kule güvenliği) -> saldırı ve yetenekler.
    Eski bot karşılaştırma için ai_v1.js içinde. */
-import { WORLD, LANE_Y, TOWER, FOUNTAIN, respawnTime } from './data.js';
+import { WORLD, LANE_Y, TOWER, towerChampHit, towerMinionHit, FOUNTAIN, respawnTime } from './data.js';
 import { S, settings, rand, dist, atkDef, atkDmg, attackSpeed, timings, canSee, canAct, stat, burnDps, apOf, canShop, botShop, nextBuild, itemCostFor } from './sim.js';
 import { CRIT_MULT } from './items.js';
 
@@ -112,7 +112,7 @@ function heroHitSafe(b, e, px, py){
 /* Kule T saniyede tek hedefe ne kadar vurur (yığılan hasar dahil) */
 function towerDmgOver(T){
   let sum=0; const n=Math.ceil(T/TOWER.interval);
-  for(let i=0;i<n;i++) sum+=TOWER.dmg*(1+TOWER.stack*Math.min(i,TOWER.maxStack));
+  for(let i=0;i<n;i++) sum+=towerChampHit(i);
   return sum;
 }
 /* Tanksız kule dalışı değer mi? Rakip kahraman uzaktaysa ve ölmeden önce verebileceğimiz hasar yeterliyse dal.
@@ -126,7 +126,7 @@ function canDive(b, st, e, M){
   if(b.hp < (M.dive ? floor : b.maxHp*start)) return false;
   let myD=dps(b)*0.95;
   for(const m of S.minions) if(!m.dead && m.team===b.team && dist(m,st)<300) myD+=m.def.dmg/m.def.period;
-  const live=(b.hp-floor)/(TOWER.dmg*(1+TOWER.stack*3)/TOWER.interval);
+  const live=(b.hp-floor)/(towerChampHit(3)/TOWER.interval);
   return myD*live >= Math.min(st.hp, AI.diveMinDmg);
 }
 
@@ -172,7 +172,7 @@ const homeDir = b => b.team===0 ? -1 : 1;
 function burnOf(h){ const p=h.def.skills.p; return p.burnMin!==undefined ? burnDps(p,h.level)+(p.ap||0)*apOf(h) : 0; }
 /* Bir tarafın ham dövüş bileşenleri (b'nin e'ye karşı) */
 function sideComps(b, e){
-  const tw=TOWER.dmg*(1+TOWER.stack*2)/TOWER.interval;
+  const tw=towerChampHit(2)/TOWER.interval;
   let tower=0, minion=0;
   for(const s of S.structs){
     if(s.dead || s.sub==='nexus') continue;

@@ -1,7 +1,8 @@
 /* Tarayıcı tarafı: girdi, HUD düğmeleri, ana döngü. */
 import { TICK, MAX_LEVEL, XP_NEED } from './data.js';
-import { S, settings, resetGame, step, learnSkill, gainXP, buy, buySmart, sell, sellValue, itemCostFor, canShop, attackTarget, inAttackRange, canSee } from './sim.js';
+import { S, settings, resetGame, step, nextBuild, learnSkill, gainXP, buy, buySmart, sell, sellValue, itemCostFor, canShop, attackTarget, inAttackRange, canSee } from './sim.js';
 import { PARTS, ITEMS, SLOTS, RECOMMENDED } from './items.js';
+import { applyAutoBuy, openBuildEditor, buildEditorOpen, setAutoBuy } from './autobuy.js';
 import { botCommand, setBotLevel } from './ai.js';
 import { GAME_TITLE, HERO_NAMES } from './names.js';
 import { bindMenu, showMenu, hideMenu, showPause, hidePause, showResult, hideResult } from './menu.js';
@@ -48,6 +49,7 @@ function newGame(){
   if(settings.perTeam===2) o.types=[[settings.playerType, settings.allyType],[settings.botType, settings.foe2Type]];
   resetGame(o);
   for(const h of S.heroes) if(h!==S.player) setBotLevel(h, settings.botLevel || 'easy');   // menüdeki zorluk: rakipler ve takım arkadaşı
+  applyAutoBuy(S.player);   // otomatik alım: kayıtlı eşya sırası (autobuy.js)
 }
 
 function getCmd(h, dt){ return h===S.player ? playerCommand() : botCommand(h, dt); }
@@ -67,6 +69,7 @@ function loop(now){
 }
 
 addEventListener('keydown',e=>{
+  if(buildEditorOpen()) return;   // otomatik alım düzenleyicisi açıkken oyun tuşları çalışmaz
   if(scene!=='play'){
     if(e.code==='Escape' && scene==='pause'){ e.preventDefault(); resumeGame(); }
     return;   // menüdeyken oyun tuşları çalışmaz
@@ -272,6 +275,8 @@ function updateShop(force){
   const p=S.player, here=canShop(p);
   document.getElementById('sGold').textContent='Altın: '+Math.floor(p.gold);
   const w=document.getElementById('sWhere'); w.textContent=here?(S.player.dead?'Ölüsün, alışveriş açık':'Üstesin, alışveriş açık'):'Üsse dön (B)'; w.className='where'+(here?' ok':'');
+  document.getElementById('sAuto').checked=!!p.autoBuy;
+  { const nx=p.autoBuy?nextBuild(p):null, e=document.getElementById('sAbNext'); e.textContent=p.autoBuy?(nx?'Sıradaki: '+itemOf(nx).name+' ('+itemCostFor(p,nx)+')':'Sıra tamam'):''; }
   const sig=[Math.floor(p.gold),p.items.join(','),here,p.type,shopSel,shopFilter,shopQuery].join('|');
   if(sig===shopSig && !force) return;
   shopSig=sig;
@@ -297,7 +302,7 @@ function closeShop(){ shopOpen=false; shopEl.classList.remove('open'); const q=d
 function toggleShop(){ if(shopOpen) closeShop(); else openShop(); }
 
 (function buildShop(){
-  shopEl.innerHTML='<div class="shead"><span class="stitle">Mağaza</span><span class="gold" id="sGold"></span><span class="where" id="sWhere"></span><span class="toast" id="sToast"></span>'
+  shopEl.innerHTML='<div class="shead"><span class="stitle">Mağaza</span><span class="gold" id="sGold"></span><span class="where" id="sWhere"></span><span class="toast" id="sToast"></span><label class="abtog2" title="Üste altın yettikçe eşya sırasından otomatik al"><input type="checkbox" id="sAuto"> Otomatik alım</label><button class="sabEdit" id="sAbEdit">Sırayı düzenle</button><span class="abnext" id="sAbNext"></span>'
     +'<button class="sx" id="sClose" title="Kapat (Esc)">&times;</button></div>'
     +'<div class="sinvwrap"><div class="lbl2">Envanter (en fazla '+SLOTS+' yuva, temel parça da yuva kaplar)</div><div class="sinv" id="sInv"></div></div>'
     +'<div class="smain"><div class="sleft"><h4>Önerilen<span>tek tık: seç, çift tık ya da sağ tık: al</span></h4><div class="grid rec" id="sRec"></div>'
@@ -306,6 +311,9 @@ function toggleShop(){ if(shopOpen) closeShop(); else openShop(); }
   const css=document.createElement('style');
   css.textContent='#shop .sellrow{margin-top:4px}#shop .sellb{display:inline-block;padding:1px 8px;border-radius:9px;background:#4a2a2f;border:1px solid #8a4850;color:#ffb3b3;font-size:11px;font-weight:600;cursor:pointer}#shop .sellb:hover{background:#a33a44;color:#fff}';
   document.head.appendChild(css);
+  const au=document.getElementById('sAuto');
+  au.addEventListener('change',()=>{ setAutoBuy(au.checked); if(S.player) S.player.autoBuy=au.checked; shopSig=''; updateShop(); });
+  document.getElementById('sAbEdit').addEventListener('click',()=>openBuildEditor(S.player.type,(hero,list,on)=>{ if(S.player && S.player.type===hero){ S.player.build=[...list]; S.player.autoBuy=on; } shopSig=''; updateShop(true); }));
   const q=document.getElementById('sQuery');
   q.addEventListener('input',()=>{ shopQuery=q.value.trim().toLocaleLowerCase('tr'); updateShop(); });
 })();

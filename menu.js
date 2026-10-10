@@ -5,6 +5,7 @@ import { S, settings } from './sim.js';
 import { GAME_TITLE, HERO_NAMES, HERO_INFO } from './names.js';
 import { drawToken } from './art.js';
 import { applyCssVars } from './palette.js';
+import { openBuildEditor, autoBuyOn, isCustom } from './autobuy.js';
 applyCssVars();
 
 /* Modlar: takım başına yuva sayısı (2v2: sen + dost bot, rakip 2 bot). */
@@ -134,6 +135,10 @@ function buildMenu() {
     dg.append(b);
   }
   d.append(dg, $('div', 'note', 'Seçilen zorluk rakip botlara ve takım arkadaşına uygulanır.')); side.append(d);
+  // otomatik alım
+  const ab = $('section', 'blk'); ab.append($('h2', '', 'Otomatik alım'));
+  const abb = $('button', 'abbtn'); abb.id = 'abBtn'; abb.addEventListener('click', () => openBuildEditor(pick.hero, () => sync()));
+  ab.append(abb, $('div', 'note', 'Seçtiğin kahramanın eşya sırası. Açıksa üste altın yettikçe sırayla alınır.')); side.append(ab);
   // ayarlar
   const a = $('section', 'blk'); a.append($('h2', '', 'Ayarlar'), settingsBlock()); side.append(a);
 
@@ -171,6 +176,7 @@ function sync() {
   menuEl.querySelectorAll('#gAlly .hc').forEach(b => b.classList.toggle('on', b.dataset.id === pick.ally));
   menuEl.querySelectorAll('#gFoe2 .hc').forEach(b => b.classList.toggle('on', b.dataset.id === pick.foe2));
   const M = MODES[pick.mode];
+  const abB = menuEl.querySelector('#abBtn'); if (abB) abB.innerHTML = '<b>' + esc(HERO_NAMES[pick.hero]) + ' eşya sırası</b><small>' + (autoBuyOn() ? 'Açık' : 'Kapalı') + ' · ' + (isCustom(pick.hero) ? 'kendi sıran' : 'önerilen sıra') + '</small>';
   menuEl.querySelectorAll('.only2').forEach(e => { e.style.display = M.perTeam > 1 ? '' : 'none'; });
   // takım yuvaları: takım başına perTeam yuva
   const nmOf = v => v === 'random' ? 'Rastgele' : HERO_NAMES[v];
