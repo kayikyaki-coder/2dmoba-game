@@ -32,7 +32,7 @@ export const STATS = {
     projRadius:{ base:6, per:0 }    // ok kalınlığı
   },
   warrior: {
-    hp:{ base:820, per:32 },   // zırh sistemi (11.10.2026): 940 (+40) idi
+    hp:{ base:870, per:32 },   // denge F4: 820 idi //   // zırh sistemi (11.10.2026): 940 (+40) idi
     regen:{ base:10, per:0.9 },       // denge: 5 idi, seviye başına: 0 idi
     armor:{ base:40, per:5 },   // denge F2: 36 (+4.5) idi //   // denge F1 (11.10.2026, zırh sonrası): 32 (+4) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:34, per:1.8 },   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -73,7 +73,7 @@ export const STATS = {
     mr:{ base:25, per:1 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:53, per:3 },   // zırh sistemi (11.10.2026): 47 (+3) idi
+    dmg:{ base:50, per:3 },   // denge F4: 53 idi //   // zırh sistemi (11.10.2026): 47 (+3) idi
     as:{ base:1.05, per:0.05 },     // her vuruş iki ok attığı için okçudan düşük
     spd:{ base:200, per:3 },
     range:{ base:330, per:0 },
@@ -285,7 +285,7 @@ export const HEROES = {
       r:{ name:'Yan Atılış', max:4, type:'tumble', cd:[8,7,6,5], dist:120, speed:1100, window:4 },
       // E: imlece (menzile kırpılır) bomba atılır, delay sn sonra radius yarıçapta patlar: fiziksel hasar + sersemletme (minyonlara da)
       //    hasar = dmg + ad * ek SG + ap * YG
-      e:{ name:'Şok Bombası', max:4, type:'bomb', cd:[14,13,12,11], range:480, radius:100, delay:0.35, stun:0.5,
+      e:{ name:'Şok Bombası', max:4, type:'bomb', cd:[15,14,13,12],   /* denge F4: cd 14-11 idi */ range:480, radius:100, delay:0.35, stun:0.5,
           dmg:[45,68,90,113], ad:0.30, ap:0.30 },   // denge F1 (11.10.2026, zırh sonrası): Şok Bombası dmg 50-125 idi
       // boşluk: imlece en yakın görünen rakip kahramana kilitlenir; dur sn yerinde kanallar, gap sn arayla count güdümlü mermi.
       //    mermi = dmg + ad * ek SG, hedefin eksik canına göre en fazla +missing; yoldaki rakip kahraman/kule mermiyi alır.
