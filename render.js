@@ -45,7 +45,10 @@ export function updateCamera(){
   const p=S.player, px=p.dead?p.spawnX:p.x, py=p.dead?p.spawnY:p.y;
   if(!isFinite(cam.x)) cam.x=0;
   if(!isFinite(cam.y)) cam.y=0;
-  const tx=camTarget(px,view.visW,MAP_W), ty=camTarget(py,view.visH,MAP_H);
+  // Alttaki HUD paneli haritanın altını kapatmasın: kamera haritanın altından panel yüksekliği kadar aşağı inebilir, oyuncu panelin üstündeki alanda ortalanır
+  const mmw=view.W>1100?260:190, hsc=Math.min(1,(view.W-mmw-34)/HUD_PW,(view.W-16)/HUD_PW);
+  const hudR=(HUD_PH*hsc+24)/view.s, useH=view.visH-hudR;
+  const tx=camTarget(px,view.visW,MAP_W), ty=useH>=MAP_H ? (MAP_H-useH)/2 : Math.max(0, Math.min(MAP_H-useH, py-useH/2));
   if(isFinite(tx)) cam.x += (tx-cam.x)*0.18;
   if(isFinite(ty)) cam.y += (ty-cam.y)*0.18;
 }
