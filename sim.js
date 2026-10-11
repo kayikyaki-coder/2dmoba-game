@@ -340,6 +340,7 @@ export function damage(e, amt, src, opts){
       if(e.ic.flatDownT>S.time) ar=Math.max(0, ar-e.ic.flatDown);              // Ölüm Haritası: sabit zırh düşüşü
       if(e.ic.sunderT>S.time) ar*=1-e.ic.sunderPct;                            // Zırh Paralayıcı
       let pen=SB.armorPen||0; if(opts.basic && SB.basicArmorPen) pen=Math.max(pen, SB.basicArmorPen);
+      if(src && src.kind==='struct') pen=Math.max(pen, TOWER.armorPen);   // kule mermisi zırhın bir kısmını deler (geç oyunda zayıflamasın)
       if(SB.lethal) ar=Math.max(0, ar-SB.lethal);   // sabit zırh delme: yüzdelikten önce
       ar*=1-pen;
       a *= 100/(100+Math.max(0,ar));
