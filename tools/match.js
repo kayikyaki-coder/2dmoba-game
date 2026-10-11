@@ -39,7 +39,7 @@ export function runMatch({ a, b, levelA, levelB, aTeam, seed, maxTime, aiA='yeni
 /* 2v2 bot maçı: takım A = a:[k1,k2], takım B = b:[k1,k2]. aTeam: A'nın takımı (0 veya 1).
    Ölçer: kazanan, süre, K/D/A, birlikte hasar anları (iki dost 2 sn içinde aynı rakip kahramana vurdu; aynı rakip için en fazla 5 sn'de bir sayılır),
    dostlar arası ortalama uzaklık (ikisi de hayattayken) ve 800 içinde kalma oranı. */
-export function runMatch2v2({ a, b, levelA=1, levelB=1, aTeam=0, seed=1, maxTime=2400, aiA='yeni', aiB='yeni', buildA='default', buildB='default', candAI={}, diffA='easy', diffB='easy' }){
+export function runMatch2v2({ a, b, levelA=1, levelB=1, aTeam=0, seed=1, maxTime=2400, aiA='yeni', aiB='yeni', buildA='default', buildB='default', candAI={}, diffA='easy', diffB='easy', earlyStop=false }){
   Object.assign(CAND_AI, { team:1, cohesion:1 }, candAI);   // 'cand' botunun takım ayarları (ör. { team:0 }: dostu yok sayar; karşılaştırma için)
   const teams = aTeam===0 ? [a,b] : [b,a];
   const levels = aTeam===0 ? [levelA,levelB] : [levelB,levelA];
@@ -61,17 +61,22 @@ export function runMatch2v2({ a, b, levelA=1, levelB=1, aTeam=0, seed=1, maxTime
   const apart=[0,0], near=[0,0], cnt=[0,0];
   const T0 = [S.heroes.filter(h=>h.team===0), S.heroes.filter(h=>h.team===1)];
   let tick=0;
-  while(!S.over && S.time<maxTime){
+  let early=null;   // erken bitirme (earlyStop): kule farkı 2+ ya da rakip 2 kule kaybetti biz hiç (30 maçta %100 doğru; tools/teams2v2.js --fast)
+  while(!S.over && S.time<maxTime && !early){
     step(TICK, getCmd); tick++;
+    if(earlyStop && tick%60===0){
+      const lost=[0,0]; for(const s of S.structs) if(s.dead && s.sub!=='nexus') lost[s.team]++;
+      for(const t of [0,1]) if(lost[1-t]-lost[t]>=2 || (lost[1-t]>=2 && lost[t]===0)) early={ winner:t };
+    }
     if(tick%30===0) for(const t of [0,1]){
       const [x,y]=T0[t]; if(x && y && !x.dead && !y.dead){ const d=Math.hypot(x.x-y.x,x.y-y.y); apart[t]+=d; cnt[t]++; if(d<800) near[t]++; }
     }
   }
   S.onDamage = null;
-  const winner = S.over ? S.over.winner : null, A=aTeam, B=1-aTeam;
+  const winner = S.over ? S.over.winner : early ? early.winner : null, A=aTeam, B=1-aTeam;
   const sum=(t,k)=>T0[t].reduce((s,h)=>s+h[k],0);
   return {
-    winner, aTeam, aWon: winner===null ? null : winner===aTeam, time:S.time,
+    winner, aTeam, aWon: winner===null ? null : winner===aTeam, time:S.time, early:!!early,
     killsA:sum(A,'kills'), deathsA:sum(A,'deaths'), assistsA:sum(A,'assists'),
     killsB:sum(B,'kills'), deathsB:sum(B,'deaths'), assistsB:sum(B,'assists'),
     jointA:joint[A], jointB:joint[B],

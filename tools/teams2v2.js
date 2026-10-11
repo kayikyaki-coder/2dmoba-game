@@ -1,4 +1,4 @@
-/* Bütün 2v2 takım kombinasyonları: node tools/teams2v2.js [--rounds 1] [--seed 1] [--threads 4] [--top 5] [--out tools/teams2v2_result.json] [--report 1]
+/* Bütün 2v2 takım kombinasyonları: node tools/teams2v2.js [--rounds 1] [--seed 1] [--threads 4] [--top 5] [--out tools/teams2v2_result.json] [--report 1] [--fast 1 --games 20] [--shard i/n] [--merge a.json,b.json]
    12 kahramandan 66 takım; ortak kahramanı olmayan her takım çifti rounds kez oynar (taraf dönüşümlü).
    Çıktı: en iyi N takım (kazanma oranı) ve bireysel tablo (kahraman başına maç, kazanma, K/D/A, en iyi dost ve en zor rakip).
    Sonuçlar --out dosyasına yazılır; yarıda kalırsa aynı komut kaldığı yerden devam eder. */
@@ -12,17 +12,31 @@ const rounds=+(o.rounds||1), seed=+(o.seed||1), top=+(o.top||5), out=o.out||'too
 const H=Object.keys(HERO_NAMES), teams=[];
 for(let i=0;i<H.length;i++) for(let j=i+1;j<H.length;j++) teams.push([H[i],H[j]]);
 const jobs=[];
-for(let x=0;x<teams.length;x++) for(let y=x+1;y<teams.length;y++){
-  const A=teams[x], B=teams[y]; if(A.some(h=>B.includes(h))) continue;
-  for(let r=0;r<rounds;r++){ const k=jobs.length; jobs.push({ key:A+'|'+B+'|'+r, a:A, b:B, aTeam:k%2, seed:seed*100000+k, maxTime:2400 }); }
+// --fast 1: örnekleme (her takım yaklaşık --games rakiple, dengeli ve tohumlu) + erken bitirme. Varsayılan: bütün eşleşmeler.
+const fast=!!o.fast, perTeam=+(o.games||20);
+const pairs=[];
+for(let x=0;x<teams.length;x++) for(let y=x+1;y<teams.length;y++){ const A=teams[x], B=teams[y]; if(!A.some(h=>B.includes(h))) pairs.push([x,y]); }
+let use=pairs;
+if(fast){
+  let rs=(seed*2654435761)>>>0; const rnd=()=>((rs=(rs*1664525+1013904223)>>>0)/4294967296);
+  for(let i=pairs.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [pairs[i],pairs[j]]=[pairs[j],pairs[i]]; }
+  const cnt=new Array(teams.length).fill(0); use=[];
+  for(const [x,y] of pairs) if(cnt[x]<perTeam && cnt[y]<perTeam){ use.push([x,y]); cnt[x]++; cnt[y]++; }
 }
+for(const [x,y] of use){
+  const A=teams[x], B=teams[y];
+  for(let r=0;r<rounds;r++){ const k=jobs.length; jobs.push({ key:A+'|'+B+'|'+r, a:A, b:B, aTeam:k%2, seed:seed*100000+k, maxTime:2400, earlyStop:fast }); }
+}
+// --shard i/n: işin yalnız i. parçası (paralel oturumlar/makineler için); sonuçlar --out dosyasına; birleştirme: --merge a.json,b.json
+if(o.shard){ const [si,sn]=String(o.shard).split('/').map(Number); for(let i=jobs.length-1;i>=0;i--) if(i%sn!==si) jobs.splice(i,1); }
 let done={}; try { done=JSON.parse(fs.readFileSync(out,'utf8')); } catch {}
-const todo=o.report ? [] : jobs.filter(j=>!done[j.key]);   // --report 1: yalnız mevcut sonuçların özeti
+if(o.merge) for(const f of String(o.merge).split(',')) Object.assign(done, JSON.parse(fs.readFileSync(f,'utf8')));
+const todo=(o.report||o.merge) ? [] : jobs.filter(j=>!done[j.key]);   // --report 1: yalnız mevcut sonuçların özeti
 console.log(`${teams.length} takım, ${jobs.length} maç (${todo.length} kaldı)`);
 const t0=Date.now(), CH=48;
 for(let i=0;i<todo.length;i+=CH){
   const part=todo.slice(i,i+CH), rs=await runDuoJobs(part.map(({key,...j})=>j), o.threads?+o.threads:undefined);
-  part.forEach((j,k)=>{ const r=rs[k]; done[j.key]={ a:j.a, b:j.b, aWon:r.aWon, time:r.time, heroes:r.heroes }; });
+  part.forEach((j,k)=>{ const r=rs[k]; done[j.key]={ a:j.a, b:j.b, aWon:r.aWon, time:r.time, early:r.early, heroes:r.heroes }; });
   fs.writeFileSync(out, JSON.stringify(done));
   const n=i+part.length, el=(Date.now()-t0)/1000;
   console.log(`${n}/${todo.length}  ${(el/60).toFixed(1)} dk, kalan ~${(el/n*(todo.length-n)/60).toFixed(0)} dk`);
