@@ -1,6 +1,6 @@
-/* Harita: oval, iki koridorlu taslak. Sadece veri ve geometri yardımcıları (tarayıcıya bağımlı değil).
-   Koridor 1 (üst) aktif: kuleler ve minyonlar burada. Koridor 2 (alt) şimdilik boş.
-   Arada orman: kayalarla ayrılmış geçitler (savaşçı koridordan çıkıp yandan/arkadan dolanabilsin). */
+/* Harita: oval, altta tek koridor + üstte orman (11.10.2026). Sadece veri ve geometri yardımcıları (tarayıcıya bağımlı değil).
+   Koridor (alt): kuleler ve minyonlar. Orman (üst yarı): kayalarla ayrılmış yollar ve kamplar (kamp verisi data.js JUNGLE).
+   LANES tek elemanlı; ACTIVE_LANE ona eşit (eski iki koridor kodu kırılmasın diye dizi olarak duruyor). */
 
 import { MAP_DATA } from './map_data.js';
 

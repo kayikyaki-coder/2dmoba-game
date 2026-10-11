@@ -1,5 +1,5 @@
 /* Çizim: durumu sadece okur. Tarayıcıya bağımlı. */
-import { TEAM_COLORS as DATA_TEAM, MAX_LEVEL, FOUNTAIN, XP_NEED, KEY_LABELS, VISION, FORMS } from './data.js';
+import { TEAM_COLORS as DATA_TEAM, MAX_LEVEL, FOUNTAIN, XP_NEED, KEY_LABELS, VISION, FORMS, JUNGLE, BUFFS, BIG_BUFF } from './data.js';
 import { PAL, rgba, mix } from './palette.js';
 import { drawToken, drawGlow, drawCrystal, paintMap, bushLights, texReady } from './art.js';
 texReady.then(()=>{ fieldCache=null; });   // dokular gelince zemini bir kez yeniden çiz
@@ -76,7 +76,10 @@ let fieldCache=null;
 const onScreen=(x,y,m)=>x>cam.x-m && x<cam.x+view.visW+m && y>cam.y-m && y<cam.y+view.visH+m;   // kamera dışındakini çizme
 function buildFieldCache(){
   const cv=document.createElement('canvas'); cv.width=MAP_W; cv.height=MAP_H;
-  paintMap(cv.getContext('2d'),{ W:MAP_W, H:MAP_H, LANES, WALLS, BUSHES, BASES, fountainR:FOUNTAIN.radius });
+  const CAMPS=[];   // kamp yerleri (data.js JUNGLE; 'both' aynalanır)
+  for(const c of JUNGLE.camps){ const big=c.mobs.some(t=>JUNGLE.monsters[t].big), bf=JUNGLE.monsters[c.mobs[0]].buff, color=big?PAL.gold:bf?BUFFS[bf].color:PAL.monster;
+    for(const x of c.side==='both' ? [c.x, MAP_W-c.x] : [c.x]) CAMPS.push({ x, y:c.y, big, buff:bf, color }); }
+  paintMap(cv.getContext('2d'),{ W:MAP_W, H:MAP_H, LANES, WALLS, BUSHES, BASES, CAMPS, fountainR:FOUNTAIN.radius });
   fieldCache=cv;
 }
 function drawField(){
@@ -467,6 +470,7 @@ function drawHero(h){
   ctx.beginPath(); ctx.arc(bx-11,by+4.5,9.5,0,TAU); ctx.fillStyle=PAL.ink; ctx.fill();
   ctx.lineWidth=2.5; ctx.strokeStyle=TEAM_COLORS[h.team]; ctx.stroke();
   ctx.fillStyle='#fff'; ctx.font='bold 11px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(h.level,bx-11,by+4.5);
+  heroBuffMarks(h);
   hpBar(h,bx,by,bw,TEAM_COLORS[h.team],9,st.shield?st.shield.amt:0);
   if(S.heroes.length>2 && h!==S.player){   // 2v2: dost ve rakip kahraman isimleri
     ctx.save(); ctx.font='bold 11px system-ui'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.lineJoin='round'; ctx.lineWidth=3; ctx.strokeStyle='rgba(6,4,22,0.85)';
@@ -1020,6 +1024,75 @@ function drawGoldPops(){
   }
 }
 
+
+/* ---- orman: canavarlar, kamp sayaçları, güçlendirme işaretleri ----
+   Canavarlar tarafsız (PAL.monster mor-altın); güçlendirme canavarları kendi rengiyle (Yenilenme turkuaz-yeşil, Yakıcı kor), büyük canavar altın. */
+const MON_COL={ regen:BUFFS.regen.color, burn:BUFFS.burn.color };
+function monCol(m){ return m.def.big ? PAL.gold : (MON_COL[m.def.buff] || PAL.monster); }
+function drawMonster(m){
+  if(m.dead || !onScreen(m.x,m.y,m.r*3+40)) return;
+  const c=monCol(m), t=S.time, r=m.r, ty=m.type;
+  ctx.beginPath(); ctx.ellipse(m.x+3,m.y+6,r*1.05,r*0.8,0,0,TAU); ctx.fillStyle='rgba(4,2,16,0.38)'; ctx.fill();
+  if(m.def.big || m.def.buff) drawGlow(ctx,c,m.x,m.y,r*(m.def.big?3.2:2.4),0.22+0.08*Math.sin(t*2+m.id));
+  const ang=m.atk.main && !m.atk.main.dead ? Math.atan2(m.atk.main.y-m.y, m.atk.main.x-m.x) : Math.sin(t*0.6+m.id)*0.6+Math.PI/2;
+  ctx.save(); ctx.translate(m.x,m.y);
+  const body=()=>{
+    ctx.beginPath();
+    if(ty==='golem'){ for(let i=0;i<6;i++){ const a=i/6*TAU+Math.PI/6; ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r); } ctx.closePath(); }
+    else if(ty==='bird'){ const q=r*1.25; ctx.moveTo(0,-q); ctx.lineTo(q,0); ctx.lineTo(0,q); ctx.lineTo(-q,0); ctx.closePath(); }
+    else ctx.arc(0,0,r,0,TAU);
+  };
+  // kulak / kanat / taç (gövdenin arkasında)
+  ctx.fillStyle=PAL.monsterDark; ctx.strokeStyle=PAL.ink; ctx.lineWidth=2;
+  if(ty==='wolf' || ty==='pup'){ for(const s of [-1,1]){ const a=ang+s*0.75; ctx.beginPath(); ctx.moveTo(Math.cos(a-0.25)*r*0.8,Math.sin(a-0.25)*r*0.8); ctx.lineTo(Math.cos(a)*r*1.55,Math.sin(a)*r*1.55); ctx.lineTo(Math.cos(a+0.25)*r*0.8,Math.sin(a+0.25)*r*0.8); ctx.closePath(); ctx.fill(); ctx.stroke(); } }
+  if(ty==='bird'){ const fl=Math.sin(t*9+m.id)*0.35; for(const s of [-1,1]){ const a=ang+s*(Math.PI/2+fl); ctx.beginPath(); ctx.ellipse(Math.cos(a)*r*1.2,Math.sin(a)*r*1.2,r*1.0,r*0.42,a,0,TAU); ctx.fillStyle=rgba(c,0.55); ctx.fill(); ctx.stroke(); } }
+  if(m.def.big){ for(let i=0;i<7;i++){ const a=i/7*TAU+t*0.2; ctx.beginPath(); ctx.moveTo(Math.cos(a-0.16)*r*0.95,Math.sin(a-0.16)*r*0.95); ctx.lineTo(Math.cos(a)*r*1.32,Math.sin(a)*r*1.32); ctx.lineTo(Math.cos(a+0.16)*r*0.95,Math.sin(a+0.16)*r*0.95); ctx.closePath(); ctx.fillStyle=PAL.goldDark; ctx.fill(); ctx.stroke(); } }
+  if(m.def.buff){ for(let i=0;i<5;i++){ const a=i/5*TAU-t*0.8; drawCrystal(ctx,Math.cos(a)*r*1.25,Math.sin(a)*r*1.25,4,9,c,PAL.monsterDark,'#fff'); } }
+  // gövde: koyu taban, renkli halka, iç disk, gözler
+  body(); ctx.fillStyle=PAL.monsterDark; ctx.fill(); ctx.lineWidth=m.def.big?4:3; ctx.lineJoin='round'; ctx.strokeStyle=c; ctx.stroke();
+  ctx.save(); body(); ctx.clip();
+  const g=ctx.createRadialGradient(-r*0.3,-r*0.35,1,0,0,r*1.1); g.addColorStop(0,rgba(c,0.55)); g.addColorStop(1,rgba(c,0.06)); ctx.fillStyle=g; ctx.fillRect(-r*1.3,-r*1.3,r*2.6,r*2.6);
+  if(ty==='golem'){ ctx.strokeStyle=rgba(PAL.ink,0.6); ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-r*0.5,-r*0.2); ctx.lineTo(0,r*0.1); ctx.lineTo(r*0.3,-r*0.4); ctx.moveTo(0,r*0.1); ctx.lineTo(-r*0.1,r*0.6); ctx.stroke(); }
+  ctx.restore();
+  // gözler: hedefe bakar
+  const ex=Math.cos(ang), ey=Math.sin(ang), px=-ey, py=ex, er=Math.max(2,r*0.13);
+  for(const s of [-1,1]){ ctx.beginPath(); ctx.arc(ex*r*0.45+px*s*r*0.3, ey*r*0.45+py*s*r*0.3, er, 0, TAU); ctx.fillStyle=m.aggro?'#fff3b0':PAL.monsterLight; ctx.fill(); }
+  ctx.restore();
+  const flashP=()=>{ ctx.save(); ctx.translate(m.x,m.y); body(); ctx.restore(); };
+  if(m.st.slow){ flashP(); ctx.fillStyle='rgba(92,200,255,0.3)'; ctx.fill(); }
+  if(m.flash>0){ flashP(); ctx.fillStyle=`rgba(255,255,255,${m.flash/0.12*0.6})`; ctx.fill(); }
+  if(m.st.freeze>0){ flashP(); ctx.fillStyle='rgba(175,230,255,0.55)'; ctx.fill(); }
+  const bw=m.def.big?120:m.def.buff?70:Math.max(34,r*2.4);
+  hpBar(m, m.x-bw/2, m.y-r-(m.def.big?26:16), bw, c, m.def.big?8:5);
+  if(m.def.big || m.def.buff){
+    ctx.save(); ctx.font='bold 11px system-ui'; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.lineWidth=3; ctx.strokeStyle='rgba(6,4,22,0.85)'; ctx.lineJoin='round';
+    const ny=m.y-r-(m.def.big?30:20); ctx.strokeText(m.def.name,m.x,ny); ctx.fillStyle=c; ctx.fillText(m.def.name,m.x,ny); ctx.restore();
+  }
+}
+/* Kamp yeri: ölü kampın yeniden doğma sayacı (yer görünüyorsa) */
+function drawCampTimers(){
+  ctx.save(); ctx.font='bold 13px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round';
+  for(const c of S.camps){
+    if(c.alive || !onScreen(c.x,c.y,80)) continue;
+    const left=Math.max(0,c.spawnAt-S.time), col=c.big?PAL.gold:c.buff?MON_COL[c.buff]:PAL.monster;
+    ctx.beginPath(); ctx.arc(c.x,c.y,c.big?46:30,-Math.PI/2,-Math.PI/2+TAU*(1-Math.min(1,left/c.def.respawn))); ctx.strokeStyle=rgba(col,0.55); ctx.lineWidth=3; ctx.stroke();
+    const txt=fmtClock(left); ctx.lineWidth=3; ctx.strokeStyle='rgba(6,4,22,0.85)'; ctx.strokeText(txt,c.x,c.y); ctx.fillStyle=rgba(col,0.9); ctx.fillText(txt,c.x,c.y);
+  }
+  ctx.restore();
+}
+function fmtClock(s){ s=Math.ceil(s); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+/* Kahramandaki güçlendirmeler: ayakta yörüngede dönen küçük renkli işaretler (Yenilenme, Yakıcı, Titan Gücü) */
+function heroBuffMarks(h){
+  const L=[];
+  if(h.jb){ for(const k of ['regen','burn']) if(h.jb[k]>S.time) L.push(BUFFS[k].color); }
+  if(S.teamBuff && S.teamBuff[h.team]>S.time) L.push(BIG_BUFF.color);
+  L.forEach((col,i)=>{
+    const a=S.time*2.2+i*TAU/L.length, x=h.x+Math.cos(a)*(h.r+7), y=h.y+Math.sin(a)*(h.r+7)*0.8;
+    drawGlow(ctx,col,x,y,11,0.5);
+    ctx.beginPath(); ctx.arc(x,y,4,0,TAU); ctx.fillStyle=col; ctx.fill(); ctx.lineWidth=1.5; ctx.strokeStyle=PAL.ink; ctx.stroke();
+  });
+}
+
 function drawMinimap(W,H){
   const mw=W>1100?260:190, mh=Math.round(mw*MAP_H/MAP_W), x0=W-mw-14, y0=H-mh-14, sx=mw/MAP_W, sy=mh/MAP_H;
   ctx.fillStyle=PAL.hudBg; ctx.fillRect(x0-5,y0-5,mw+10,mh+10); ctx.strokeStyle=PAL.hudLine; ctx.lineWidth=1.5; ctx.strokeRect(x0-5,y0-5,mw+10,mh+10);
@@ -1044,6 +1117,18 @@ function drawMinimap(W,H){
     const sz = s.sub==='nexus'?8:5;
     ctx.fillRect(x0+s.x*sx-sz/2, y0+s.y*sy-sz/2, sz, sz);
   }
+  // kamplar: canlı kamp renkli simge (güçlendirme kendi rengi, büyük canavar altın), ölü kamp gri + yeniden doğma saniyesi
+  ctx.save(); ctx.font='bold 9px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  for(const c of S.camps){
+    const x=x0+c.x*sx, y=y0+c.y*sy, col=c.big?PAL.gold:c.buff?MON_COL[c.buff]:PAL.monster, rr=c.big?5:c.buff?4:3;
+    if(c.alive){ ctx.beginPath(); if(c.big||c.buff) ctx.arc(x,y,rr,0,TAU); else { ctx.moveTo(x,y-rr); ctx.lineTo(x+rr,y); ctx.lineTo(x,y+rr); ctx.lineTo(x-rr,y); ctx.closePath(); } ctx.fillStyle=col; ctx.fill(); ctx.lineWidth=1; ctx.strokeStyle=PAL.ink; ctx.stroke(); }
+    else {
+      const left=Math.max(0,Math.ceil(c.spawnAt-S.time));
+      ctx.beginPath(); ctx.arc(x,y,rr,0,TAU); ctx.fillStyle='rgba(120,112,160,0.55)'; ctx.fill();
+      if(!c.big || left<=90){ ctx.lineWidth=2.5; ctx.strokeStyle='rgba(6,4,22,0.9)'; const tx=left>=60?fmtClock(left):String(left); ctx.strokeText(tx,x,y-rr-5); ctx.fillStyle=rgba(col,0.95); ctx.fillText(tx,x,y-rr-5); }
+    }
+  }
+  ctx.restore();
   for(const m of S.minions){ if(m.dead || !unitSeen(m)) continue; ctx.fillStyle=TEAM_COLORS[m.team]; ctx.fillRect(x0+m.x*sx-1.5,y0+m.y*sy-1.5,3,3); }
   for(const h of S.heroes){
     if(h.dead || !unitSeen(h)) continue;
@@ -1055,6 +1140,16 @@ function drawMinimap(W,H){
   const fx=Math.max(0,cam.x), fy=Math.max(0,cam.y), fx2=Math.min(MAP_W,cam.x+view.visW), fy2=Math.min(MAP_H,cam.y+view.visH);
   ctx.strokeStyle='rgba(255,255,255,0.8)'; ctx.lineWidth=1;
   ctx.strokeRect(x0+fx*sx, y0+fy*sy, (fx2-fx)*sx, (fy2-fy)*sy);
+  // büyük canavar sayacı (haritanın üstünde): çıkışa / yeniden doğuşa kalan süre, canlıysa "hazır"; takım gücü süresi
+  const bc=S.camps.find(c=>c.big);
+  if(bc){
+    const tb=S.teamBuff||[0,0], own=S.player ? S.player.team : 0;
+    let txt=bc.alive ? JUNGLE.monsters[bc.def.mobs[0]].name+' hazır' : JUNGLE.monsters[bc.def.mobs[0]].name+' '+fmtClock(Math.max(0,bc.spawnAt-S.time));
+    for(const t of [0,1]) if(tb[t]>S.time) txt+=' | '+(t===own?'Bizde ':'Rakipte ')+fmtClock(tb[t]-S.time);
+    ctx.save(); ctx.font='bold 11px system-ui'; const w=ctx.measureText(txt).width+14;
+    ctx.fillStyle=PAL.hudBg; rrect(x0+mw-w,y0-24,w,18,8); ctx.fill(); ctx.strokeStyle=rgba(PAL.gold,0.6); ctx.lineWidth=1.2; rrect(x0+mw-w,y0-24,w,18,8); ctx.stroke();
+    ctx.fillStyle=PAL.gold; ctx.textAlign='right'; ctx.textBaseline='middle'; ctx.fillText(txt,x0+mw-7,y0-15); ctx.restore();
+  }
 }
 
 /* Skor tablosu (Tab basılıyken): takımlar, kahraman, seviye, K/D/A, altın, eşyalar */
@@ -1333,6 +1428,8 @@ function hudChips(p,x,y,maxW){
   if(st.freeze>0 && !p.dead) list.push({ t:'Kontrol altında', c:'#bfeaff', bg:'#2c4a66' });
   if(p.stasis>0) list.push({ t:'Dokunulmaz '+p.stasis.toFixed(1)+' sn', c:'#fff1b0', bg:'#5a4a1a' });
   if(p.recallCh) list.push({ t:'Üsse dönüş '+Math.max(0,p.recallCh.t).toFixed(1)+' sn', c:'#b8d8ff', bg:'#26406a' });
+  if(p.jb){ for(const k of ['regen','burn']) if(p.jb[k]>S.time) list.push({ t:BUFFS[k].name+' '+Math.ceil(p.jb[k]-S.time)+' sn', c:k==='regen'?'#c8fff2':'#ffd9b8', bg:k==='regen'?'#1d5a4e':'#6a3416' }); }
+  if(S.teamBuff && S.teamBuff[p.team]>S.time) list.push({ t:BIG_BUFF.name+' '+Math.ceil(S.teamBuff[p.team]-S.time)+' sn', c:'#fff1b0', bg:'#5a4a1a' });
   if(p.form) list.push({ t:'Biçim: '+(p.form==='melee'?'Yakın':'Uzak'), c:p.form==='melee'?'#ffd7a8':'#bfe0ff', bg:p.form==='melee'?'#5a3a1c':'#26406a' });
   if(p.ic.frzUntil>S.time && p.ic.frzN>0) list.push({ t:'Kızışma '+p.ic.frzN+'/'+p.def.skills.p.stacks, c:'#ffd7a8', bg:'#5a3a1c' });
   if(p.ic.heavy && p.ic.heavy.until>=S.time) list.push({ t:'Ağır Darbe hazır', c:'#ffd7a8', bg:'#6a2f1c' });
@@ -1570,6 +1667,8 @@ export function render(){
   S.heroes.forEach(h=>{ if(unitSeen(h)) drawRanges(h); });
   S.heroes.forEach(h=>{ if(unitSeen(h)) drawTelegraph(h); });
   S.minions.forEach(m=>{ if(unitSeen(m)) inBushAlpha(m, ()=>recoilDraw(m, ()=>drawMinion(m))); });
+  drawCampTimers();
+  S.monsters.forEach(m=>{ if(unitSeen(m)) inBushAlpha(m, ()=>recoilDraw(m, ()=>drawMonster(m))); });
   drawBackMarks();
   drawProjectiles();
   S.heroes.forEach(h=>{ if(h.dead ? h.team===S.player.team : unitSeen(h)) inBushAlpha(h, ()=>recoilDraw(h, ()=>drawHero(h))); });

@@ -11,15 +11,17 @@ export const PAL = {
   rock:'#322b58', rockTop:'#40376e', rockSide:'#171230', rockEdge:'#0a0820', rockLight:'#6b5fa6', crystal:'#46f0d4',
   bush:'#0f4a49', bushA:'#14695f', bushB:'#1f927a', bushC:'#3ed0a2', bushTip:'#a8ffe0', bushEdge:'#06302f',
   // takımlar: 0 turkuaz, 1 mercan
-  team:['#27e2cd', '#ff6a58'],
-  teamDark:['#0b5a60', '#7a2336'],
-  teamMid:['#15a8a0', '#d6473f'],
-  teamLight:['#c2fff5', '#ffd6cc'],
+  team:['#27e2cd', '#ff6a58', '#c9a2ff'],   // 2: orman canavarları (tarafsız)
+  teamDark:['#0b5a60', '#7a2336', '#2a1d4e'],
+  teamMid:['#15a8a0', '#d6473f', '#8a6ad0'],
+  teamLight:['#c2fff5', '#ffd6cc', '#f1e6ff'],
   // altın ve ışık
   gold:'#ffcf5a', goldDark:'#8a6414', goldLight:'#fff0b0',
   white:'#f4f0ff', ink:'#0a0820',
   // büyü tonları
   ember:'#ff7a3d', emberLight:'#ffd58a', blood:'#ff4f7b', bloodDark:'#a3163f', spirit:'#4ff0d0', arcane:'#a98bff', arcaneDark:'#4b3a9a', azure:'#5cc8ff',
+  // orman canavarları (tarafsız: mor-altın)
+  monster:'#c9a2ff', monsterDark:'#2a1d4e', monsterLight:'#f1e6ff',
   // savaş sisi
   fog:'rgba(9,6,28,0.84)',
   // arayüz

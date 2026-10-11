@@ -259,6 +259,18 @@ export function paintMap(g, M){
     g.save(); g.font='bold 60px system-ui'; g.textAlign='center'; g.textBaseline='middle'; g.lineWidth=8; g.strokeStyle='rgba(8,6,32,0.55)'; g.fillStyle='rgba(200,190,255,0.35)';
     const t=lane.name+' (şimdilik boş)'; g.strokeText(t,m[0],m[1]); g.fillText(t,m[0],m[1]); g.restore();
   }
+  // 4b) orman kampları: taş halka ve soluk rün çemberi (büyük canavar çukuru daha geniş, altın)
+  for(const c of (M.CAMPS||[])){
+    const R0=c.big?120:c.buff?80:70, col=c.color||PAL.arcane;
+    const gr=g.createRadialGradient(c.x,c.y,10,c.x,c.y,R0*1.6); gr.addColorStop(0,rgba(PAL.rockSide,0.55)); gr.addColorStop(1,rgba(PAL.rockSide,0));
+    g.fillStyle=gr; g.fillRect(c.x-R0*1.6,c.y-R0*1.6,R0*3.2,R0*3.2);
+    g.beginPath(); g.arc(c.x,c.y,R0,0,TAU); g.lineWidth=3; g.strokeStyle=rgba(col,0.28); g.setLineDash([10,12]); g.stroke(); g.setLineDash([]);
+    const n=c.big?16:10;
+    for(let i=0;i<n;i++){ const a=i/n*TAU+R()*0.2, x=c.x+Math.cos(a)*(R0+14), y=c.y+Math.sin(a)*(R0+14)*0.9, rx=7+R()*7, ry=5+R()*4;
+      g.beginPath(); g.ellipse(x,y+3,rx,ry,a,0,TAU); g.fillStyle=rgba(PAL.ink,0.5); g.fill();
+      g.beginPath(); g.ellipse(x,y,rx,ry,a,0,TAU); g.fillStyle=mix(PAL.rock,PAL.rockLight,R()*0.4); g.fill(); }
+    if(c.big){ g.beginPath(); for(let i=0;i<6;i++){ const a=i/6*TAU; g.lineTo(c.x+Math.cos(a)*R0*0.55,c.y+Math.sin(a)*R0*0.55); } g.closePath(); g.lineWidth=2.5; g.strokeStyle=rgba(PAL.gold,0.3); g.stroke(); }
+  }
   // 5) duvarlar: yükseltili obsidyen kaya (gölge, yan yüz, üst yüz, çatlak, kristal)
   for(const w of M.WALLS){
     const bb=bboxOf(w), area=bb.w*bb.h;
