@@ -323,12 +323,7 @@ function drawTelegraph(h){
   if(a.state!=='windup' || !mine) return;
   const p=1-Math.max(0,a.t)/a.total;
   if(at.type==='projectile'){
-    // hedefli vuruş: sadece yay gerilir, hedefe ince bir bağ (beceri atışı çizgisi yok)
-    const u=a.target;
-    if(u && !u.dead && h===S.player){
-      ctx.save(); ctx.strokeStyle=`rgba(255,230,120,${0.15+0.35*p})`; ctx.lineWidth=1.5; ctx.setLineDash([4,6]);
-      ctx.beginPath(); ctx.moveTo(h.x,h.y); ctx.lineTo(u.x,u.y); ctx.stroke(); ctx.restore();
-    }
+    // hedefli vuruş: sadece yay gerilir (hedefe çizgi yok)
     drawBow(h,a.aim,p);
   } else {
     // yakın dövüş: sade, hedefe doğru gerilen ince yay (alan/koni yok)
@@ -700,7 +695,12 @@ function drawHoldRange(){
 }
 /* C basılıyken: düz vuruş menzili (rakibin kenarı bu dairenin içindeyse vurulur) */
 function drawAttackRange(){
-  const p=S.player; if(!uiState.showRange || !p || p.dead) return;
+  const p=S.player; if(!p || p.dead) return;
+  if(!uiState.showRange){   // her zaman: silik kesikli beyaz menzil çemberi
+    ctx.save(); ctx.strokeStyle='rgba(255,255,255,0.16)'; ctx.lineWidth=1.5; ctx.setLineDash([7,9]);
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r+atkDef(p).range,0,Math.PI*2); ctx.stroke(); ctx.restore();
+    return;
+  }
   ctx.save(); ctx.beginPath(); ctx.arc(p.x,p.y,p.r+atkDef(p).range,0,Math.PI*2);
   ctx.fillStyle='rgba(255,230,120,0.05)'; ctx.fill();
   ctx.strokeStyle='rgba(255,230,120,0.8)'; ctx.lineWidth=2; ctx.stroke(); ctx.restore();
