@@ -14,13 +14,13 @@ export const MAX_LEVEL = 10;
 /* satır sırası: can, hasar, saldırı hızı, hareket hızı, menzil, boyut, kütle, hazırlık oranı, vuruşta yavaşlama, mermi hızı, mermi boyu, koni açısı */
 export const STATS = {
   archer: {
-    hp:{ base:470, per:25 },   // zırh sistemi (11.10.2026): 400 (+25) idi
+    hp:{ base:450, per:25 },   // denge O1: 470 idi //   // zırh sistemi (11.10.2026): 400 (+25) idi
     regen:{ base:3, per:0.6 },        // 5 saniyede yenilenen can, seviye başına: 0 idi
     armor:{ base:19, per:2.5 },   // denge F1 (11.10.2026, zırh sonrası): 22 (+3) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:22, per:0.8 },   // denge F2: 25 (+1) idi //   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },           // yetenek hızı: bekleme süresi 100/(100+yh) ile çarpılır
     ap:{ base:0, per:0 },           // yetenek gücü (YG): eşyalardan gelir, yetenek oranlarıyla çarpılır
-    dmg:{ base:35, per:2.8 },   // zırh sistemi (11.10.2026): 31 (+2.8) idi
+    dmg:{ base:32, per:2.8 },   // denge O1: 35 idi //   // zırh sistemi (11.10.2026): 31 (+2.8) idi
     as:{ base:1.16, per:0.06 },     // saniyedeki saldırı sayısı (denge: 1.28, sonra 1.22 idi; 2v2 tur 7: %66)
     spd:{ base:200, per:3 },        // hareket hızı
     range:{ base:310, per:0 },      // düz vuruş menzili
@@ -73,7 +73,7 @@ export const STATS = {
     mr:{ base:25, per:1 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:50, per:3 },   // denge F4: 53 idi //   // zırh sistemi (11.10.2026): 47 (+3) idi
+    dmg:{ base:48, per:3 },   // denge O1: 50 idi //   // denge F4: 53 idi //   // zırh sistemi (11.10.2026): 47 (+3) idi
     as:{ base:1.05, per:0.05 },     // her vuruş iki ok attığı için okçudan düşük
     spd:{ base:200, per:3 },
     range:{ base:330, per:0 },
@@ -85,13 +85,13 @@ export const STATS = {
     projRadius:{ base:6, per:0 }
   },
   bounce: {
-    hp:{ base:480, per:24 },   // zırh sistemi (11.10.2026): 410 (+24) idi
+    hp:{ base:465, per:24 },   // denge O1: 480 idi //   // zırh sistemi (11.10.2026): 410 (+24) idi
     regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:18, per:2.2 },   // denge F2: 20 (+2.5) idi //   // denge F1 (11.10.2026, zırh sonrası): 22 (+3) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:37, per:2.8 },   // denge F5: 44 idi //   // zırh sistemi (11.10.2026): 39 (+2.8) idi
+    dmg:{ base:35, per:2.8 },   // denge O1: 37 idi //   // denge F5: 44 idi //   // zırh sistemi (11.10.2026): 39 (+2.8) idi
     as:{ base:1.00, per:0.05 },     // denge: 1.15 idi
     spd:{ base:200, per:3 },
     range:{ base:310, per:0 },    // 450 idi, denge için 400
@@ -103,13 +103,13 @@ export const STATS = {
     projRadius:{ base:6, per:0 }
   },
   hook: {
-    hp:{ base:680, per:32 },   // zırh sistemi (11.10.2026): 690 (+38) idi
+    hp:{ base:720, per:32 },   // denge O1: 680 idi //   // zırh sistemi (11.10.2026): 690 (+38) idi
     regen:{ base:6, per:1.4 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:38, per:4.5 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:32, per:1.5 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:45, per:3 },   // zırh sistemi (11.10.2026): 50 (+3) idi
+    dmg:{ base:48, per:3 },   // denge O1: 45 idi //   // zırh sistemi (11.10.2026): 50 (+3) idi
     as:{ base:0.90, per:0.03 },
     spd:{ base:195, per:3 },
     range:{ base:110, per:0 },
@@ -137,7 +137,7 @@ export const STATS = {
     angle:{ base:90, per:0 }
   },
   gladiator: {   // Gladyatör: yakın dövüşçü. Savaşçı'dan az can, Kızışma yığınlarıyla saldırı hızı tırmanır
-    hp:{ base:900, per:37 },   // denge F5: 860 idi //   // zırh sistemi (11.10.2026): 980 (+46) idi
+    hp:{ base:860, per:37 },   // denge O1: 900 idi //   // denge F5: 860 idi //   // zırh sistemi (11.10.2026): 980 (+46) idi
     regen:{ base:9, per:0.9 },
     armor:{ base:40, per:5 },   // denge F2: 36 (+4.5) idi //   // denge F1 (11.10.2026, zırh sonrası): 32 (+4) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:34, per:1.8 },   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -154,13 +154,13 @@ export const STATS = {
     angle:{ base:90, per:0 }
   },
   flame: {
-    hp:{ base:640, per:24 },   // zırh sistemi (11.10.2026): 680 (+30) idi
+    hp:{ base:680, per:24 },   // denge O1: 640 idi //   // zırh sistemi (11.10.2026): 680 (+30) idi
     regen:{ base:8, per:0.9 },        // denge: 4 idi, seviye başına: 0 idi
     armor:{ base:32, per:4 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:33, per:1.7 },   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:50, per:2.5 },   // zırh sistemi (11.10.2026): 56 (+2.5) idi
+    dmg:{ base:53, per:2.5 },   // denge O1: 50 idi //   // zırh sistemi (11.10.2026): 56 (+2.5) idi
     as:{ base:0.85, per:0.03 },
     spd:{ base:205, per:3 },
     range:{ base:120, per:0 },
@@ -189,7 +189,7 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   artillery: {
-    hp:{ base:680, per:22 },   // zırh sistemi (11.10.2026): 580 (+22) idi
+    hp:{ base:710, per:22 },   // denge O1: 680 idi //   // zırh sistemi (11.10.2026): 580 (+22) idi
     regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -207,7 +207,7 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   shadow: {
-    hp:{ base:730, per:26 },   // zırh sistemi (11.10.2026): 620 (+26) idi
+    hp:{ base:760, per:26 },   // denge O1: 730 idi //   // zırh sistemi (11.10.2026): 620 (+26) idi
     regen:{ base:3, per:0.7 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -225,7 +225,7 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   spirit: {
-    hp:{ base:590, per:24 },   // zırh sistemi (11.10.2026): 500 (+24) idi
+    hp:{ base:620, per:24 },   // denge O1: 590 idi //   // zırh sistemi (11.10.2026): 500 (+24) idi
     regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
