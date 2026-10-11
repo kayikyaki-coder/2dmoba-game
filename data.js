@@ -617,17 +617,18 @@ export const towerMinionHit = m => m.maxHp/(TOWER.minionHits[m.type]||3)+0.01;
    Yeniden doğuş: respawn sn (öldürülünce). first: ilk doğuş saniyesi. Zamanla güçlenme SCALE (minyon gibi).
    buff: kampı öldürene süreli güç (BUFFS), big: öldüren takıma takım gücü (BIG_BUFF). */
 export const JUNGLE = {
+  // denge tur 2 (11.10.2026): canavar altın ve XP'si %15 arttı (ormancı kahramanlar %33-47'de kalıyordu)
   leash:520, aggroT:6, returnHeal:0.25,
   basicMult:1.2, skillMult:1.6,            // kahramanların canavarlara hasarı: düz vuruş x1,2, yetenek ve diğer x1,6   // tasma yarıçapı (kamp merkezinden), vurmayan saldırganı bırakma süresi (sn), dönerken sn'de azami canın %25'i
   scale:{ hpPerMin:0.05, dmgPerMin:0.04, cap:2.2 },
   monsters:{
-    wolf:     { name:'Kurt',          r:22, hp:380,  dmg:20, reach:40, period:1.2, wind:0.3, speed:240, mass:1.2, gold:30, xp:70 },
-    pup:      { name:'Yavru Kurt',    r:15, hp:170,  dmg:9,  reach:34, period:1.1, wind:0.3, speed:250, mass:0.7, gold:12, xp:30 },
-    golem:    { name:'Taş Golem',     r:26, hp:430,  dmg:22, reach:44, period:1.5, wind:0.4, speed:200, mass:2.0, gold:34, xp:65 },
-    bird:     { name:'Gece Kuşu',     r:14, hp:160,  dmg:9,  reach:120, period:1.2, wind:0.3, speed:260, mass:0.5, gold:18, xp:32 },
-    regen:    { name:'Pınar Ruhu',    r:30, hp:950,  dmg:30, reach:46, period:1.4, wind:0.35, speed:220, mass:3.0, gold:60, xp:140, buff:'regen' },
-    burn:     { name:'Kor Böceği',    r:30, hp:950,  dmg:32, reach:46, period:1.4, wind:0.35, speed:220, mass:3.0, gold:60, xp:140, buff:'burn' },
-    titan:    { name:'Vaha Titanı',   r:52, hp:4200, dmg:80, reach:70, period:1.6, wind:0.45, speed:200, mass:12, gold:0, xp:320, big:true, cleave:150 }
+    wolf:     { name:'Kurt',          r:22, hp:380,  dmg:20, reach:40, period:1.2, wind:0.3, speed:240, mass:1.2, gold:34, xp:80 },
+    pup:      { name:'Yavru Kurt',    r:15, hp:170,  dmg:9,  reach:34, period:1.1, wind:0.3, speed:250, mass:0.7, gold:14, xp:34 },
+    golem:    { name:'Taş Golem',     r:26, hp:430,  dmg:22, reach:44, period:1.5, wind:0.4, speed:200, mass:2.0, gold:39, xp:75 },
+    bird:     { name:'Gece Kuşu',     r:14, hp:160,  dmg:9,  reach:120, period:1.2, wind:0.3, speed:260, mass:0.5, gold:21, xp:37 },
+    regen:    { name:'Pınar Ruhu',    r:30, hp:950,  dmg:30, reach:46, period:1.4, wind:0.35, speed:220, mass:3.0, gold:69, xp:161, buff:'regen' },
+    burn:     { name:'Kor Böceği',    r:30, hp:950,  dmg:32, reach:46, period:1.4, wind:0.35, speed:220, mass:3.0, gold:69, xp:161, buff:'burn' },
+    titan:    { name:'Vaha Titanı',   r:52, hp:4200, dmg:80, reach:70, period:1.6, wind:0.45, speed:200, mass:12, gold:0, xp:368, big:true, cleave:150 }
   },
   camps:[
     { id:'wolves', side:'both', x:1150, y:1065, mobs:['wolf','pup','pup'], respawn:80, first:60 },
