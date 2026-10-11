@@ -91,7 +91,7 @@ export const STATS = {
     mr:{ base:25, per:1 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:33, per:2.8 },   // denge O2: 35 idi //   // denge O1: 37 idi //   // denge F5: 44 idi //   // zırh sistemi (11.10.2026): 39 (+2.8) idi
+    dmg:{ base:31, per:2.8 },   // denge O3: 33 idi //   // denge O2: 35 idi //   // denge O1: 37 idi //   // denge F5: 44 idi //   // zırh sistemi (11.10.2026): 39 (+2.8) idi
     as:{ base:1.00, per:0.05 },     // denge: 1.15 idi
     spd:{ base:200, per:3 },
     range:{ base:310, per:0 },    // 450 idi, denge için 400
@@ -143,7 +143,7 @@ export const STATS = {
     mr:{ base:34, per:1.8 },   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:62, per:3.5 },   // denge O2: 65 idi //   // denge F3: 60 idi //   // zırh sistemi (11.10.2026): 67 (+3.5) idi
+    dmg:{ base:60, per:3.5 },   // denge O3: 62 idi //   // denge O2: 65 idi //   // denge F3: 60 idi //   // zırh sistemi (11.10.2026): 67 (+3.5) idi
     as:{ base:0.90, per:0.025 },
     spd:{ base:200, per:3 },
     range:{ base:115, per:0 },
@@ -171,7 +171,7 @@ export const STATS = {
     angle:{ base:90, per:0 }
   },
   blood: {
-    hp:{ base:580, per:28 },   // zırh sistemi (11.10.2026): 490 (+28) idi
+    hp:{ base:610, per:28 },   // denge O3: 580 idi //   // zırh sistemi (11.10.2026): 490 (+28) idi
     regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -189,7 +189,7 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   artillery: {
-    hp:{ base:710, per:22 },   // denge O1: 680 idi //   // zırh sistemi (11.10.2026): 580 (+22) idi
+    hp:{ base:740, per:22 },   // denge O3: 710 idi //   // denge O1: 680 idi //   // zırh sistemi (11.10.2026): 580 (+22) idi
     regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
