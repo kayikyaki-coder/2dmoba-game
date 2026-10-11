@@ -537,6 +537,10 @@ function drawHoldRange(){
   let sk=lbl;
   const ang=Math.atan2(uiState.my-p.y, uiState.mx-p.x);
   ctx.save();
+  { // her yetenekte: menzil sınırı silik kesikli çember (yalnız oyuncunun ekranında)
+    const R=lbl.range||lbl.dMax||lbl.dist||(lbl.type==='heavy'?atkDef(p).range+p.r:0);
+    if(R>0 && R<3000){ ctx.save(); ctx.globalAlpha=0.35; ctx.strokeStyle='#e8f6ff'; ctx.lineWidth=1.5; ctx.setLineDash([6,8]); ctx.beginPath(); ctx.arc(p.x,p.y,R,0,TAU); ctx.stroke(); ctx.restore(); }
+  }
   const bk=p.ic.back && p.ic.back[k];
   if(bk && S.time<=bk.until){   // Gölge Adımı dönüşü: basınca başladığı yere döner
     holdCircle(bk.x,bk.y,p.r+10,'rgba(154,123,255,0.18)','rgba(200,180,255,0.95)');
@@ -1140,7 +1144,7 @@ const TYPE_DESC={
   leapslam:'Rakibe sıçrayıp inersin; alan hasarı ve yavaşlatma.', knockblow:'Rakibi iter; duvara çarparsa sersemler.', transform:'Uzak ve yakın biçim arasında geçiş yaparsın.',
   roll:'Basılı tuttukça mesafe artar; bırakınca yuvarlanır, indiğin yerde rakipleri havaya atıp sersemletirsin.',
   shell:'Kabuğa çekilirsin: ağırlaşır, itilemez ve çekilemezsin, hasar azalır; düz vuruş menzili artar, vuruşların yavaşlatır.',
-  heavy:'Düz vuruş beklemen sıfırlanır; sonraki vuruşun ek hasar verir, rakibi azalan biçimde yavaşlatır ve seni iyileştirir.',
+  heavy:'Düz vuruş menzilindeki, imlece en yakın rakibe anında güçlü bir vuruş: düz vuruş hasarı + ek hasar, rakibi azalan biçimde yavaşlatır ve seni iyileştirir. Menzilde rakip yoksa harcanmaz.',
   arena:'İmlecin olduğu yeri kısa süre arenan yaparsın; içindeyken saldırı gücün, saldırı hızın ve hareket hızın artar.',
   duel:'Yakındaki rakip kahramana atılırsın; süre boyunca zırhının ve büyü direncinin bir kısmını çalar, canını yakar ve verdiğin hasarla iyileşirsin.',
   billiard:'Durdurulamaz top olursun: hızla ileri gider, duvarlardan seker, değdiğin rakipleri itip vurursun. İmleçle hafifçe yönlendirilir.'

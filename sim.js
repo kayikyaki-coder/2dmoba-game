@@ -907,6 +907,10 @@ export function tryCast(h, k, aim, cmd){
       const dd=Math.hypot(u.x-p.x,u.y-p.y); if(dd<bd){ bd=dd; tgt=u; }
     }
     if(!tgt) return;
+  } else if(sk.type==='heavy'){
+    // Ağır Darbe: düz vuruş menzilindeki görünen rakiplerden (kahraman, minyon, kule) imlece en yakını; yoksa yetenek harcanmaz
+    const p=targetPoint(h, cmd, 9999); tgt=attackTarget(h, p.x, p.y);
+    if(!tgt) return;
   } else if(sk.type==='leapslam' || sk.type==='knockblow'){
     // menzildeki görünen rakip kahraman ve minyonlardan (kule değil) imlece en yakını; yoksa yetenek harcanmaz
     const p=targetPoint(h, cmd, sk.range); let bd=1e9;
@@ -1139,9 +1143,15 @@ export function instantSkill(h, k, aim, cmd, tgt, opt){
     h.st.fring = { t:sk.dur, total:sk.dur, radius:sk.radius, dps:sk.dps[i]+(sk.ap||0)*apOf(h), slow:sk.slow, res:sk.res+(sk.resAp||0)*apOf(h) };
     fx({ type:'ring', owner:h, r0:h.r, r1:sk.radius, color:'#ff8a3d', lw:6, life:0.45 });
   } else if(sk.type==='heavy'){   // Gladyatör Ağır Darbe: düz vuruş beklemesi sıfırlanır, sonraki vuruş güçlü (gladHit)
-    h.ic.heavy={ until:S.time+sk.window, dmg:sk.dmg[i]+sk.ad*bonusAd(h), slow:sk.slow, slowDur:sk.slowDur, heal:sk.healFlat[i], healPct:sk.healPct };
-    if(h.atk.state==='recovery'){ h.atk.state='ready'; h.atk.t=0; }
-    fx({ type:'ring', owner:h, r0:h.r, r1:h.r+20, color:'#ff9a5a', lw:4, life:0.3 });
+    // Ağır Darbe (11.10.2026): hedefli anında vuruş (eskiden sonraki düz vuruşu güçlendiriyordu). Menzil düz vuruşunki, hasar aynı:
+    // düz vuruş hasarı + ek hasar; Kızışma yığını, vuruş etkileri, azalan yavaşlatma ve iyileşme gladHit içinde
+    if(tgt && !tgt.dead){
+      h.ic.heavy={ until:S.time+1, dmg:sk.dmg[i]+sk.ad*bonusAd(h), slow:sk.slow, slowDur:sk.slowDur, heal:sk.healFlat[i], healPct:sk.healPct };
+      damage(tgt, atkDmg(h), h, { basic:true });
+      if(!tgt.dead) onBasicHit(h, tgt);
+      gladHit(h, tgt);
+      fx({ type:'slash', owner:h, tgt, ang:Math.atan2(tgt.y-h.y,tgt.x-h.x), crit:true, life:0.25 });
+    }
   } else if(sk.type==='arena'){   // Gladyatör Arena: imleç yerinde (range'e kırpılır) alan; Gladyatör içindeyken güçlenir (stat/attackSpeed/moveMult)
     let p=targetPoint(h, cmd, sk.range);
     const dx=p.x-h.x, dy=p.y-h.y, l=Math.hypot(dx,dy);
