@@ -590,6 +590,9 @@ export const minionGold = t => GOLD.minionStart + (GOLD.minionEnd-GOLD.minionSta
 export const WAVE_ORDER = ['melee','melee','melee','ranged','ranged'];
 export const WAVE_FIRST = 4, WAVE_INTERVAL = 22, WAVE_GAP = 0.7;
 export const OFF_TARGET_DMG = 0.30;   // (eski, kullanılmıyor) yakın dövüş minyonu artık koni değil tek hedefe vurur
+/* Minyon tasması (LoL gibi): kahraman kovalarken koridor yolundan lane birimden fazla uzaklaşırsa kahramanları ignore sn
+   boyunca bırakır ve yola döner (yolun back birim yakınına dönene kadar da kahraman hedeflemez). Minyon/yapı hedefi etkilenmez. */
+export const MINION_LEASH = { lane:380, back:150, ignore:2.5 };
 export const MINION_CALL = 1.5, MINION_CALL_R = 450;   // minyon çağrısı: 450 içindeki dost kahramana son 1,5 sn içinde vuran, minyonun yakınındaki rakip kahramana odaklan
 /* Yeniden doğma: 10 sn + dakika başına 1,5 sn, en fazla 40 sn (20. dakikada). */
 /* Üsse dönüş (B): sabit 8 sn kanallanır; hareket, saldırı, yetenek ya da hasar keser */

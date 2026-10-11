@@ -1,5 +1,5 @@
 /* Simülasyon: tarayıcıya bağımlı değil (document, window, canvas yok). */
-import { TICK, WORLD, LANE_Y, TEAM_COLORS, TEAM_DARK, MAX_LEVEL, STATS, HEROES, FORMS, TOWER, towerChampHit, towerMinionHit, BASE_TOWER_HP, NEXUS, LAYOUT, FOUNTAIN, MINIONS, WAVE_ORDER, WAVE_FIRST, WAVE_INTERVAL, WAVE_GAP, OFF_TARGET_DMG, MINION_CALL, MINION_CALL_R, respawnTime, RECALL, MINION_SCALE, GOLD, minionGold, XP_NEED, HERO_KILL_XP, STRUCT_XP, XP_RADIUS, VISION } from './data.js';
+import { TICK, WORLD, LANE_Y, TEAM_COLORS, TEAM_DARK, MAX_LEVEL, STATS, HEROES, FORMS, TOWER, towerChampHit, towerMinionHit, BASE_TOWER_HP, NEXUS, LAYOUT, FOUNTAIN, MINIONS, WAVE_ORDER, WAVE_FIRST, WAVE_INTERVAL, WAVE_GAP, OFF_TARGET_DMG, MINION_CALL, MINION_CALL_R, MINION_LEASH, respawnTime, RECALL, MINION_SCALE, GOLD, minionGold, XP_NEED, HERO_KILL_XP, STRUCT_XP, XP_RADIUS, VISION } from './data.js';
 import { ITEMS, PARTS, SLOTS, START_GOLD, CRIT_MULT, BUILDS, DEF, DEF_CLASS, DEF_POOLS, DMG_PHYS } from './items.js';
 import { structPos, SPAWN_OFF, pushOutWalls, pushOutWallsInto, PUSH, wallsFar, inWall, sightBlocked, bushAt, BUSHES, lanePoint, laneProject, laneLength, laneDir } from './map.js';
 
@@ -97,7 +97,7 @@ export function makeMinion(type, team, wi){
     vx:0, vy:0, kx:0, ky:0, r:d.r, mass:d.mass, hp:d.hp*hpM, maxHp:d.hp*hpM,
     atk:{ state:'ready', t:0, total:0, aim:0, main:null, f:1 },
     st:{ slow:null, freeze:0 }, cast:null, dash:null, pulled:null, dead:false, flash:0,
-    revealT:0, _bx:NaN, _by:NaN, _bush:-1 };   // sonradan eklenen alanlar baştan tanımlı (aynı nesne şekli)
+    revealT:0, leashUntil:-1, _bx:NaN, _by:NaN, _bush:-1 };   // sonradan eklenen alanlar baştan tanımlı (aynı nesne şekli)
 }
 
 export function buildStructs(){
@@ -1803,6 +1803,12 @@ export function updateMinion(m, dt){
     }
   }
   if(call) tgt=call;
+  // tasma: kahraman kovalarken yoldan çok uzaklaştıysa kahramanı bırak, yola dön (sürüklenip koridor dışına çekilemez)
+  if(tgt && tgt.kind==='hero'){
+    const off=laneProject(m.x,m.y).d;
+    if(off>MINION_LEASH.lane) m.leashUntil=S.time+MINION_LEASH.ignore;
+    if(m.leashUntil>S.time || (m.leashUntil>0 && off>MINION_LEASH.back && S.time-m.leashUntil<MINION_LEASH.ignore)) tgt=best;
+  }
 
   // Saldırı döngüsü
   if(a.state==='windup'){
