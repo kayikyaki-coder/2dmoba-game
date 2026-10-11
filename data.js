@@ -20,7 +20,7 @@ export const STATS = {
     mr:{ base:10, per:0 },          // büyü direnci: büyü hasarı 100/(100+mr) ile çarpılır
     ah:{ base:0, per:0 },           // yetenek hızı: bekleme süresi 100/(100+yh) ile çarpılır
     ap:{ base:0, per:0 },           // yetenek gücü (YG): eşyalardan gelir, yetenek oranlarıyla çarpılır
-    dmg:{ base:33, per:2.8 },       // düz vuruş hasarı (denge: 45, sonra 37, 35 (+3) idi; 2v2 tur 6: %70)
+    dmg:{ base:31, per:2.8 },       // düz vuruş hasarı (denge: 45, sonra 37, 35 (+3), 33 idi; 2v2 tur 8: %63)
     as:{ base:1.16, per:0.06 },     // saniyedeki saldırı sayısı (denge: 1.28, sonra 1.22 idi; 2v2 tur 7: %66)
     spd:{ base:200, per:3 },        // hareket hızı
     range:{ base:310, per:0 },      // düz vuruş menzili
@@ -73,7 +73,7 @@ export const STATS = {
     mr:{ base:10, per:0 },
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:50, per:3 },
+    dmg:{ base:47, per:3 },         // denge: 50 idi (2v2 tur 8: %61)
     as:{ base:1.05, per:0.05 },     // her vuruş iki ok attığı için okçudan düşük
     spd:{ base:200, per:3 },
     range:{ base:330, per:0 },
