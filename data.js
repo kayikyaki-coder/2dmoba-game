@@ -20,7 +20,7 @@ export const STATS = {
     mr:{ base:22, per:0.8 },   // denge F2: 25 (+1) idi //   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },           // yetenek hızı: bekleme süresi 100/(100+yh) ile çarpılır
     ap:{ base:0, per:0 },           // yetenek gücü (YG): eşyalardan gelir, yetenek oranlarıyla çarpılır
-    dmg:{ base:32, per:2.8 },   // denge O1: 35 idi //   // zırh sistemi (11.10.2026): 31 (+2.8) idi
+    dmg:{ base:29, per:2.8 },   // denge O2: 32 idi //   // denge O1: 35 idi //   // zırh sistemi (11.10.2026): 31 (+2.8) idi
     as:{ base:1.16, per:0.06 },     // saniyedeki saldırı sayısı (denge: 1.28, sonra 1.22 idi; 2v2 tur 7: %66)
     spd:{ base:200, per:3 },        // hareket hızı
     range:{ base:310, per:0 },      // düz vuruş menzili
@@ -38,7 +38,7 @@ export const STATS = {
     mr:{ base:34, per:1.8 },   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },           // yetenek hızı: bekleme süresi 100/(100+yh) ile çarpılır
     ap:{ base:0, per:0 },           // yetenek gücü (YG): eşyalardan gelir, yetenek oranlarıyla çarpılır
-    dmg:{ base:68, per:4 },   // zırh sistemi (11.10.2026): 75 (+4) idi
+    dmg:{ base:66, per:4 },   // denge O2: 68 idi //   // zırh sistemi (11.10.2026): 75 (+4) idi
     as:{ base:1.00, per:0.04 },
     spd:{ base:200, per:3 },
     range:{ base:110, per:0 },
@@ -73,7 +73,7 @@ export const STATS = {
     mr:{ base:25, per:1 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:48, per:3 },   // denge O1: 50 idi //   // denge F4: 53 idi //   // zırh sistemi (11.10.2026): 47 (+3) idi
+    dmg:{ base:45, per:3 },   // denge O2: 48 idi //   // denge O1: 50 idi //   // denge F4: 53 idi //   // zırh sistemi (11.10.2026): 47 (+3) idi
     as:{ base:1.05, per:0.05 },     // her vuruş iki ok attığı için okçudan düşük
     spd:{ base:200, per:3 },
     range:{ base:330, per:0 },
@@ -91,7 +91,7 @@ export const STATS = {
     mr:{ base:25, per:1 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:35, per:2.8 },   // denge O1: 37 idi //   // denge F5: 44 idi //   // zırh sistemi (11.10.2026): 39 (+2.8) idi
+    dmg:{ base:33, per:2.8 },   // denge O2: 35 idi //   // denge O1: 37 idi //   // denge F5: 44 idi //   // zırh sistemi (11.10.2026): 39 (+2.8) idi
     as:{ base:1.00, per:0.05 },     // denge: 1.15 idi
     spd:{ base:200, per:3 },
     range:{ base:310, per:0 },    // 450 idi, denge için 400
@@ -103,13 +103,13 @@ export const STATS = {
     projRadius:{ base:6, per:0 }
   },
   hook: {
-    hp:{ base:720, per:32 },   // denge O1: 680 idi //   // zırh sistemi (11.10.2026): 690 (+38) idi
+    hp:{ base:770, per:32 },   // denge O2: 720 idi //   // denge O1: 680 idi //   // zırh sistemi (11.10.2026): 690 (+38) idi
     regen:{ base:6, per:1.4 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:38, per:4.5 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:32, per:1.5 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:48, per:3 },   // denge O1: 45 idi //   // zırh sistemi (11.10.2026): 50 (+3) idi
+    dmg:{ base:52, per:3 },   // denge O2: 48 idi //   // denge O1: 45 idi //   // zırh sistemi (11.10.2026): 50 (+3) idi
     as:{ base:0.90, per:0.03 },
     spd:{ base:195, per:3 },
     range:{ base:110, per:0 },
@@ -143,7 +143,7 @@ export const STATS = {
     mr:{ base:34, per:1.8 },   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:65, per:3.5 },   // denge F3: 60 idi //   // zırh sistemi (11.10.2026): 67 (+3.5) idi
+    dmg:{ base:62, per:3.5 },   // denge O2: 65 idi //   // denge F3: 60 idi //   // zırh sistemi (11.10.2026): 67 (+3.5) idi
     as:{ base:0.90, per:0.025 },
     spd:{ base:200, per:3 },
     range:{ base:115, per:0 },
@@ -154,13 +154,13 @@ export const STATS = {
     angle:{ base:90, per:0 }
   },
   flame: {
-    hp:{ base:680, per:24 },   // denge O1: 640 idi //   // zırh sistemi (11.10.2026): 680 (+30) idi
+    hp:{ base:730, per:24 },   // denge O2: 680 idi //   // denge O1: 640 idi //   // zırh sistemi (11.10.2026): 680 (+30) idi
     regen:{ base:8, per:0.9 },        // denge: 4 idi, seviye başına: 0 idi
     armor:{ base:32, per:4 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:33, per:1.7 },   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:53, per:2.5 },   // denge O1: 50 idi //   // zırh sistemi (11.10.2026): 56 (+2.5) idi
+    dmg:{ base:57, per:2.5 },   // denge O2: 53 idi //   // denge O1: 50 idi //   // zırh sistemi (11.10.2026): 56 (+2.5) idi
     as:{ base:0.85, per:0.03 },
     spd:{ base:205, per:3 },
     range:{ base:120, per:0 },
@@ -195,7 +195,7 @@ export const STATS = {
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:50, per:2 },   // zırh sistemi (11.10.2026): 50 (+2) idi
+    dmg:{ base:54, per:2 },   // denge O2: 50 idi //   // zırh sistemi (11.10.2026): 50 (+2) idi
     as:{ base:0.75, per:0.03 },
     spd:{ base:195, per:3 },
     range:{ base:230, per:0 },
@@ -207,13 +207,13 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   shadow: {
-    hp:{ base:760, per:26 },   // denge O1: 730 idi //   // zırh sistemi (11.10.2026): 620 (+26) idi
+    hp:{ base:800, per:26 },   // denge O2: 760 idi //   // denge O1: 730 idi //   // zırh sistemi (11.10.2026): 620 (+26) idi
     regen:{ base:3, per:0.7 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:54, per:2.5 },   // zırh sistemi (11.10.2026): 54 (+2.5) idi
+    dmg:{ base:57, per:2.5 },   // denge O2: 54 idi //   // zırh sistemi (11.10.2026): 54 (+2.5) idi
     as:{ base:0.80, per:0.03 },
     spd:{ base:210, per:3 },
     range:{ base:270, per:0 },
@@ -225,13 +225,13 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   spirit: {
-    hp:{ base:620, per:24 },   // denge O1: 590 idi //   // zırh sistemi (11.10.2026): 500 (+24) idi
+    hp:{ base:660, per:24 },   // denge O2: 620 idi //   // denge O1: 590 idi //   // zırh sistemi (11.10.2026): 500 (+24) idi
     regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:40, per:2.5 },   // zırh sistemi (11.10.2026): 40 (+2.5) idi
+    dmg:{ base:44, per:2.5 },   // denge O2: 40 idi //   // zırh sistemi (11.10.2026): 40 (+2.5) idi
     as:{ base:0.85, per:0.03 },
     spd:{ base:205, per:3 },
     range:{ base:250, per:0 },
