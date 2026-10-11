@@ -17,7 +17,7 @@ export const STATS = {
     hp:{ base:470, per:25 },   // zırh sistemi (11.10.2026): 400 (+25) idi
     regen:{ base:3, per:0.6 },        // 5 saniyede yenilenen can, seviye başına: 0 idi
     armor:{ base:19, per:2.5 },   // denge F1 (11.10.2026, zırh sonrası): 22 (+3) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
-    mr:{ base:25, per:1 },   // zırh sistemi (11.10.2026): 10 (+0) idi
+    mr:{ base:22, per:0.8 },   // denge F2: 25 (+1) idi //   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },           // yetenek hızı: bekleme süresi 100/(100+yh) ile çarpılır
     ap:{ base:0, per:0 },           // yetenek gücü (YG): eşyalardan gelir, yetenek oranlarıyla çarpılır
     dmg:{ base:35, per:2.8 },   // zırh sistemi (11.10.2026): 31 (+2.8) idi
@@ -34,7 +34,7 @@ export const STATS = {
   warrior: {
     hp:{ base:820, per:32 },   // zırh sistemi (11.10.2026): 940 (+40) idi
     regen:{ base:10, per:0.9 },       // denge: 5 idi, seviye başına: 0 idi
-    armor:{ base:36, per:4.5 },   // denge F1 (11.10.2026, zırh sonrası): 32 (+4) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
+    armor:{ base:40, per:5 },   // denge F2: 36 (+4.5) idi //   // denge F1 (11.10.2026, zırh sonrası): 32 (+4) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:34, per:1.8 },   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },           // yetenek hızı: bekleme süresi 100/(100+yh) ile çarpılır
     ap:{ base:0, per:0 },           // yetenek gücü (YG): eşyalardan gelir, yetenek oranlarıyla çarpılır
@@ -87,7 +87,7 @@ export const STATS = {
   bounce: {
     hp:{ base:480, per:24 },   // zırh sistemi (11.10.2026): 410 (+24) idi
     regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
-    armor:{ base:20, per:2.5 },   // denge F1 (11.10.2026, zırh sonrası): 22 (+3) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
+    armor:{ base:18, per:2.2 },   // denge F2: 20 (+2.5) idi //   // denge F1 (11.10.2026, zırh sonrası): 22 (+3) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
@@ -122,7 +122,7 @@ export const STATS = {
   roller: {   // Gülle: hareket eden tank (yakın dövüş). Zincirli/Savaşçı arası can, düşük temel hız (Momentum +%28 verir)
     hp:{ base:770, per:37 },   // zırh sistemi (11.10.2026): 920 (+46) idi
     regen:{ base:8, per:1.0 },
-    armor:{ base:38, per:4.5 },   // zırh sistemi (11.10.2026): 10 (+0) idi
+    armor:{ base:42, per:5 },   // denge F2: 38 (+4.5) idi //   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:36, per:1.8 },   // denge F1 (11.10.2026, zırh sonrası): 32 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
@@ -139,7 +139,7 @@ export const STATS = {
   gladiator: {   // Gladyatör: yakın dövüşçü. Savaşçı'dan az can, Kızışma yığınlarıyla saldırı hızı tırmanır
     hp:{ base:860, per:37 },   // zırh sistemi (11.10.2026): 980 (+46) idi
     regen:{ base:9, per:0.9 },
-    armor:{ base:36, per:4.5 },   // denge F1 (11.10.2026, zırh sonrası): 32 (+4) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
+    armor:{ base:40, per:5 },   // denge F2: 36 (+4.5) idi //   // denge F1 (11.10.2026, zırh sonrası): 32 (+4) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:34, per:1.8 },   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
@@ -269,7 +269,7 @@ export const HEROES = {
     skills:{
       p:{ name:'Yavaş Ok', slowMin:.11, slowMax:.20, dur:1.2 },
       r:{ name:'Ok Yağmuru', max:4, type:'volley', cd:[9,8.5,8,7.5], cast:0.3, castSlow:0.4,
-          count:[5,6,7,9], spread:0.7, range:400, ratio:1.15, repeat:0.30, speed:950, radius:5 },
+          count:[5,6,7,9], spread:0.7, range:400, ratio:1.05,   /* denge F2: ratio 1.15 idi */ repeat:0.30, speed:950, radius:5 },
       e:{ name:'Seri Atış', max:4, type:'haste', cd:[14,13,12,11], as:[.30,.35,.40,.45], dur:5 },
       s:{ name:'Kalın Ok', max:2, type:'bigarrow', cd:[20,16], cast:0.4, castSlow:0.5,
           ratio:2.5, ap:0.5, freeze:1, speed:770, radius:34, range:6000 }   // dev ok: harita sonuna kadar gider; kaçılabilirlik: 700 uzaktan kaçılır (hız 800 idi)
@@ -301,8 +301,8 @@ export const HEROES = {
       p:{ name:'Hasar Yayılımı', pct:.10, radius:100 },
       r:{ name:'Atılış', max:4, type:'dash', cd:[8.5,8,7.5,7], dist:300, speed:1000,   /* denge F1: cd 9-7.5, ratio 1.10-1.50 idi */
           ratio:[1.25,1.40,1.55,1.70], slow:0.10, slowDur:1, knock:250 },
-      e:{ name:'Kalkan', max:4, type:'shield', cd:[16,15,14,13], shield:[.14,.18,.22,.26], dur:5, spd:0.20 },   // denge: kalkan .10,.13,.16,.20 idi (2v2 tur 3: %35)
-      s:{ name:'Öfke', max:2, type:'giant', cd:[26,22], size:[.40,.50], dmg:[.40,.50], dur:[4,6] }
+      e:{ name:'Kalkan', max:4, type:'shield', cd:[14,13,12,11],   /* denge F2: cd 16-13 idi */ shield:[.14,.18,.22,.26], dur:5, spd:0.20 },   // denge: kalkan .10,.13,.16,.20 idi (2v2 tur 3: %35)
+      s:{ name:'Öfke', max:2, type:'giant', cd:[22,18],   /* denge F2: cd 26,22 idi */ size:[.40,.50], dmg:[.40,.50], dur:[4,6] }
     }
   },
   mage: {
@@ -332,7 +332,7 @@ export const HEROES = {
       p:{ name:'Sekme', bouncePct:0.40, bounceRange:200, bounceCount:1 },   // denge: bouncePct 0.50 idi
       // sağ tık: cast sn hazırlık, speed hızında range kadar gider, döner ve sahibini takip ederek geri gelir. Gidiş ve dönüş ayrı vurur.
       //          hasar = dmg + ad * toplam SG (fiziksel); değdiği her rakipten sonra çarpan decay ile çarpılır (en az minMult). Yapılara vurmaz.
-      r:{ name:'Bumerang', max:4, type:'boomerang', cd:[12,11,10,9], cast:0.2, castSlow:0, range:520, speed:650, radius:30,   // denge: cd 10,9,8,7 idi; kaçılabilirlik: hız 750 idi
+      r:{ name:'Bumerang', max:4, type:'boomerang', cd:[13,12,11,10],   /* denge F2: cd 12-9 idi */ cast:0.2, castSlow:0, range:520, speed:650, radius:30,   // denge: cd 10,9,8,7 idi; kaçılabilirlik: hız 750 idi
           dmg:[27,45,63,81], ad:0.36, decay:0.85, minMult:0.40 },   // denge F1 (11.10.2026, zırh sonrası): Bumerang dmg 30-90, ad 0.40 idi   // denge: dmg 50,80,110,140 / ad 0.70 idi
       // E: anında; sersemleme, yavaşlatma (ve ileride kök/susturma) kalkar, süreli hasarlara dokunmaz. Sersemken de kullanılabilir.
       e:{ name:'Arınma', max:4, type:'cleanse', cd:[18,16,14,12], spd:[.30,.35,.40,.45], dur:2 },
@@ -412,7 +412,7 @@ export const HEROES = {
       p:{ name:'Odak', timerMax:15, timerMin:10, cut:0.70 },
       // sağ tık: cast sn hazırlık (hazırlıkta castSlow yavaş), bitince imleç yönünde range uzunlukta, 2 x radius genişlikte şerit, anında;
       //          şeritteki bütün rakip birimlere (kule hariç) büyü hasarı dmg + ap * YG. Hazırlık sırasında şerit önizlemesi herkese görünür.
-      r:{ name:'Uzun Işın', max:4, type:'beam', cd:[9,8,7,6], cast:0.4, castSlow:0.4, range:750, radius:35,
+      r:{ name:'Uzun Işın', max:4, type:'beam', cd:[10,9,8,7],   /* denge F2: cd 9-6 idi */ cast:0.4, castSlow:0.4, range:750, radius:35,
           dmg:[75,112,150,188], ap:0.70 },   // denge: 70,110,150,190, sonra 80,120,160,200 idi (2v2 tur 3: %65)
       // E: cast sn hazırlık, düz giden mermi; ilk değdiği rakip birimde (minyon dahil, kule değil) durur. Büyü hasarı dmg + ap * YG;
       //    sersemletme gidilen mesafeyle stunMin'den (0 mesafe) stunMax'a (range) doğrusal. Minyon da sersemler.
@@ -482,11 +482,11 @@ export const HEROES = {
       // sağ tık: basılı tutuldukça mesafe dMin'den dMax'a (charge sn'de) artar (bot imleç noktasına göre seçer); bırakınca o yöne speed hızıyla yuvarlanır
       //          (birimlerin içinden geçer, duvarda ve yapıda durur, kök engeller). İnişte radius yarıçapta rakiplere (kule hariç) fiziksel hasar
       //          dmg + hpPct * ek can, kahraman ve minyonlar stun sn sersemler (havaya atılır).
-      r:{ name:'Yuvarlan', max:4, type:'roll', cd:[13,12,11,10], dMin:300, dMax:900, charge:1, speed:1300, radius:130,
+      r:{ name:'Yuvarlan', max:4, type:'roll', cd:[12,11,10,9],   /* denge F2: cd 13-10 idi */ dMin:300, dMax:900, charge:1, speed:1300, radius:130,
           dmg:[70,105,140,175], hpPct:0.05, stun:[0.6,0.65,0.7,0.75] },
       // E: anında, dur sn kabuk: kütle massMult katı, itilemez/çekilemez (kanca, Darbe, momentum itmesi, geri tepme), dr hasar azaltma,
       //    düz vuruş menzili +range, düz vuruşlar rakiplere ek dmg + hpPct * ek can fiziksel hasar ve slowDur sn slow yavaşlatma
-      e:{ name:'Kabuk', max:4, type:'shell', cd:[16,15,14,13], dur:2.5, massMult:3, dr:[.25,.30,.35,.40], range:60,
+      e:{ name:'Kabuk', max:4, type:'shell', cd:[14,13,12,11],   /* denge F2: cd 16-13 idi */ dur:2.5, massMult:3, dr:[.25,.30,.35,.40], range:60,
           dmg:[15,25,35,45], hpPct:0.02, slow:0.20, slowDur:1 },
       // boşluk: dur sn durdurulamaz top: speed hızında sürekli ileri gider (imleç yönünde başlar, saniyede turn radyan imlece döner),
       //         duvar, harita sınırı ve yapılardan seker; değdiği her rakibe (kule hariç; aynı birime rehit sn'de bir) fiziksel hasar
@@ -509,12 +509,12 @@ export const HEROES = {
           slow:0.40, slowDur:2, healFlat:[20,30,40,50], healPct:0.3 },
       // E: imleç yerinde (range'e kırpılır) radius yarıçaplı alan dur sn Gladyatör'ün arenası olur (S.zones kind:'arena');
       //    o içindeyken +adFlat SG, +as saldırı hızı, +ms hareket hızı. Rakibe doğrudan etkisi yok.
-      e:{ name:'Arena', max:4, type:'arena', cd:[16,15,14,13], range:600, radius:350, dur:5,
+      e:{ name:'Arena', max:4, type:'arena', cd:[14,13,12,11],   /* denge F2: cd 16-13 idi */ range:600, radius:350, dur:5,
           adFlat:[8,14,20,26], as:[.15,.20,.25,.30], ms:[.10,.12,.14,.16] },
       // boşluk: range içindeki görünen rakip KAHRAMANA (imlece en yakın) atılır (hedefe yapışır, kök engeller, duvar/yapıda durur);
       //         değince dur sn: rakibin zırh ve BD'sinin steal oranını çalar, rakibe azami canının hpPct'i kadar büyü hasarını
       //         eşit dilimlerle verir, verdiği bu hasarın healPct'i kadar iyileşir. Süre bitince (ya da biri ölünce) çalınanlar döner.
-      s:{ name:'Meydan Okuma', max:2, type:'duel', cd:[40,32], range:400, speed:1100, dur:8, steal:[.30,.40], hpPct:[.20,.30], healPct:0.5 }
+      s:{ name:'Meydan Okuma', max:2, type:'duel', cd:[34,28],   /* denge F2: cd 40,32 idi */ range:400, speed:1100, dur:8, steal:[.30,.40], hpPct:[.20,.30], healPct:0.5 }
     }
   },
   dual: {
