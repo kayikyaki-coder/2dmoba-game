@@ -143,7 +143,7 @@ export const STATS = {
     mr:{ base:34, per:1.8 },   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:60, per:3.5 },   // zırh sistemi (11.10.2026): 67 (+3.5) idi
+    dmg:{ base:65, per:3.5 },   // denge F3: 60 idi //   // zırh sistemi (11.10.2026): 67 (+3.5) idi
     as:{ base:0.90, per:0.025 },
     spd:{ base:200, per:3 },
     range:{ base:115, per:0 },
@@ -505,7 +505,7 @@ export const HEROES = {
       p:{ name:'Kızışma', asMin:0.04, asMax:0.10, stacks:5, dur:4 },
       // sağ tık: anında; düz vuruş beklemesi sıfırlanır, window sn içindeki sonraki düz vuruş ek fiziksel dmg + ad * ek SG,
       //          slowDur sn azalan slow yavaşlatma (applySlow decay), Gladyatör healFlat + healPct * verilen ek hasar iyileşir
-      r:{ name:'Ağır Darbe', max:4, type:'heavy', cd:[8,7.5,7,6.5], window:5, dmg:[50,78,106,134], ad:0.6,   /* denge F1: dmg 40-115, ad 0.5 idi */
+      r:{ name:'Ağır Darbe', max:4, type:'heavy', cd:[7,6.5,6,5.5],   /* denge F3: cd 8-6.5 idi */ window:5, dmg:[50,78,106,134], ad:0.6,   /* denge F1: dmg 40-115, ad 0.5 idi */
           slow:0.40, slowDur:2, healFlat:[20,30,40,50], healPct:0.3 },
       // E: imleç yerinde (range'e kırpılır) radius yarıçaplı alan dur sn Gladyatör'ün arenası olur (S.zones kind:'arena');
       //    o içindeyken +adFlat SG, +as saldırı hızı, +ms hareket hızı. Rakibe doğrudan etkisi yok.
