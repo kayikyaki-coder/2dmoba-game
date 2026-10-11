@@ -1,6 +1,7 @@
 /* Ekransız tek maç: iki bot, sabit tick. Tarayıcıya bağımlı değil. */
 import { TICK } from '../data.js';
 import { S, resetGame, step } from '../sim.js';
+import { ITEMS, PARTS } from '../items.js';
 import { botCommand, LEVEL_IDS } from '../ai.js';
 import { botCommand as botV1 } from '../ai_v1.js';
 import { botCommand as botV2 } from '../ai_v2.js';
@@ -61,9 +62,12 @@ export function runMatch2v2({ a, b, levelA=1, levelB=1, aTeam=0, seed=1, maxTime
   const apart=[0,0], near=[0,0], cnt=[0,0];
   const T0 = [S.heroes.filter(h=>h.team===0), S.heroes.filter(h=>h.team===1)];
   let tick=0;
+  const worth=h=>h.gold+(h.items||[]).reduce((t,id)=>t+((ITEMS[id]||PARTS[id]||{}).cost||0),0);
+  const at10=new Map(); const snap10=()=>{ for(const h of S.heroes) at10.set(h, { lv:h.level+h.xp/1000, worth:worth(h) }); };
   let early=null;   // erken bitirme (earlyStop): kule farkı 2+ ya da rakip 2 kule kaybetti biz hiç (30 maçta %100 doğru; tools/teams2v2.js --fast)
   while(!S.over && S.time<maxTime && !early){
     step(TICK, getCmd); tick++;
+    if(tick===36000) snap10();   // 10. dakika: seviye ve servet (altın + eşya değeri)
     if(earlyStop && tick%60===0){
       const lost=[0,0]; for(const s of S.structs) if(s.dead && s.sub!=='nexus') lost[s.team]++;
       for(const t of [0,1]) if(lost[1-t]-lost[t]>=2 || (lost[1-t]>=2 && lost[t]===0)) early={ winner:t };
@@ -83,6 +87,7 @@ export function runMatch2v2({ a, b, levelA=1, levelB=1, aTeam=0, seed=1, maxTime
     apartA:cnt[A] ? apart[A]/cnt[A] : null, nearA:cnt[A] ? near[A]/cnt[A] : null,
     apartB:cnt[B] ? apart[B]/cnt[B] : null, nearB:cnt[B] ? near[B]/cnt[B] : null,
     firstKill:S.stats.firstKill, firstTower:S.stats.firstTower,
-    heroes:S.heroes.map(h=>({ type:h.type, side:h.team===A?'A':'B', kills:h.kills, deaths:h.deaths, assists:h.assists }))
+    heroes:S.heroes.map(h=>({ type:h.type, side:h.team===A?'A':'B', kills:h.kills, deaths:h.deaths, assists:h.assists, role:h.role, level:h.level+h.xp/1000, lv10:(at10.get(h)||{}).lv??null, worth10:(at10.get(h)||{}).worth??null, jCamps:h.jCamps||0, jGold:h.jGold||0, gold:h.gold+(h.items||[]).length*0 })),
+    jungle:S.jstats ? { camps:S.jstats.camps.slice(), big:S.jstats.big.slice(), buffs:S.jstats.buffs.slice(), aTeam:A } : null
   };
 }

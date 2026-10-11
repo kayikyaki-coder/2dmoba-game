@@ -609,3 +609,41 @@ export const VISION = { hero:700, tower:700, minion:500 };
 /* Kule vuruşu (sim ve bot tahmini aynı formülü kullanır) */
 export const towerChampHit = st => TOWER.dmg*TOWER.champMult*(1+TOWER.champStack*Math.min(st,TOWER.maxStack));
 export const towerMinionHit = m => m.maxHp/(TOWER.minionHits[m.type]||3)+0.01;
+
+/* ---- Orman (11.10.2026, "1 koridor + orman") ----
+   Kamplar takım 0 tarafında tanımlı (x,y); side:'both' kamplar takım 1 tarafına x'te aynalanır, side:'mid' tek (ortada).
+   Canavar: hp, dmg (fiziksel, tek hedef, menzil reach), period (vuruş aralığı), r, gold (son vuruşu yapan kahramana), xp (yakındaki dostlara XP_SHARE ile).
+   Canavarlar yalnız kendilerine vuran kahramana karşılık verir; kampından leash'ten fazla uzaklaşınca döner ve canı dolar.
+   Yeniden doğuş: respawn sn (öldürülünce). first: ilk doğuş saniyesi. Zamanla güçlenme SCALE (minyon gibi).
+   buff: kampı öldürene süreli güç (BUFFS), big: öldüren takıma takım gücü (BIG_BUFF). */
+export const JUNGLE = {
+  leash:520, aggroT:6, returnHeal:0.25,
+  basicMult:1.2, skillMult:1.6,            // kahramanların canavarlara hasarı: düz vuruş x1,2, yetenek ve diğer x1,6   // tasma yarıçapı (kamp merkezinden), vurmayan saldırganı bırakma süresi (sn), dönerken sn'de azami canın %25'i
+  scale:{ hpPerMin:0.05, dmgPerMin:0.04, cap:2.2 },
+  monsters:{
+    wolf:     { name:'Kurt',          r:22, hp:380,  dmg:20, reach:40, period:1.2, wind:0.3, speed:240, mass:1.2, gold:30, xp:70 },
+    pup:      { name:'Yavru Kurt',    r:15, hp:170,  dmg:9,  reach:34, period:1.1, wind:0.3, speed:250, mass:0.7, gold:12, xp:30 },
+    golem:    { name:'Taş Golem',     r:26, hp:430,  dmg:22, reach:44, period:1.5, wind:0.4, speed:200, mass:2.0, gold:34, xp:65 },
+    bird:     { name:'Gece Kuşu',     r:14, hp:160,  dmg:9,  reach:120, period:1.2, wind:0.3, speed:260, mass:0.5, gold:18, xp:32 },
+    regen:    { name:'Pınar Ruhu',    r:30, hp:950,  dmg:30, reach:46, period:1.4, wind:0.35, speed:220, mass:3.0, gold:60, xp:140, buff:'regen' },
+    burn:     { name:'Kor Böceği',    r:30, hp:950,  dmg:32, reach:46, period:1.4, wind:0.35, speed:220, mass:3.0, gold:60, xp:140, buff:'burn' },
+    titan:    { name:'Vaha Titanı',   r:52, hp:4200, dmg:80, reach:70, period:1.6, wind:0.45, speed:200, mass:12, gold:0, xp:320, big:true, cleave:150 }
+  },
+  camps:[
+    { id:'wolves', side:'both', x:1150, y:1065, mobs:['wolf','pup','pup'], respawn:80, first:60 },
+    { id:'golems', side:'both', x:1700, y:400,  mobs:['golem','golem'],    respawn:90, first:60 },
+    { id:'birds',  side:'both', x:2050, y:560,  mobs:['bird','bird','bird'], respawn:75, first:60 },
+    { id:'regen',  side:'both', x:900,  y:480,  mobs:['regen'], respawn:120, first:60 },
+    { id:'burn',   side:'both', x:1720, y:1100, mobs:['burn'],  respawn:120, first:60 },
+    { id:'titan',  side:'mid',  x:2600, y:930,  mobs:['titan'], respawn:360, first:480 }
+  ]
+};
+/* Güçlendirme kampları: sahibine dur sn; sahibi rakip kahramanca öldürülürse kalan süre öldürene geçer (LoL gibi).
+   regen: 5 sn'de azami canın regenPct'i ek yenilenme + ah yetenek hızı. burn: düz vuruş isabetinde slow (slowDur sn) + süreli büyü hasarı (dps, dur sn; seviyeyle). */
+export const BUFFS = {
+  regen:{ name:'Yenilenme', dur:90, regenPct:0.04, ah:15, color:'#5ff2c8' },
+  burn: { name:'Yakıcı',    dur:90, slow:0.15, slowDur:1.5, dpsBase:6, dpsPer:2, dotDur:3, color:'#ff8a3d' }
+};
+/* Büyük canavar gücü: öldüren takımın bütün kahramanlarına (ölüler dahil) dur sn; takımın minyonları minionDmg/minionHp katı,
+   kahraman ve minyonların yapılara hasarı structMult katı. Altın: takımın her üyesine gold. */
+export const BIG_BUFF = { name:'Titan Gücü', dur:120, minionDmg:1.4, minionHp:1.3, structMult:1.25, gold:120, color:'#ffd24d' };

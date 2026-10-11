@@ -1,9 +1,9 @@
 /* Simülasyon: tarayıcıya bağımlı değil (document, window, canvas yok). */
-import { TICK, WORLD, LANE_Y, TEAM_COLORS, TEAM_DARK, MAX_LEVEL, STATS, HEROES, FORMS, TOWER, towerChampHit, towerMinionHit, BASE_TOWER_HP, NEXUS, LAYOUT, FOUNTAIN, MINIONS, WAVE_ORDER, WAVE_FIRST, WAVE_INTERVAL, WAVE_GAP, OFF_TARGET_DMG, MINION_CALL, MINION_CALL_R, MINION_LEASH, respawnTime, RECALL, MINION_SCALE, GOLD, minionGold, XP_NEED, HERO_KILL_XP, STRUCT_XP, XP_RADIUS, VISION } from './data.js';
+import { TICK, WORLD, LANE_Y, TEAM_COLORS, TEAM_DARK, MAX_LEVEL, STATS, HEROES, FORMS, TOWER, towerChampHit, towerMinionHit, BASE_TOWER_HP, NEXUS, LAYOUT, FOUNTAIN, MINIONS, WAVE_ORDER, WAVE_FIRST, WAVE_INTERVAL, WAVE_GAP, OFF_TARGET_DMG, MINION_CALL, MINION_CALL_R, MINION_LEASH, respawnTime, RECALL, MINION_SCALE, GOLD, minionGold, XP_NEED, HERO_KILL_XP, STRUCT_XP, XP_RADIUS, VISION, JUNGLE, BUFFS, BIG_BUFF } from './data.js';
 import { ITEMS, PARTS, SLOTS, START_GOLD, CRIT_MULT, BUILDS, DEF, DEF_CLASS, DEF_POOLS, DMG_PHYS } from './items.js';
-import { structPos, SPAWN_OFF, pushOutWalls, pushOutWallsInto, PUSH, wallsFar, inWall, sightBlocked, bushAt, BUSHES, lanePoint, laneProject, laneLength, laneDir } from './map.js';
+import { MAP_W, structPos, SPAWN_OFF, pushOutWalls, pushOutWallsInto, PUSH, wallsFar, inWall, sightBlocked, bushAt, BUSHES, lanePoint, laneProject, laneLength, laneDir } from './map.js';
 
-export const S = { heroes:[], minions:[], structs:[], lane:[[],[]], projs:[], bolts:[], booms:[], zones:[], novas:[], sights:[], fx:[], spawnQ:[],
+export const S = { heroes:[], minions:[], monsters:[], camps:[], dots:[], teamBuff:[0,0], jstats:null, structs:[], lane:[[],[]], projs:[], bolts:[], booms:[], zones:[], novas:[], sights:[], fx:[], spawnQ:[],
             score:[0,0], player:null, time:0, waveT:0, over:null, fxOn:true,
             stats:{ firstKill:null, firstTower:null } };
 let nextId = 1;
@@ -36,6 +36,7 @@ export function stat(h, k){
     if(ic.duelGain && ic.duelGain.until>S.time) v+=ic.duelGain[k];
     if(ic.duelLoss && ic.duelLoss.until>S.time) v-=ic.duelLoss[k];
   }
+  if(k==='ah' && h.jb && h.jb.regen>S.time) v+=BUFFS.regen.ah;   // Yenilenme güçlendirmesi
   const B=h.bonus; if(!B) return v;
   if(FLAT_KEYS[k]) v+=B[k]||0;
   if(B.lvlStats && (k==='armor' || k==='mr' || k==='ah' || k==='spd')) v+=h.level||1;   // Yük Taşıyıcı: seviyen kadar zırh, BD, yetenek hızı, hareket hızı
@@ -68,7 +69,7 @@ function atkDefCalc(h){
 }
 const SPAWN_GAP = 96;   // aynı takımdaki doğuş noktaları arası (2v2)
 export const settings = {
-  playerType:'archer', botType:'auto', botMode:'lane', aimMode:'track', asBonus:0, showHit:false, waves:true, fog:true,
+  playerType:'archer', botType:'auto', botMode:'lane', aimMode:'track', asBonus:0, showHit:false, waves:true, fog:true, jungle:true,
   startLevel:1
 };
 export function makeHero(type, team, x, y, human){
@@ -91,7 +92,8 @@ function minionSpawn(team){
 }
 export function makeMinion(type, team, wi){
   const d = MINIONS[type], nx = S.lane[team][3], dir = team===0 ? 1 : -1;
-  const min=S.time/60, hpM=Math.min(MINION_SCALE.cap, 1+MINION_SCALE.hpPerMin*min), dmgM=Math.min(MINION_SCALE.cap, 1+MINION_SCALE.dmgPerMin*min);
+  const min=S.time/60, tb=S.teamBuff[team]>S.time;   // Titan Gücü: takımın yeni minyonları güçlü
+  const hpM=Math.min(MINION_SCALE.cap, 1+MINION_SCALE.hpPerMin*min)*(tb?BIG_BUFF.minionHp:1), dmgM=Math.min(MINION_SCALE.cap, 1+MINION_SCALE.dmgPerMin*min)*(tb?BIG_BUFF.minionDmg:1);
   return { id:nextId++, kind:'minion', type, def:d, team, dir, dmgMult:dmgM, wi:wi||0,
     ...minionSpawn(team),
     vx:0, vy:0, kx:0, ky:0, r:d.r, mass:d.mass, hp:d.hp*hpM, maxHp:d.hp*hpM,
@@ -128,6 +130,7 @@ export function resetGame(opts){
   S.firstBlood = false;
   S.stats = { firstKill:null, firstTower:null, maxLevel:[null,null] };
   buildStructs();
+  buildCamps(opts.jungle!==undefined ? !!opts.jungle : settings.jungle);
   const other = settings.botType!=='auto' ? settings.botType : (settings.playerType==='archer' ? 'warrior' : 'archer');
   const types = opts.types || [settings.playerType, other];
   const levels = opts.levels || [settings.startLevel, settings.startLevel];
@@ -149,6 +152,15 @@ export function resetGame(opts){
     });
   }
   S.player = human===null ? null : S.heroes[human];
+  // roller: 2+ kişilik takımda bir bot ormancı (oyuncu değil; yakın dövüşçü öncelikli, sonra düz vuruş gücü). opts.roles:false kapatır
+  for(const h of S.heroes) h.role='lane';
+  if(S.camps.length && opts.roles!==false) for(const team of [0,1]){
+    const T=S.heroes.filter(h=>h.team===team && !h.human);
+    if(S.heroes.filter(h=>h.team===team).length<2 || !T.length) continue;
+    const jv=h=>(HEROES[h.type].attack.type!=='projectile' ? 1000 : 0)+STATS[h.type].dmg.base*STATS[h.type].as.base;   // yakın dövüşçü, sonra düz vuruş gücü yüksek olan
+    let J=T[T.length-1]; for(const h of T) if(jv(h)>jv(J)) J=h;
+    J.role='jungle';
+  }
   S.heroes.forEach((h,i)=>initLevel(h, lvs[i]));
 }
 
@@ -185,7 +197,7 @@ export function timings(h){
 export function inAttackRange(h, u){ return dist(u,h)-u.r <= h.r+atkDef(h).range; }
 export function attackTarget(h, px, py){
   let best=null, bd=1e9;
-  for(const u of S.heroes.concat(S.minions, S.structs)){
+  for(const u of S.heroes.concat(S.minions, S.monsters, S.structs)){
     if(u.dead || u.team===h.team || !canSee(h.team,u) || !inAttackRange(h,u)) continue;
     if(u.kind==='struct' && u.prot) continue;
     const d=Math.hypot(u.x-px, u.y-py); if(d<bd){ bd=d; best=u; }
@@ -255,6 +267,7 @@ export function foes(team, withStructs){
   const out=[];
   for(const u of S.heroes) if(!u.dead && u.team!==team) out.push(u);
   for(const u of S.minions) if(!u.dead && u.team!==team) out.push(u);
+  for(const u of S.monsters) if(!u.dead) out.push(u);
   if(withStructs) for(const u of S.structs) if(!u.dead && u.team!==team && !u.prot) out.push(u);
   return out;
 }
@@ -330,7 +343,9 @@ export function damage(e, amt, src, opts){
   if(e.stasis>0) return;                                   // Kum Saati: dokunulmaz
   let a = amt;
   const SB = (src && src.kind==='hero' && src.bonus) || {};
-  if(SB.siege && e.kind!=='hero'){ amt*=1+SB.siege; a=amt; }   // Kuşatma Çekici: yapılara ve minyonlara ek hasar
+  if(SB.siege && e.kind!=='hero'){ amt*=1+SB.siege; a=amt; }
+  if(e.kind==='struct' && src && src.team<2 && S.teamBuff[src.team]>S.time){ amt*=BIG_BUFF.structMult; a=amt; }   // Titan Gücü: yapılara ek hasar
+  if(e.kind==='monster' && src && src.kind==='hero'){ e.lastHero=src; e.lastHeroT=S.time; monsterAggro(e, src); amt*=opts.basic ? JUNGLE.basicMult : JUNGLE.skillMult; a=amt; }   // canavarlara kahraman hasarı çarpanı (yetenek ağırlıklı kahramanlar da kesebilsin)   // Kuşatma Çekici: yapılara ve minyonlara ek hasar
   // zırh / büyü direnci (sadece kahramanlarda): hasar * 100/(100+değer); 'true' türü delip geçer. Delme ve azaltmalar burada.
   if(e.kind==='hero'){
     const t=opts.type||'phys';
@@ -502,11 +517,12 @@ export function kill(e, src){
   e.hp=0; e.dead=true;
   if(e.kind==='hero'){
     if(S.stats.firstKill===null) S.stats.firstKill=S.time;
-    e.respawn=respawnTime(S.time); S.score[src.team]++;
+    e.respawn=respawnTime(S.time); if(src.team<2) S.score[src.team]++;
     const killer=creditKiller(e, src);
     e.deaths++;
     if(killer && killer.kind==='hero' && killer.team!==e.team){ killer.kills++; for(const a of takedownParticipants(e, killer)) if(a!==killer) a.assists++; }
     bloodHarvest(e, src, killer);
+    passBuffs(e, killer);
     e.ic.bleed=null; e.st.curse=null; e.ic.tether=null; e.ic.back=null;
     if(e.ic.duel) duelEnd(e); for(const g of S.heroes) if(g.ic.duel && g.ic.duel.tgt===e) duelEnd(g);   // Gladyatör: Meydan Okuma biter, çalınanlar döner
     if(e.ic.frzN) e.ic.frzN=0; e.ic.heavy=null; e.ic.arenaUntil=0;   // Gölge: bağ ve dönüş noktası da biter   // Kan Hasadı iyileşmesi ve Kan Laneti ölünce biter
@@ -517,6 +533,8 @@ export function kill(e, src){
     fx({ type:'death', x:e.x, y:e.y, r:e.r, team:e.team, life:0.5 });
     S.projs = S.projs.filter(p=>p.owner!==e);
     e.cast=null; e.dash=null; e.chan=null;
+  } else if(e.kind==='monster'){
+    killMonster(e, src);
   } else if(e.kind==='minion'){
     fx({ type:'death', x:e.x, y:e.y, r:e.r, team:e.team, life:0.3 });
     awardXP(1-e.team, e.x, e.y, e.def.xp, XP_RADIUS);
@@ -608,6 +626,7 @@ function spiritFlow(src, e){
 }
 export function onBasicHit(src, e){
   if(src && src.kind==='hero' && src.def.skills.p.flowCd!==undefined) spiritFlow(src, e);
+  if(src && src.kind==='hero' && src.jb && src.jb.burn>S.time && !e.dead) burnHit(src, e);   // Yakıcı güçlendirmesi
   if(!src || src.kind!=='hero' || !src.bonus || e.dead) return;
   const B=src.bonus, P={ noProc:true, noSplash:true };
   if(B.every3){ src.ic.k3=(src.ic.k3||0)+1; if(src.ic.k3>=3){ src.ic.k3=0; damage(e, B.every3, src, { type:'magic', ...P }); } }
@@ -1356,6 +1375,7 @@ export function updateHero(h, cmd, dt){
   { // Demir Gövde: saniyede eksik canın missPct'i; son combatT sn içinde kahramanla hasar alışverişi varsa combatMult katı
     const pp=h.def.skills.p; let ex=0;
     if(pp.missPct) ex=(h.maxHp-h.hp)*pp.missPct*((S.time-(h.combatT??-1e9))<=pp.combatT ? pp.combatMult : 1)*dt;
+    if(h.jb && h.jb.regen>S.time) ex+=h.maxHp*BUFFS.regen.regenPct/5*dt;   // Yenilenme güçlendirmesi
     heal(h, stat(h,'regen')/5*dt + ex); }
   bloodTick(h, dt);   // Kan Hasadı
   focusTick(h, dt);   // Odak sayacı
@@ -1881,6 +1901,160 @@ export function minionRelease(m){
   }
 }
 
+/* ---- orman (kamplar, canavarlar, güçlendirmeler) ----
+   Kamplar data.js JUNGLE (takım 0 tarafında tanımlı, 'both' aynalanır). Canavar kind:'monster', team:2 (iki takımın da rakibi),
+   S.monsters içinde. Kule ve minyonlar canavarlara vurmaz (yalnız S.heroes/S.minions/S.structs tararlar); kahraman düz vuruşu
+   (attackTarget), yetenekler (foes) ve mermiler (updateProjectiles) canavarları da vurur. Canavar yalnız kendine vuran kahramana karşılık verir. */
+export function campPos(c, side){ return side===1 ? { x:MAP_W-c.x, y:c.y } : { x:c.x, y:c.y }; }
+export function buildCamps(on){
+  S.camps=[]; S.monsters=[]; S.dots=[]; S.teamBuff=[0,0]; S.jstats={ camps:[0,0], big:[0,0], buffs:[0,0] };
+  if(!on) return;
+  for(const c of JUNGLE.camps){
+    const sides = c.side==='both' ? [0,1] : [-1];
+    for(const side of sides){
+      const p=campPos(c, side===1 ? 1 : 0);
+      S.camps.push({ id:c.id+(side<0?'':'_'+side), key:c.id, def:c, side, x:p.x, y:p.y, alive:false, spawnAt:c.first, mobs:[], big:c.mobs.some(t=>JUNGLE.monsters[t].big), buff:JUNGLE.monsters[c.mobs[0]].buff||null });
+    }
+  }
+}
+const MOB_OFF=[[0,0],[-46,40],[46,40],[0,-50]];
+function makeMonster(type, camp, i){
+  const d=JUNGLE.monsters[type], min=S.time/60, sc=JUNGLE.scale;
+  const hpM=Math.min(sc.cap, 1+sc.hpPerMin*min), dmgM=Math.min(sc.cap, 1+sc.dmgPerMin*min);
+  const o=camp.def.mobs.length>1 ? MOB_OFF[i%MOB_OFF.length] : [0,0], x=camp.x+o[0], y=camp.y+o[1];
+  return { id:nextId++, kind:'monster', type, def:d, team:2, camp, hx:x, hy:y, x, y, dmgMult:dmgM,
+    vx:0, vy:0, kx:0, ky:0, r:d.r, mass:d.mass, hp:d.hp*hpM, maxHp:d.hp*hpM,
+    atk:{ state:'ready', t:0, total:0, aim:0, main:null, f:1 },
+    st:{ slow:null, freeze:0, amp:null, ignite:null }, cast:null, dash:null, chan:null, pulled:null, dead:false, flash:0,
+    aggro:null, aggroT:-1e9, returning:false, lastHero:null, lastHeroT:-1e9, revealT:0, _bx:NaN, _by:NaN, _bush:-1 };
+}
+function spawnCamp(c){
+  c.alive=true; c.mobs=c.def.mobs.map((t,i)=>makeMonster(t,c,i));
+  for(const m of c.mobs) S.monsters.push(m);
+}
+/* Kampa vuran kahraman: kamptaki boşta canavarlar ona döner */
+function monsterAggro(m, h){
+  m.aggroT=S.time;
+  if(m.returning) return;
+  if(!m.aggro || m.aggro.dead) m.aggro=h;
+  for(const o of m.camp.mobs) if(!o.dead && !o.returning && (!o.aggro || o.aggro.dead)){ o.aggro=h; o.aggroT=S.time; }
+}
+export function updateJungle(dt){
+  for(const c of S.camps){
+    if(!c.alive){ if(S.time>=c.spawnAt) spawnCamp(c); continue; }
+    if(c.mobs.every(m=>m.dead)){ c.alive=false; c.mobs=[]; c.spawnAt=S.time+c.def.respawn; }
+  }
+  for(let i=0;i<S.monsters.length;i++) updateMonster(S.monsters[i], dt);
+  if(S.dots.length){
+    for(const d of S.dots){
+      d.t-=dt;
+      if(d.tgt.dead){ d.t=0; continue; }
+      damage(d.tgt, d.dps*dt, d.src, { dot:true, noSplash:true, type:'magic' });
+    }
+    S.dots=S.dots.filter(d=>d.t>0 && !d.tgt.dead);
+  }
+  if(S.monsters.length) S.monsters=S.monsters.filter(m=>!m.dead);
+}
+export function updateMonster(m, dt){
+  if(m.dead) return;
+  const st=m.st, d=m.def, a=m.atk, c=m.camp;
+  m.flash=Math.max(0,m.flash-dt);
+  if(st.slow){ st.slow.t-=dt; if(st.slow.t<=0) st.slow=null; }
+  if(st.amp){ st.amp.t-=dt; if(st.amp.t<=0) st.amp=null; }
+  if(st.ignite){ st.ignite.t-=dt; damage(m, st.ignite.dps*dt, st.ignite.src, { dot:true, type:'magic' }); if(m.dead) return; if(st.ignite.t<=0) st.ignite=null; }
+  if(st.freeze>0){ st.freeze-=dt; if(a.state==='windup') a.state='ready'; }
+  if(m.pulled){ pullStep(m, dt); return; }
+  let t=m.aggro;
+  const homeD=Math.hypot(m.x-c.x, m.y-c.y);
+  if(t){
+    // bırakma: hedef öldü, kamptan çok uzaklaştı ya da aggroT sn'dir vurmuyor ve erişimde değil
+    const far=Math.hypot(t.x-c.x, t.y-c.y)>JUNGLE.leash+120, idle=S.time-m.aggroT>JUNGLE.aggroT && dist(t,m)-t.r-m.r>d.reach+40;
+    if(t.dead || far || idle || homeD>JUNGLE.leash){ t=null; m.aggro=null; m.returning=true; }
+  }
+  if(m.returning){
+    heal(m, m.maxHp*JUNGLE.returnHeal*dt);
+    if(Math.hypot(m.x-m.hx, m.y-m.hy)<30){ m.returning=false; m.hp=m.maxHp; }
+  } else if(!t && m.hp<m.maxHp) heal(m, m.maxHp*JUNGLE.returnHeal*dt);
+  // saldırı döngüsü
+  if(a.state==='windup'){
+    a.t-=dt;
+    if(a.t<=0){ monsterRelease(m); a.state='recovery'; a.t+=d.period-d.wind; a.total=d.period-d.wind; }
+  } else if(a.state==='recovery'){ a.t-=dt; if(a.t<=0) a.state='ready'; }
+  if(a.state==='ready' && t && st.freeze<=0 && !m.returning && dist(t,m)-t.r-m.r<=d.reach){
+    a.state='windup'; a.t=d.wind; a.total=d.wind; a.main=t; a.aim=Math.atan2(t.y-m.y,t.x-m.x);
+  }
+  // hareket: hedefe, yoksa yuvasına
+  let mx=0, my=0;
+  if(t && !m.returning){
+    const dx=t.x-m.x, dy=t.y-m.y, dd=Math.hypot(dx,dy)||1;
+    if(dd-t.r-m.r>d.reach*0.8){ mx=dx/dd; my=dy/dd; }
+  } else {
+    const dx=m.hx-m.x, dy=m.hy-m.y, dd=Math.hypot(dx,dy);
+    if(dd>6){ mx=dx/dd; my=dy/dd; }
+  }
+  const ms=(st.freeze>0 || a.state==='windup') ? 0 : d.speed*(m.returning?1.4:1)*moveMult(m), k=Math.min(1,10*dt);
+  m.vx+=(mx*ms-m.vx)*k; m.vy+=(my*ms-m.vy)*k;
+  const kd=Math.exp(-6*dt); m.kx*=kd; m.ky*=kd;
+  m.x+=(m.vx+m.kx)*dt; m.y+=(m.vy+m.ky)*dt;
+  clampToWorld(m);
+}
+function monsterRelease(m){
+  const d=m.def, t=m.atk.main;
+  if(!t || t.dead || t.team===2 || dist(t,m)-t.r-m.r>d.reach+20) return;
+  const ang=Math.atan2(t.y-m.y, t.x-m.x);
+  fx({ type:'slash', owner:m, tgt:t, ang, life:0.2 });
+  damage(t, d.dmg*m.dmgMult, m, { type:'phys' });
+  if(d.cleave) for(const h of S.heroes){   // büyük canavar: hedefin çevresindeki kahramanlara da %60
+    if(h===t || h.dead || Math.hypot(h.x-t.x,h.y-t.y)-h.r>d.cleave) continue;
+    damage(h, d.dmg*m.dmgMult*0.6, m, { type:'phys' });
+  }
+  fx({ type:'impact', tgt:t, x:t.x, y:t.y, ang, life:0.2 });
+}
+/* Canavar öldü: son vuran kahramana altın (yoksa son 10 sn'de vuran son kahraman), yakındaki dostlarına XP, güçlendirme */
+function killMonster(e, src){
+  fx({ type:'death', x:e.x, y:e.y, r:e.r, team:2, life:0.4 });
+  let k = src && src.kind==='hero' ? src : null;
+  if(!k && e.lastHero && S.time-e.lastHeroT<=GOLD.assistWindow) k=e.lastHero;
+  bloodHarvest(e, src, null);
+  if(!k) return;
+  const d=e.def;
+  awardXP(k.team, e.x, e.y, d.xp, XP_RADIUS);
+  k.jCamps=(k.jCamps||0)+1;
+  if(d.big){
+    S.teamBuff[k.team]=S.time+BIG_BUFF.dur; S.jstats.big[k.team]++;
+    for(const h of S.heroes) if(h.team===k.team){ h.gold+=BIG_BUFF.gold; h.jGold=(h.jGold||0)+BIG_BUFF.gold; }
+    fx({ type:'boom', x:e.x, y:e.y, r0:e.r, r1:e.r+200, color:BIG_BUFF.color, life:0.9 });
+  } else {
+    const g=Math.floor(d.gold); k.gold+=g; k.jGold=(k.jGold||0)+g;
+    if(e.camp.mobs.every(m=>m.dead || m===e)) S.jstats.camps[k.team]++;
+  }
+  if(d.buff){ giveBuff(k, d.buff, BUFFS[d.buff].dur); S.jstats.buffs[k.team]++; }
+}
+export function giveBuff(h, key, dur){
+  const jb=h.jb||(h.jb={});
+  jb[key]=Math.max(jb[key]||0, S.time+dur);
+  fx({ type:'ring', owner:h, r0:h.r, r1:h.r+40, color:BUFFS[key].color, lw:4, life:0.6 });
+}
+export function hasBuff(h, key){ return !!(h.jb && h.jb[key]>S.time); }
+/* Ölen kahramanın güçlendirmeleri onu öldüren rakip kahramana geçer (kalan süreyle); ölünce kaybolur */
+function passBuffs(e, killer){
+  if(!e.jb) return;
+  for(const key of Object.keys(e.jb)){
+    const left=e.jb[key]-S.time;
+    if(left>0 && killer && killer.kind==='hero' && killer.team!==e.team) giveBuff(killer, key, left);
+  }
+  e.jb=null;
+}
+/* Yakıcı: düz vuruş isabetinde yavaşlatma + süreli büyü hasarı (yenilenir) */
+function burnHit(src, e){
+  const B=BUFFS.burn;
+  if(e.st && e.kind!=='struct') applySlow(e, B.slow, B.slowDur);
+  if(e.kind==='struct') return;
+  const dps=B.dpsBase+B.dpsPer*((src.level||1)-1);
+  const o=S.dots.find(x=>x.tgt===e && x.src===src);
+  if(o){ o.t=B.dotDur; o.dps=dps; } else S.dots.push({ tgt:e, src, dps, t:B.dotDur });
+}
+
 /* ---- kule ve yapılar ---- */
 export function updateProtection(){
   for(const team of [0,1]){
@@ -2116,6 +2290,7 @@ export function collideUnits(){
   const mob=MOB; let n=0;
   for(const u of S.heroes) if(!u.dead) mob[n++]=u;
   for(const u of S.minions) if(!u.dead) mob[n++]=u;
+  for(const u of S.monsters) if(!u.dead) mob[n++]=u;
   mob.length=n;
   let ns=0;   // canlı yapılar (konum ve yarıçap değişmez)
   for(const s of S.structs) if(!s.dead){ SX[ns]=s.x; SY[ns]=s.y; SR[ns]=s.r; ns++; }
@@ -2170,11 +2345,11 @@ export function updateProjectiles(dt){
     const stepLen=Math.hypot(p.vx,p.vy)*dt;
     p.x+=p.vx*dt; p.y+=p.vy*dt; p.dist+=stepLen;
     let hit=null, hd=1e9;
-    for(let pi=0; pi<3; pi++){
-      const L = pi===0 ? S.heroes : pi===1 ? S.minions : S.structs;
+    for(let pi=0; pi<4; pi++){
+      const L = pi===0 ? S.heroes : pi===1 ? S.minions : pi===2 ? S.structs : S.monsters;
       for(let ui=0; ui<L.length; ui++){
         const e=L[ui];
-        if(e.dead || e.team===p.team || (pi===2 && (e.prot || p.hook || p.noStruct)) || (pi===1 && p.noMinion)) continue;   // noMinion: Kalın Ok minyonlardan geçer   // Kanca ve Kan Patlaması topları yapılara değmez
+        if(e.dead || e.team===p.team || (pi===3 && p.noMinion) || (pi===2 && (e.prot || p.hook || p.noStruct)) || (pi===1 && p.noMinion)) continue;   // noMinion: Kalın Ok minyonlardan geçer   // Kanca ve Kan Patlaması topları yapılara değmez
         const dd=Math.hypot(e.x-p.x,e.y-p.y);
         if(dd<=e.r+p.r && dd<hd){ hit=e; hd=dd; }
       }
@@ -2250,6 +2425,7 @@ export function step(dt, getCmd){
   for(let i=0;i<HS.length;i++) updateHero(HS[i], cmds[i], dt);
   for(let i=0;i<S.minions.length;i++) updateMinion(S.minions[i], dt);
   for(let i=0;i<S.structs.length;i++) updateTower(S.structs[i], dt);
+  updateJungle(dt);
   collideUnits();
   updateProjectiles(dt);
   updateBolts(dt);

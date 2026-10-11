@@ -46,5 +46,12 @@ if(!isMainThread && workerData && workerData.worker){
   console.log(`A [${a}] vs B [${b}] | ${s.n} maç, ${((Date.now()-t0)/1000).toFixed(0)} sn`);
   console.log(`A kazanma ${s.aWin===null?'-':pct(s.aWin)} | ort. süre ${(s.time/60).toFixed(1)} dk | zaman aşımı ${s.timeouts}`);
   console.log(`A K/D/A ${s.kA.toFixed(1)}/${s.dA.toFixed(1)}/${s.asA.toFixed(1)} | B K/D/A ${s.kB.toFixed(1)}/${s.dB.toFixed(1)}/${s.asB.toFixed(1)}`);
+  { // orman ölçümleri: kamp temizleme, büyük canavar, ormancı ve koridorcu 10. dakika seviyesi/serveti
+    const J=rs.filter(r=>r.jungle); if(J.length){
+      const av=f=>J.reduce((t,r)=>t+f(r),0)/J.length;
+      const hs=J.flatMap(r=>r.heroes.filter(h=>h.lv10!==null)), m=(role,k)=>{ const x=hs.filter(h=>h.role===role); return x.length ? x.reduce((t,h)=>t+h[k],0)/x.length : 0; };
+      console.log(`orman: maç başına kamp ${av(r=>r.jungle.camps[0]+r.jungle.camps[1]).toFixed(1)}, güçlendirme ${av(r=>r.jungle.buffs[0]+r.jungle.buffs[1]).toFixed(1)}, büyük canavar ${av(r=>r.jungle.big[0]+r.jungle.big[1]).toFixed(2)} | ormancı canavar ${av(r=>r.heroes.filter(h=>h.role==='jungle').reduce((t,h)=>t+h.jCamps,0)/2).toFixed(1)}`);
+      console.log(`10. dk: ormancı seviye ${m('jungle','lv10').toFixed(2)} servet ${m('jungle','worth10').toFixed(0)} | koridorcu seviye ${m('lane','lv10').toFixed(2)} servet ${m('lane','worth10').toFixed(0)}`);
+    } }
   console.log(`birlikte hasar anı A ${s.jointA.toFixed(1)} B ${s.jointB.toFixed(1)} | A dostlar arası ort. ${s.apart.toFixed(0)} birim, 800 içinde %${(s.near*100).toFixed(0)} (B: %${(s.nearB*100).toFixed(0)})`);
 }
