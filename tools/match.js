@@ -1,5 +1,5 @@
 /* Ekransız tek maç: iki bot, sabit tick. Tarayıcıya bağımlı değil. */
-import { TICK } from '../data.js';
+import { TICK, XP_NEED } from '../data.js';
 import { S, resetGame, step } from '../sim.js';
 import { ITEMS, PARTS } from '../items.js';
 import { botCommand, LEVEL_IDS } from '../ai.js';
@@ -40,11 +40,11 @@ export function runMatch({ a, b, levelA, levelB, aTeam, seed, maxTime, aiA='yeni
 /* 2v2 bot maçı: takım A = a:[k1,k2], takım B = b:[k1,k2]. aTeam: A'nın takımı (0 veya 1).
    Ölçer: kazanan, süre, K/D/A, birlikte hasar anları (iki dost 2 sn içinde aynı rakip kahramana vurdu; aynı rakip için en fazla 5 sn'de bir sayılır),
    dostlar arası ortalama uzaklık (ikisi de hayattayken) ve 800 içinde kalma oranı. */
-export function runMatch2v2({ a, b, levelA=1, levelB=1, aTeam=0, seed=1, maxTime=2400, aiA='yeni', aiB='yeni', buildA='default', buildB='default', candAI={}, diffA='easy', diffB='easy', earlyStop=false }){
+export function runMatch2v2({ a, b, levelA=1, levelB=1, aTeam=0, seed=1, maxTime=2400, aiA='yeni', aiB='yeni', buildA='default', buildB='default', candAI={}, diffA='easy', diffB='easy', earlyStop=false, noJungleB=false }){
   Object.assign(CAND_AI, { team:1, cohesion:1 }, candAI);   // 'cand' botunun takım ayarları (ör. { team:0 }: dostu yok sayar; karşılaştırma için)
   const teams = aTeam===0 ? [a,b] : [b,a];
   const levels = aTeam===0 ? [levelA,levelB] : [levelB,levelA];
-  resetGame({ types:teams, levels, human:null, seed, fx:false, builds: aTeam===0 ? [buildA,buildB] : [buildB,buildA] });
+  resetGame({ types:teams, levels, human:null, seed, fx:false, builds: aTeam===0 ? [buildA,buildB] : [buildB,buildA], ...(noJungleB ? { noJungle:1-aTeam } : {}) });
   applyDiff(aTeam, diffA); applyDiff(1-aTeam, diffB);
   const ctl = aTeam===0 ? [BOTS[aiA], BOTS[aiB]] : [BOTS[aiB], BOTS[aiA]];
   if(!ctl[0] || !ctl[1]) throw new Error('Bilinmeyen bot: '+aiA+' / '+aiB);
@@ -63,7 +63,7 @@ export function runMatch2v2({ a, b, levelA=1, levelB=1, aTeam=0, seed=1, maxTime
   const T0 = [S.heroes.filter(h=>h.team===0), S.heroes.filter(h=>h.team===1)];
   let tick=0;
   const worth=h=>h.gold+(h.items||[]).reduce((t,id)=>t+((ITEMS[id]||PARTS[id]||{}).cost||0),0);
-  const at10=new Map(); const snap10=()=>{ for(const h of S.heroes) at10.set(h, { lv:h.level+h.xp/1000, worth:worth(h) }); };
+  const at10=new Map(); const snap10=()=>{ for(const h of S.heroes) at10.set(h, { lv:h.level+h.xp/XP_NEED(h.level), worth:worth(h) }); };
   let early=null;   // erken bitirme (earlyStop): kule farkı 2+ ya da rakip 2 kule kaybetti biz hiç (30 maçta %100 doğru; tools/teams2v2.js --fast)
   while(!S.over && S.time<maxTime && !early){
     step(TICK, getCmd); tick++;
@@ -87,7 +87,7 @@ export function runMatch2v2({ a, b, levelA=1, levelB=1, aTeam=0, seed=1, maxTime
     apartA:cnt[A] ? apart[A]/cnt[A] : null, nearA:cnt[A] ? near[A]/cnt[A] : null,
     apartB:cnt[B] ? apart[B]/cnt[B] : null, nearB:cnt[B] ? near[B]/cnt[B] : null,
     firstKill:S.stats.firstKill, firstTower:S.stats.firstTower,
-    heroes:S.heroes.map(h=>({ type:h.type, side:h.team===A?'A':'B', kills:h.kills, deaths:h.deaths, assists:h.assists, role:h.role, level:h.level+h.xp/1000, lv10:(at10.get(h)||{}).lv??null, worth10:(at10.get(h)||{}).worth??null, jCamps:h.jCamps||0, jGold:h.jGold||0, gold:h.gold+(h.items||[]).length*0 })),
+    heroes:S.heroes.map(h=>({ type:h.type, side:h.team===A?'A':'B', kills:h.kills, deaths:h.deaths, assists:h.assists, role:h.role, level:h.level+h.xp/1000, lv10:(at10.get(h)||{}).lv??null, worth10:(at10.get(h)||{}).worth??null, jCamps:h.jCamps||0, jGold:h.jGold||0, jm:h.jm||0, cuGold:h.cuGold||0, gold:h.gold+(h.items||[]).length*0 })),
     jungle:S.jstats ? { camps:S.jstats.camps.slice(), big:S.jstats.big.slice(), buffs:S.jstats.buffs.slice(), aTeam:A } : null
   };
 }

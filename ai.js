@@ -1228,7 +1228,8 @@ AI.jgLowHp = 0.35;     // baskın: görünen rakibin canı bunun altındaysa dos
 AI.jgWait = 12;        // kamp en geç bu kadar sn içinde doğacaksa başında bekle
 AI.jgBigLv = 6;        // büyük canavar için en az seviye (dost yanındaysa)
 AI.jgBigSolo = 9;      // bu seviyeden sonra tek başına da dener
-AI.jgBigWait = 18;     // dostu bu kadar sn bekler
+AI.jgBigWait = 18;
+AI.laneCampAllyR = 1200;   // koridorcu: dost ormancı bu kadar yakındaysa o kampa girmez     // dostu bu kadar sn bekler
 const campLive = c => c.alive && c.mobs.some(m=>!m.dead);
 /* Kampı (kalan canavarlarla) temizleyebilir miyiz: süre * aldığımız hasar < canımız */
 function campCost(b, c){
@@ -1270,6 +1271,7 @@ function gankTarget(b){
   return best;
 }
 function jungleMove(b, e, eVis, M, ev){
+  if(b.noJungle) return null;
   const hpF=b.hp/b.maxHp;
   M.jgGank=null; M.jgS='?';
   if(hpF<0.3 && !(eVis && dist(b,e)<700)){ M.recall=true; }
@@ -1314,7 +1316,7 @@ function jungleMove(b, e, eVis, M, ev){
 }
 /* Koridorcu: dostu ormancı büyük canavara çağırıyorsa ve koridor sakinse çukura git */
 function bigHelp(b, eVis, e){
-  if(b.role==='jungle' || b.hp/b.maxHp<0.6) return null;
+  if(b.noJungle || b.role==='jungle' || b.hp/b.maxHp<0.6) return null;
   if(eVis && dist(b,e)<1200) return null;
   const bc=bigCamp(); if(!bc || !campLive(bc)) return null;
   for(const a of S.heroes){
@@ -1326,12 +1328,13 @@ function bigHelp(b, eVis, e){
 }
 /* Tek koridorcu (dost ormancı yok): dalga yokken ve rakip görünmüyorken yakındaki kendi kampını kes */
 function laneCamp(b, eVis){
-  if(eVis || b.hp/b.maxHp<0.6) return null;
-  if(S.heroes.some(a=>a!==b && a.team===b.team && a.role==='jungle')) return null;
+  if(b.noJungle || eVis || b.hp/b.maxHp<0.6) return null;
+  const jg=S.heroes.find(a=>a!==b && a.team===b.team && a.role==='jungle' && !a.dead);   // dost ormancı varsa: güçlendirme kampları onun, yakındaki kampa girme
   for(const m of S.minions) if(!m.dead && dist(m,b)<1100) return null;
   let best=null, bd=1100;
   for(const c of S.camps){
     if(c.big || !campLive(c) || (c.side>=0 && c.side!==b.team)) continue;
+    if(jg && (c.buff || hyp(jg.x-c.x,jg.y-c.y)<AI.laneCampAllyR)) continue;
     const d=dist(b,c); if(d<bd && campOK(b,c,0.5)){ bd=d; best=c; }
   }
   return best ? campAttack(b,best) : null;

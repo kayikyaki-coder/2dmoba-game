@@ -21,8 +21,8 @@ export async function runDuoJobs(jobs, threads=Math.max(1, os.availableParalleli
   })));
   return out;
 }
-export function duoJobs({ a, b, matches=20, seed=1, maxTime=2400, level=1, aiA='yeni', aiB='yeni', candAI={}, diffA='easy', diffB='easy' }){
-  return Array.from({ length:matches }, (_,i)=>({ a, b, aTeam:i%2, seed:seed*1000+i, maxTime, levelA:level, levelB:level, aiA, aiB, candAI, diffA, diffB }));
+export function duoJobs({ a, b, matches=20, seed=1, maxTime=2400, level=1, aiA='yeni', aiB='yeni', candAI={}, diffA='easy', diffB='easy', noJungleB=false }){
+  return Array.from({ length:matches }, (_,i)=>({ a, b, aTeam:i%2, seed:seed*1000+i, maxTime, levelA:level, levelB:level, aiA, aiB, candAI, diffA, diffB, noJungleB }));
 }
 export function summarize(rs){
   const n=rs.length, fin=rs.filter(r=>r.winner!==null), avg=(f,xs=rs)=>xs.length ? xs.reduce((s,r)=>s+f(r),0)/xs.length : 0;
@@ -41,7 +41,7 @@ if(!isMainThread && workerData && workerData.worker){
 } else if(isMain(import.meta.url)){
   const o=parseArgs(process.argv.slice(2));
   const a=(o.a||'archer,warrior').split(','), b=(o.b||'mage,hook').split(',');
-  const jobs=duoJobs({ a, b, matches:+(o.matches||20), seed:+(o.seed||1), maxTime:+(o.maxTime||2400), level:+(o.level||1), diffA:o.diffA||'easy', diffB:o.diffB||'easy', ...(o.naiveB ? { aiB:'cand', candAI:{ team:0 } } : {}), ...(o.noCoh ? { aiB:'cand', candAI:{ cohesion:0 } } : {}) });
+  const jobs=duoJobs({ a, b, matches:+(o.matches||20), seed:+(o.seed||1), maxTime:+(o.maxTime||2400), level:+(o.level||1), diffA:o.diffA||'easy', diffB:o.diffB||'easy', noJungleB:!!o.noJungleB, ...(o.naiveB ? { aiB:'cand', candAI:{ team:0 } } : {}), ...(o.noCoh ? { aiB:'cand', candAI:{ cohesion:0 } } : {}) });
   const t0=Date.now(), rs=await runDuoJobs(jobs, o.threads ? +o.threads : undefined), s=summarize(rs);
   console.log(`A [${a}] vs B [${b}] | ${s.n} maç, ${((Date.now()-t0)/1000).toFixed(0)} sn`);
   console.log(`A kazanma ${s.aWin===null?'-':pct(s.aWin)} | ort. süre ${(s.time/60).toFixed(1)} dk | zaman aşımı ${s.timeouts}`);
@@ -51,6 +51,8 @@ if(!isMainThread && workerData && workerData.worker){
       const av=f=>J.reduce((t,r)=>t+f(r),0)/J.length;
       const hs=J.flatMap(r=>r.heroes.filter(h=>h.lv10!==null)), m=(role,k)=>{ const x=hs.filter(h=>h.role===role); return x.length ? x.reduce((t,h)=>t+h[k],0)/x.length : 0; };
       console.log(`orman: maç başına kamp ${av(r=>r.jungle.camps[0]+r.jungle.camps[1]).toFixed(1)}, güçlendirme ${av(r=>r.jungle.buffs[0]+r.jungle.buffs[1]).toFixed(1)}, büyük canavar ${av(r=>r.jungle.big[0]+r.jungle.big[1]).toFixed(2)} | ormancı canavar ${av(r=>r.heroes.filter(h=>h.role==='jungle').reduce((t,h)=>t+h.jCamps,0)/2).toFixed(1)}`);
+      const all=J.flatMap(r=>r.heroes), sideW=side=>J.length;
+      console.log(`hakimiyet: ormancı ${(all.filter(h=>h.role==='jungle').reduce((t,h)=>t+h.jm,0)/Math.max(1,all.filter(h=>h.role==='jungle').length)).toFixed(1)}, koridorcu ${(all.filter(h=>h.role!=='jungle').reduce((t,h)=>t+h.jm,0)/Math.max(1,all.filter(h=>h.role!=='jungle').length)).toFixed(1)} | telafi altını kahraman başına ${(all.reduce((t,h)=>t+h.cuGold,0)/all.length).toFixed(0)}`);
       console.log(`10. dk: ormancı seviye ${m('jungle','lv10').toFixed(2)} servet ${m('jungle','worth10').toFixed(0)} | koridorcu seviye ${m('lane','lv10').toFixed(2)} servet ${m('lane','worth10').toFixed(0)}`);
     } }
   console.log(`birlikte hasar anı A ${s.jointA.toFixed(1)} B ${s.jointB.toFixed(1)} | A dostlar arası ort. ${s.apart.toFixed(0)} birim, 800 içinde %${(s.near*100).toFixed(0)} (B: %${(s.nearB*100).toFixed(0)})`);

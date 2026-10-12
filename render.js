@@ -1,5 +1,5 @@
 /* Çizim: durumu sadece okur. Tarayıcıya bağımlı. */
-import { TEAM_COLORS as DATA_TEAM, MAX_LEVEL, FOUNTAIN, XP_NEED, KEY_LABELS, VISION, FORMS, JUNGLE, BUFFS, BIG_BUFF } from './data.js';
+import { TEAM_COLORS as DATA_TEAM, MAX_LEVEL, FOUNTAIN, XP_NEED, KEY_LABELS, VISION, FORMS, JUNGLE, BUFFS, BIG_BUFF, JUNGLE_MASTERY } from './data.js';
 import { PAL, rgba, mix } from './palette.js';
 import { drawToken, drawGlow, drawCrystal, paintMap, bushLights, texReady } from './art.js';
 texReady.then(()=>{ fieldCache=null; });   // dokular gelince zemini bir kez yeniden çiz
@@ -1180,7 +1180,7 @@ function drawScoreboard(W,H){
       ctx.textAlign='left'; ctx.font='bold 13px system-ui'; ctx.fillStyle=h.dead?'#8a87a8':'#fff';
       ctx.fillText((HERO_NAMES[h.type]||h.def.name)+(h===S.player?' (sen)':''), cN+28, cy);
       ctx.font='13px system-ui'; ctx.fillStyle=h.dead?'#8a87a8':'#dfe3f2';
-      ctx.fillText(h.level, cL, cy); ctx.fillText(h.kills+' / '+h.deaths+' / '+h.assists, cK, cy);
+      ctx.fillText(h.level, cL, cy); ctx.fillText(h.kills+' / '+h.deaths+' / '+h.assists+(h.jm?'  · O'+h.jm:''), cK, cy);
       ctx.fillStyle='#ffd24d'; ctx.fillText(Math.floor(h.gold), cG, cy);
       for(let i=0;i<SLOTS;i++){
         const id=h.items[i], it=id&&(ITEMS[id]||PARTS[id]), ix=cI+i*(tw*0.075), iw=tw*0.07;
@@ -1431,6 +1431,7 @@ function hudChips(p,x,y,maxW){
   if(st.freeze>0 && !p.dead) list.push({ t:'Kontrol altında', c:'#bfeaff', bg:'#2c4a66' });
   if(p.stasis>0) list.push({ t:'Dokunulmaz '+p.stasis.toFixed(1)+' sn', c:'#fff1b0', bg:'#5a4a1a' });
   if(p.recallCh) list.push({ t:'Üsse dönüş '+Math.max(0,p.recallCh.t).toFixed(1)+' sn', c:'#b8d8ff', bg:'#26406a' });
+  if(p.jm) list.push({ t:'Orman '+p.jm+' (+%'+Math.round(Math.min(JUNGLE_MASTERY.max,p.jm)*JUNGLE_MASTERY.per*100)+')', c:'#d8f7c0', bg:'#2f4a22' });   // orman hakimiyeti
   if(p.jb){ for(const k of ['regen','burn']) if(p.jb[k]>S.time) list.push({ t:BUFFS[k].name+' '+Math.ceil(p.jb[k]-S.time)+' sn', c:k==='regen'?'#c8fff2':'#ffd9b8', bg:k==='regen'?'#1d5a4e':'#6a3416' }); }
   if(S.teamBuff && S.teamBuff[p.team]>S.time) list.push({ t:BIG_BUFF.name+' '+Math.ceil(S.teamBuff[p.team]-S.time)+' sn', c:'#fff1b0', bg:'#5a4a1a' });
   if(p.form) list.push({ t:'Biçim: '+(p.form==='melee'?'Yakın':'Uzak'), c:p.form==='melee'?'#ffd7a8':'#bfe0ff', bg:p.form==='melee'?'#5a3a1c':'#26406a' });

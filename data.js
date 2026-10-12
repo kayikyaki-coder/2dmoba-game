@@ -619,6 +619,7 @@ export const towerMinionHit = m => m.maxHp/(TOWER.minionHits[m.type]||3)+0.01;
 export const JUNGLE = {
   // denge tur 2 (11.10.2026): canavar altın ve XP'si %15 arttı (ormancı kahramanlar %33-47'de kalıyordu)
   leash:520, aggroT:6, returnHeal:0.25,
+  xpMult:0.93, goldMult:0.95,                    // canavar XP ve altın genel çarpanı (denge için)
   basicMult:1.2, skillMult:1.6,            // kahramanların canavarlara hasarı: düz vuruş x1,2, yetenek ve diğer x1,6   // tasma yarıçapı (kamp merkezinden), vurmayan saldırganı bırakma süresi (sn), dönerken sn'de azami canın %25'i
   scale:{ hpPerMin:0.05, dmgPerMin:0.04, cap:2.2 },
   monsters:{
@@ -648,3 +649,12 @@ export const BUFFS = {
 /* Büyük canavar gücü: öldüren takımın bütün kahramanlarına (ölüler dahil) dur sn; takımın minyonları minionDmg/minionHp katı,
    kahraman ve minyonların yapılara hasarı structMult katı. Altın: takımın her üyesine gold. */
 export const BIG_BUFF = { name:'Titan Gücü', dur:120, minionDmg:1.4, minionHp:1.3, structMult:1.25, gold:120, color:'#ffd24d' };
+
+/* ---- Geri kalma telafisi ve orman hakimiyeti (12.10.2026) ----
+   CATCHUP_XP: kahramanın toplam XP'si rakip takım ortalamasından en az gap oranı kadar düşükse bütün XP kazancı +bonus (ilk eşleşen, tavan %40).
+   CATCHUP_GOLD: servet (altın + eşya değeri) rakip takım ortalamasından en az gap kadar gerideyse kahraman öldürme, kule yıkımı ve
+   Vaha Titanı ödüllerinde şahsi ilave altın (tavan 110). Asist alan geride kişi assistPct kadarını alır.
+   JUNGLE_MASTERY: kamp temizliği (son vuruş ya da kamp ödülünü alırken yakında olmak) +1 puan (h.jm); puan başına canavar XP/altını +per, en fazla max puan. Ölünce kalır. */
+export const CATCHUP_XP = [ { gap:0.40, bonus:0.40 }, { gap:0.30, bonus:0.30 }, { gap:0.20, bonus:0.20 } ];
+export const CATCHUP_GOLD = { steps:[ { gap:0.50, gold:110 }, { gap:0.40, gold:90 }, { gap:0.30, gold:70 }, { gap:0.20, gold:50 } ], assistPct:0.5 };
+export const JUNGLE_MASTERY = { per:0.02, max:15 };

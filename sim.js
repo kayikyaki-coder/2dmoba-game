@@ -1,5 +1,5 @@
 /* Simülasyon: tarayıcıya bağımlı değil (document, window, canvas yok). */
-import { TICK, WORLD, LANE_Y, TEAM_COLORS, TEAM_DARK, MAX_LEVEL, STATS, HEROES, FORMS, TOWER, towerChampHit, towerMinionHit, BASE_TOWER_HP, NEXUS, LAYOUT, FOUNTAIN, MINIONS, WAVE_ORDER, WAVE_FIRST, WAVE_INTERVAL, WAVE_GAP, OFF_TARGET_DMG, MINION_CALL, MINION_CALL_R, MINION_LEASH, respawnTime, RECALL, MINION_SCALE, GOLD, minionGold, XP_NEED, HERO_KILL_XP, STRUCT_XP, XP_RADIUS, VISION, JUNGLE, BUFFS, BIG_BUFF } from './data.js';
+import { TICK, WORLD, LANE_Y, TEAM_COLORS, TEAM_DARK, MAX_LEVEL, STATS, HEROES, FORMS, TOWER, towerChampHit, towerMinionHit, BASE_TOWER_HP, NEXUS, LAYOUT, FOUNTAIN, MINIONS, WAVE_ORDER, WAVE_FIRST, WAVE_INTERVAL, WAVE_GAP, OFF_TARGET_DMG, MINION_CALL, MINION_CALL_R, MINION_LEASH, respawnTime, RECALL, MINION_SCALE, GOLD, minionGold, XP_NEED, HERO_KILL_XP, STRUCT_XP, XP_RADIUS, VISION, JUNGLE, BUFFS, BIG_BUFF, CATCHUP_XP, CATCHUP_GOLD, JUNGLE_MASTERY } from './data.js';
 import { ITEMS, PARTS, SLOTS, START_GOLD, CRIT_MULT, BUILDS, DEF, DEF_CLASS, DEF_POOLS, DMG_PHYS } from './items.js';
 import { MAP_W, structPos, SPAWN_OFF, pushOutWalls, pushOutWallsInto, PUSH, wallsFar, inWall, sightBlocked, bushAt, BUSHES, lanePoint, laneProject, laneLength, laneDir } from './map.js';
 
@@ -153,8 +153,9 @@ export function resetGame(opts){
   }
   S.player = human===null ? null : S.heroes[human];
   // roller: 2+ kişilik takımda bir bot ormancı (oyuncu değil; yakın dövüşçü öncelikli, sonra düz vuruş gücü). opts.roles:false kapatır
-  for(const h of S.heroes) h.role='lane';
+  for(const h of S.heroes){ h.role='lane'; h.noJungle = opts.noJungle===h.team; h.jm=0; }   // noJungle: o takım ormanı hiç kesmez (kontrol deneyi)
   if(S.camps.length && opts.roles!==false) for(const team of [0,1]){
+    if(opts.noJungle===team) continue;
     const T=S.heroes.filter(h=>h.team===team && !h.human);
     if(S.heroes.filter(h=>h.team===team).length<2 || !T.length) continue;
     const jv=h=>(HEROES[h.type].attack.type!=='projectile' ? 1000 : 0)+STATS[h.type].dmg.base*STATS[h.type].as.base;   // yakın dövüşçü, sonra düz vuruş gücü yüksek olan
@@ -548,6 +549,7 @@ export function kill(e, src){
       const team=S.heroes.filter(h=>h.team!==e.team);
       const each=Math.floor(GOLD.towerSplit ? GOLD.tower/Math.max(1,team.length) : GOLD.tower);
       for(const h of team) h.gold+=each;   // ölü olanlar dahil bütün takım
+      for(const h of team) h.gold+=catchupGold(h);   // geride olana şahsi ek
     }
     if(e.sub==='nexus' && !S.over) S.over={ winner:src.team };
   }
@@ -798,9 +800,9 @@ export function awardHeroKillGold(victim, killer){
   if(!killer || killer.kind!=='hero' || killer.team===victim.team) return;
   const base = S.firstBlood ? GOLD.heroKill : GOLD.firstBlood;
   S.firstBlood = true;
-  killer.gold += Math.floor(base);
+  killer.gold += Math.floor(base) + catchupGold(killer);
   const assists = takedownParticipants(victim, killer).filter(h=>h!==killer);
-  if(assists.length){ const each=Math.floor(base*GOLD.assistPct/assists.length); for(const h of assists) h.gold+=each; }
+  if(assists.length){ const each=Math.floor(base*GOLD.assistPct/assists.length); for(const h of assists) h.gold+=each+Math.floor(catchupGold(h)*CATCHUP_GOLD.assistPct); }
 }
 /* Öldüren + asist yapanlar (son 10 sn'de kurbana zarar ya da öldürene yarar) */
 export function takedownParticipants(victim, killer){
@@ -825,11 +827,20 @@ export function markHelp(target, helper){ if(target!==helper && target.team===he
 /* ---- seviye ve XP ---- */
 /* XP paylaşımı (LoL gibi): yakında n kahraman varsa her biri XP_SHARE[n-1] katını alır (1v1'de hep tam) */
 const XP_SHARE=[1, 0.65, 0.45, 0.35, 0.28];
-export function awardXP(team, x, y, amt, radius){
+export function awardXP(team, x, y, amt, radius, mult){
   const near=S.heroes.filter(h=>!h.dead && h.team===team && Math.hypot(h.x-x,h.y-y)<=radius);
   const k=XP_SHARE[Math.min(near.length,XP_SHARE.length)-1]||1;
-  for(const h of near) gainXP(h,amt*k);
+  for(const h of near) gainXP(h, amt*k*(1+catchupXP(h))*(mult ? mult(h) : 1));
+  return near;
 }
+/* ---- geri kalma telafisi (data.js CATCHUP_XP / CATCHUP_GOLD) ---- */
+export function totalXP(h){ let t=h.xp; for(let l=1;l<h.level;l++) t+=XP_NEED(l); return t; }
+export function heroWorth(h){ return h.gold+(h.items||[]).reduce((t,id)=>t+((ITEMS[id]||PARTS[id]||{}).cost||0),0); }
+function foeAvg(h, f){ const F=S.heroes.filter(u=>u.team!==h.team && u.team<2); return F.length ? F.reduce((t,u)=>t+f(u),0)/F.length : 0; }
+function behind(h, f){ const a=foeAvg(h,f); return a>0 ? 1-f(h)/a : 0; }
+export function catchupXP(h){ const g=behind(h,totalXP); for(const r of CATCHUP_XP) if(g>=r.gap) return r.bonus; return 0; }
+export function catchupGold(h){ const g=behind(h,heroWorth); for(const r of CATCHUP_GOLD.steps) if(g>=r.gap){ h.cuGold=(h.cuGold||0)+r.gold; return r.gold; } return 0; }
+export const jmMult = h => 1+JUNGLE_MASTERY.per*Math.min(JUNGLE_MASTERY.max, h.jm||0);
 export function gainXP(h, amt){
   if(h.level>=MAX_LEVEL) return;
   h.xp+=amt;
@@ -2018,14 +2029,15 @@ function killMonster(e, src){
   bloodHarvest(e, src, null);
   if(!k) return;
   const d=e.def;
-  awardXP(k.team, e.x, e.y, d.xp, XP_RADIUS);
+  const near=awardXP(k.team, e.x, e.y, d.xp*JUNGLE.xpMult, XP_RADIUS, jmMult);
   k.jCamps=(k.jCamps||0)+1;
+  if(e.camp.mobs.every(m=>m.dead || m===e)) for(const h of new Set([k, ...near])) h.jm=(h.jm||0)+1;   // orman hakimiyeti: kamp temizliği
   if(d.big){
     S.teamBuff[k.team]=S.time+BIG_BUFF.dur; S.jstats.big[k.team]++;
-    for(const h of S.heroes) if(h.team===k.team){ h.gold+=BIG_BUFF.gold; h.jGold=(h.jGold||0)+BIG_BUFF.gold; }
+    for(const h of S.heroes) if(h.team===k.team){ const g=BIG_BUFF.gold+catchupGold(h); h.gold+=g; h.jGold=(h.jGold||0)+g; }
     fx({ type:'boom', x:e.x, y:e.y, r0:e.r, r1:e.r+200, color:BIG_BUFF.color, life:0.9 });
   } else {
-    const g=Math.floor(d.gold); k.gold+=g; k.jGold=(k.jGold||0)+g;
+    const g=Math.floor(d.gold*JUNGLE.goldMult*jmMult(k)); k.gold+=g; k.jGold=(k.jGold||0)+g;
     if(e.camp.mobs.every(m=>m.dead || m===e)) S.jstats.camps[k.team]++;
   }
   if(d.buff){ giveBuff(k, d.buff, BUFFS[d.buff].dur); S.jstats.buffs[k.team]++; }
