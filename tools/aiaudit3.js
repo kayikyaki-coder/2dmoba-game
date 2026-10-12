@@ -28,7 +28,7 @@ function burst(h){
   for(const k of keys){ const sk=h.def.skills[k]; if(h.rank[k]>0 && h.cd[k]<=0 && Array.isArray(sk.dmg)) s+=(sk.dmg[h.rank[k]-1]||0)+(sk.ap||0)*apOf(h); }
   return s*0.8;   // direnç kabası
 }
-function newStat(){ return { min:0, pokeOpp:0, pokeUse:0, kOpp:0, kFlee:0, kConv:0, mobIn:0, mobOut:0, mobN:0, bushT:0, aliveT:0, bushHit:0, shot:0, shotHit:0, games:0, wins:0 }; }
+function newStat(){ return { min:0, pokeOpp:0, pokeUse:0, kOpp:0, kFlee:0, kConv:0, mobIn:0, mobOut:0, mobN:0, bushT:0, aliveT:0, bushHit:0, kSaw:0, shot:0, shotHit:0, games:0, wins:0 }; }
 
 function runOne(job){
   const { a, b, seed, ai, diff, duo, maxTime } = job;
@@ -36,7 +36,7 @@ function runOne(job){
   const li=LEVEL_IDS.indexOf(diff); for(const h of S.heroes) h.botLevel=li;
   const ctl=BOTS[ai];
   const st=new Map(), per=new Map();
-  for(const h of S.heroes){ st.set(h, newStat()); per.set(h, { prev:{r:0,e:0,s:0}, open:{r:false,e:false,s:false}, used:{r:false,e:false,s:false}, kOpen:false, kFled:false, kT:0, kTgt:null, mob:[], shots:[], lastHitBush:-9 }); }
+  for(const h of S.heroes){ st.set(h, newStat()); per.set(h, { prev:{r:0,e:0,s:0}, open:{r:false,e:false,s:false}, used:{r:false,e:false,s:false}, kOpen:false, kFled:false, kAway:0, kSaw:false, kT:0, kTgt:null, mob:[], shots:[], lastHitBush:-9 }); }
   S.onDamage=(e,amt,src,opts)=>{
     if(!src || src.kind!=='hero' || e.kind!=='hero' || e.team===src.team) return;
     const P=per.get(src), R=st.get(src); if(!P) return;
@@ -67,12 +67,13 @@ function runOne(job){
       P.mob=P.mob.filter(m=>{ if(S.time-m.t<0.6) return true; if(!m.f.dead){ const nd=Math.hypot(m.f.x-h.x,m.f.y-h.y); if(nd<m.d-60) R.mobIn++; else if(nd>m.d+60) R.mobOut++; } return false; });
       // öldürme fırsatı
       const kill = f && fd<700 && (f.hp+(f.st.shield?f.st.shield.amt:0)) < burst(h) && h.hp>h.maxHp*0.12;
-      if(kill && !P.kOpen){ P.kOpen=true; P.kFled=false; P.kT=S.time; P.kTgt=f; R.kOpp++; }
+      if(kill && !P.kOpen){ P.kOpen=true; P.kFled=false; P.kAway=0; P.kSaw=false; P.kT=S.time; P.kTgt=f; R.kOpp++; }
       if(P.kOpen){
         const tg=P.kTgt;
-        if(tg.dead){ if(S.time-P.kT<4) R.kConv++; P.kOpen=false; if(P.kFled) R.kFlee++; }
-        else if(S.time-P.kT>4){ P.kOpen=false; if(P.kFled) R.kFlee++; }
-        else if(!P.kFled){ const dx=tg.x-h.x, dy=tg.y-h.y, l=Math.hypot(dx,dy)||1, v=((h.vx||0)*dx+(h.vy||0)*dy)/l; if(v < -60) P.kFled=true; }
+        if(h.ai && h.ai.v2 && h.ai.v2.kw) P.kSaw=true;
+        if(tg.dead){ if(S.time-P.kT<4) R.kConv++; P.kOpen=false; if(P.kFled) R.kFlee++; if(P.kSaw) R.kSaw++; }
+        else if(S.time-P.kT>4){ P.kOpen=false; if(P.kFled) R.kFlee++; if(P.kSaw) R.kSaw++; }
+        else if(!P.kFled){ const dx=tg.x-h.x, dy=tg.y-h.y, l=Math.hypot(dx,dy)||1, v=((h.vx||0)*dx+(h.vy||0)*dy)/l; if(v < -60 && S.time-P.kT<1.5){ P.kAway+=TICK; if(P.kAway>=0.4) P.kFled=true; } }
       }
     }
   }
@@ -99,8 +100,8 @@ if(!isMainThread && workerData && workerData.worker){
   const by={}, all=newStat();
   for(const r of out) for(const { type, R } of r){ if(o.hero && type!==o.hero) continue; const t=by[type]||(by[type]=newStat()); for(const k in R){ t[k]+=R[k]; all[k]+=R[k]; } }
   const p=(x,y)=>y?(x/y*100).toFixed(0)+'%':'-', f=(x)=>x.toFixed(2);
-  const row=(n,t)=>`${n.padEnd(12)} dürtme ${p(t.pokeUse,t.pokeOpp).padStart(4)} (${t.pokeOpp}) | öldürme fırs. ${String(t.kOpp).padStart(4)} kaçtı ${p(t.kFlee,t.kOpp).padStart(4)} dönüştü ${p(t.kConv,t.kOpp).padStart(4)} | hareket ${t.mobN} giriş ${p(t.mobIn,t.mobN).padStart(4)} kaçış ${p(t.mobOut,t.mobN).padStart(4)} | çalı ${p(t.bushT,t.aliveT).padStart(4)} çalıdan vuruş/dk ${f(t.bushHit/t.min)} | isabet ${p(t.shotHit,t.shot).padStart(4)} (${t.shot})`;
+  const row=(n,t)=>`${n.padEnd(12)} dürtme ${p(t.pokeUse,t.pokeOpp).padStart(4)} (${t.pokeOpp}) | öldürme fırs. ${String(t.kOpp).padStart(4)} kaçtı ${p(t.kFlee,t.kOpp).padStart(4)} dönüştü ${p(t.kConv,t.kOpp).padStart(4)} gördü ${p(t.kSaw,t.kOpp).padStart(4)} | hareket ${t.mobN} giriş ${p(t.mobIn,t.mobN).padStart(4)} kaçış ${p(t.mobOut,t.mobN).padStart(4)} | çalı ${p(t.bushT,t.aliveT).padStart(4)} çalıdan vuruş/dk ${f(t.bushHit/t.min)} | isabet ${p(t.shotHit,t.shot).padStart(4)} (${t.shot})`;
   console.log(`aiaudit3: bot ${ai}, ${diff}, ${duo?'2v2':'1v1'}, ${N} maç, tohum ${seed}`);
-  for(const [k,t] of Object.entries(by).sort()) console.log(row(HERO_NAMES[k]||k, t));
+  for(const [k,t] of Object.entries(by).sort()) console.log(row(k, t));
   console.log(row('TOPLAM', all));
 }

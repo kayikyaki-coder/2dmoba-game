@@ -4,7 +4,7 @@
 import { WORLD, LANE_Y, TOWER, towerChampHit, towerMinionHit, FOUNTAIN, respawnTime, RECALL } from './data.js';
 import { S, settings, rand, dist, atkDef, atkDmg, attackSpeed, timings, canSee, canAct, stat, burnDps, apOf, canShop, botShop, nextBuild, itemCostFor, attackTarget, inAttackRange, bonusAd, bonusHp, inCone } from "./sim.js";
 import { CRIT_MULT } from './items.js';
-import { lanePoint, laneProject, laneDir, inWall } from './map.js';
+import { lanePoint, laneProject, laneDir, inWall, BUSHES, bushAt } from './map.js';
 import { navDir, slideDir } from './nav.js';
 
 /* Ayarlanabilir sabitler */
@@ -49,21 +49,28 @@ const KEY = { r:'rmb', e:'e', s:'space' };
    Kolay AI nesnesinin kendisi; diğerleri AI'dan türer (AI.js sabitleri değişince ya da --tune ile yansır) ve yalnız farklarını taşır. */
 export const LEVEL_IDS = ['easy','medium','hard','expert'];
 AI.lvl=0; AI.dodgeW=1; AI.dodgeNeed=0; AI.dodgeT=1e9; AI.look=0; AI.towerGate=0;
-const MED = { lvl:1, react:[0.07,0.14], aimNoise:0.03, humanErr:22, humanRange:28, humanAtkDelay:0.07, humanMoveHold:[0.05,0.12], lhSoon:1.5, dodgeW:2, dodgeNeed:14 };
-const HARD = { lvl:2, win:1, cmb:1, bait:1, wave:1,   // karar katmanı bayrakları (Zor): bekleme penceresi, kombo/öldürme, kule çekme, dalga dönüşü
+/* Karar katmanı (12.10.2026): misjudge = öldürme/dövüş tahmininde rastgele yanılma payı (±), pokeP = dürtme fırsatını değerlendirme olasılığı,
+   killSense = öldürme penceresini fark etme olasılığı, bushP = beklerken çalıya girme olasılığı, lead = nişanda hareket tahmininin ne kadarını kullandığı */
+AI.persOn=1; AI.titan=0; AI.siege=1; AI.selfKw=1; AI.kwOn=1; AI.pokeOn=1; AI.bushOn=1; AI.misjudge=0.3; AI.pokeP=0.45; AI.killSense=0.6; AI.bushP=0.25; AI.lead=0.7;
+const MED = { lvl:1, misjudge:0.18, pokeP:0.7, killSense:0.85, bushP:0.45, lead:0.85, react:[0.07,0.14], aimNoise:0.03, humanErr:22, humanRange:28, humanAtkDelay:0.07, humanMoveHold:[0.05,0.12], lhSoon:1.5, dodgeW:2, dodgeNeed:14 };
+const HARD = { lvl:2, win:1, cmb:1, bait:1, wave:1, misjudge:0.1, pokeP:0.85, killSense:0.95, bushP:0.55, lead:0.95,   // karar katmanı bayrakları (Zor): bekleme penceresi, kombo/öldürme, kule çekme, dalga dönüşü
   react:[0.04,0.09], aimNoise:0.02, humanErr:5, humanRange:6, humanAtkDelay:0.015, humanMoveHold:[0.025,0.06] };
 export const LEVEL_PARAMS = [];   // araçlar için (tools/levels.js deney ayarı)
 const LV = [AI,
   Object.assign(Object.create(AI), MED),
   Object.assign(Object.create(AI), MED, HARD),
-  Object.assign(Object.create(AI), MED, HARD, { lvl:3, dng:1, chain:1, focus:1, react:[0.03,0.08], aimNoise:0.015, humanErr:0, humanRange:0, humanAtkDelay:0, humanMoveHold:[0.02,0.04],
+  Object.assign(Object.create(AI), MED, HARD, { lvl:3, misjudge:0.05, pokeP:0.9, killSense:1, lead:1, dng:1, chain:1, focus:1, react:[0.03,0.08], aimNoise:0.015, humanErr:0, humanRange:0, humanAtkDelay:0, humanMoveHold:[0.02,0.04],
     dodgeW:2.4, dodgeNeed:16, dodgeT:0.6, foeMemory:8, look:2, towerGate:1 })];
 LV.forEach((o,i)=>{ LEVEL_PARAMS[i]=o; });
 const LVP = b => LV[b.botLevel|0] || AI;
 export function setBotLevel(h, id){ const i = typeof id==='number' ? id : LEVEL_IDS.indexOf(id); h.botLevel = i>0 ? i : 0; }
 
 function mem(b){
-  return b.ai.v2 || (b.ai.v2 = { recall:false, fight:false, seen:new WeakMap(), juke:1, jukeT:0, noise:0, noiseT:0, threatRef:null, threatAt:0 });
+  if(b.ai.v2) return b.ai.v2;
+  // Kişilik (maç başına, sim rng'si ile): aggr dövüşe girme isteği, risk öldürme denemesinde karşı hasarı ne kadar göze aldığı,
+  // roam baskın/rakip ormana girme eğilimi, poke dürtme sıklığı, bush çalı sevgisi
+  const pers={ aggr:0.85+rand()*0.3, risk:0.8+rand()*0.45, roam:rand(), poke:0.75+rand()*0.5, bush:rand() };
+  return (b.ai.v2 = { recall:false, fight:false, seen:new WeakMap(), juke:1, jukeT:0, noise:0, noiseT:0, threatRef:null, threatAt:0, pers });
 }
 
 /* ---- yardımcılar ---- */
@@ -160,7 +167,8 @@ function canDive(b, st, e, M){
   if(e && !e.dead && dist(e,st)<AI.diveEnemyDist) return false;
   // ölüm ucuzsa (yeniden doğma kısa) ölene kadar vur, pahalıysa canı koru
   const cheap=respawnTime(S.time)<=AI.cheapDeath;
-  const floor=b.maxHp*(cheap?0:AI.diveFloor), start=cheap?0.2:AI.diveStart;
+  let floor=b.maxHp*(cheap?0:AI.diveFloor), start=cheap?0.2:AI.diveStart;
+  if(M.foesDown && LVP(b).siege){ floor=Math.min(floor, b.maxHp*0.12); start=Math.min(start, 0.3); }   // rakip ölü: daha cesur kuşatma
   if(b.hp < (M.dive ? floor : b.maxHp*start)) return false;
   let myD=dps(b)*0.95;
   for(const m of S.minions) if(!m.dead && m.team===b.team && dist(m,st)<300) myD+=m.def.dmg/m.def.period;
@@ -436,7 +444,7 @@ function pickSkill(cands, ccWin){
 
 /* Mermi nişanı: hedefin hızına göre önden nişan alır (hazırlık + uçuş süresi) */
 function leadAim(b, u, wind, speed, M){
-  const vx=(u.vx||0)+(u.kx||0), vy=(u.vy||0)+(u.ky||0);
+  const lf=u.kind==='hero' ? LVP(b).lead : 1, vx=((u.vx||0)+(u.kx||0))*lf, vy=((u.vy||0)+(u.ky||0))*lf;   // seviye: hareket tahmininin ne kadarı kullanılır
   let tx=u.x, ty=u.y;
   for(let i=0;i<3;i++){
     const tt=wind+Math.max(0,hyp(tx-b.x,ty-b.y)-b.r)/speed;
@@ -516,6 +524,80 @@ function dodgeVec(b, e, eVis, M){
     }
   }
   return { x:vx, y:vy };
+}
+
+/* ---- öldürme penceresi, dürtme, çalı (12.10.2026) ---- */
+/* Hasar türü yetenek değerlerinin toplamı (bonus ve kalkan türleri hariç) */
+function burstSum(h){ let s=0; for(const [t,v] of Object.entries(burstRaw(h,0))) if(!BONUS_T[t] && !EHP_T[t]) s+=v; return s; }
+const resF = (u) => 100/(100+Math.max(0,(stat(u,'armor')+stat(u,'mr'))/2));
+/* Rakibi şimdi öldürebilir miyiz? myDmg: hazır yetenekler + birkaç düz vuruş (direnç sonrası), ehp: rakibin canı + kalkanı,
+   eDmg: aynı sürede bize gelecek hasar (rakip ve yakınındaki dostlarının patlaması + 2 sn düz vuruş, gerekirse kule) */
+function killCalc(b, e){
+  const autos = ranged(b) ? 2 : 2.5;
+  const myDmg=(burstSum(b)+atkDmg(b)*hitMult(b)*autos)*resF(e)+burnOf(b)*2;
+  const ehp=e.hp+(e.st.shield?e.st.shield.amt:0);
+  let eDmg=0;
+  for(const u of S.heroes) if(u.team!==b.team && !u.dead && (u===e || (canSee(b.team,u) && dist(u,e)<700))) eDmg+=(burstSum(u)+dps(u)*2)*resF(b);
+  if(!heroHitSafe(b,e,e.x,e.y)) eDmg+=towerChampHit(0)+towerChampHit(1);
+  return { myDmg, ehp, eDmg };
+}
+/* Öldürme penceresi: rakip erişimde (düz vuruş, yetenek ya da atılış menzili) ve hasarımız canını götürüyor, karşı hasar canımızı geçmiyor.
+   Olasılıklı ve hatalı: pencereyi fark etme (killSense) ve hasar tahmini (misjudge) her ~1,5 sn yeniden çekilir; kişilik risk payını belirler.
+   Kendi can eşiğimizden önce gelir (çekilme kararını ezer). */
+function killWindow(b, e, d, M){
+  if(!e || e.dead || e.stasis>0) return false;
+  const LP=LVP(b), P=M.pers;
+  if(S.time>=(M.kwT||0)){ M.kwT=S.time+1.2+rand()*0.6; M.kwRoll=rand(); M.kwMis=1+(rand()*2-1)*LP.misjudge; }
+  if(!LP.kwOn || M.kwRoll>LP.killSense) return false;
+  let mob=0;
+  for(const k of ['r','e','s']){ const sk=b.def.skills[k]; if(rdy(b,k) && INIT_TYPES.has(sk.type)) mob=Math.max(mob, sk.dist||sk.dMax||sk.range||0); }
+  const reach=Math.max(reachTo(b,e), skillReach(b), reachTo(b,e)+mob)+60;
+  if(d>reach) return false;
+  const k=killCalc(b,e);
+  if(k.myDmg*M.kwMis < k.ehp) return false;
+  const margin=b.hp+(b.st.shield?b.st.shield.amt:0);
+  // rakip kulesinin altında: yalnız kesin ve hızlı öldürme (kule ölümlerini azaltır)
+  if(!heroHitSafe(b,e,e.x,e.y) && (k.myDmg*M.kwMis < k.ehp*1.25 || hpNow(b)<0.4 || k.eDmg > margin*0.8)) return false;
+  return k.eDmg < margin*P.risk || k.myDmg*M.kwMis > k.ehp*1.6;
+}
+/* Dürtme yetenekleri (uzaktan hasar) */
+const POKE_T = new Set(['fireball','ignite','beam','groworb','spiritburst','tether','bloodbolt','boomerang','bigarrow','volley','hook','stunorb','bomb','meteor','blink']);
+/* Dürtme planı: hazır dürtme yeteneği varsa onun menziline (rakibe göre) yaklaşacağımız nokta; güvenli değilse null.
+   Kullanınca (tradeBack) kısa süre geri çekiliriz (alışveriş: vur ve çekil). */
+function pokePlan(b, e, d, ev, M){
+  if(S.time<(M.tradeBack||0) || hpNow(b)<0.35) return null;
+  const LP=LVP(b), P=M.pers;
+  if(S.time>=(M.pokeT||0)){ M.pokeT=S.time+2+rand()*2; M.pokeRoll=rand()<Math.min(0.97, LP.pokeP*P.poke); }
+  if(!M.pokeRoll || !LP.pokeOn) return null;
+  let best=null;
+  for(const k of ['r','e','s']){
+    const sk=b.def.skills[k];
+    if(!rdy(b,k) || !POKE_T.has(sk.type) || !sk.range) continue;
+    if(k==='s' && sk.type!=='bigarrow') continue;   // büyük yetenek dürtmeye harcanmaz
+    let r=sk.range;
+    if(sk.type==='groworb') r=sk.range*0.92; else if(sk.type==='bigarrow') r=Math.min(sk.range, 950); else if(sk.type==='blink') r=sk.range+(sk.radius||0)*0.5;
+    if(!best || r>best.r) best={ k, r, type:sk.type };
+  }
+  if(!best) return null;
+  const want=best.r-35+e.r*0.5;
+  if(d>want+420) return null;   // çok uzak: önce koridor
+  // yakın dövüşçü rakibe karşı tehdit menziline (atılış dahil) çok girmeyelim; üstün değilsek
+  if(!ranged(e) && want<threatR(e,b)-30 && !(ev && ev.adv>=1.05)) return null;
+  if(ev && ev.adv<0.55) return null;
+  const sp=standPoint(b, e, want);
+  if(!heroHitSafe(b,e,sp.x,sp.y) || unsafeAt(b,sp.x,sp.y) || inWall(sp.x,sp.y,b.r+4)) return null;
+  return { x:sp.x, y:sp.y, k:best.k };
+}
+/* Çalı merkezleri (bekleme ve kaçış için) */
+const BUSH_PTS = BUSHES.map(bu=>{
+  if(bu.c) return { x:bu.c[0], y:bu.c[1] };
+  if(bu.poly){ let x=0, y=0; for(const q of bu.poly){ x+=q[0]; y+=q[1]; } x/=bu.poly.length; y/=bu.poly.length; if(bushAt(x,y)===null || bushAt(x,y)<0){ y-=20; } return { x, y }; }
+  return { x:bu.x+bu.w/2, y:bu.y+bu.h/2 };
+}).filter(p=>{ const i=bushAt(p.x,p.y); return i!==null && i>=0; });
+function bushNear(x, y, R, b){
+  let best=null, bd=R;
+  for(const p of BUSH_PTS){ const dd=hyp(p.x-x,p.y-y); if(dd<bd && !unsafeAt(b,p.x,p.y)){ bd=dd; best=p; } }
+  return best;
 }
 
 /* ---- karar katmanları ---- */
@@ -602,7 +684,10 @@ function laneMove(b, e, eVis, M, ev){
   let dive=false;
   const outn=outnumbered(b), ownT=frontTower(b.team);
   if(outn) M.outn=S.time;
-  if(st && !st.prot && dist(b,st)<1600 && !outn){
+  // rakiplerin hepsi ölüyse (en az birkaç sn) kuleye yürü ve vur: öldürmeyi yapıya çevir
+  let foesDown=true; for(const u of S.heroes) if(u.team!==b.team && !(u.dead && u.respawn>3)) { foesDown=false; break; }
+  M.foesDown=foesDown;
+  if(st && !st.prot && dist(b,st)<(foesDown && LVP(b).siege ? 4200 : 1600) && !outn){
     const sp=findStand(b, st, reachTo(b,st)-15);
     if(sp){ tgt=st; stand=sp; }
     else if(canDive(b,st,e,M)){ tgt=st; stand=standPoint(b, st, reachTo(b,st)-15); dive=true; }
@@ -627,7 +712,7 @@ function laneMove(b, e, eVis, M, ev){
     }
     // yapıya vuruyorsak bile menzildeki son vuruşu kaçırma
     const inReach = mTgt && dist(b,mTgt)<=reachTo(b,mTgt);
-    if(mTgt && (!tgt || (bestInfo.now && inReach))){
+    if(mTgt && (!tgt || (bestInfo.now && inReach)) && !(foesDown && LVP(b).siege && tgt && tgt.kind==='struct' && !bestInfo.now)){
       tgt=mTgt; stand=mStand; dive=false;
       // son vuruş yakınsa bekle: canı dolu minyona vurup ritmi bozma (dost minyon vuruyorsa)
       if(!bestInfo.now && bestInfo.soon && incomingDps(mTgt)>0) hold=true;
@@ -657,16 +742,22 @@ function laneMove(b, e, eVis, M, ev){
     if(teamRank(b)===1) side=-side;   // 2v2: iki dost yan yana dursun, üst üste binmesin
     let gx=gp.x-gp.ty*side, gy=gp.y+gp.tx*side;
     for(let i=0;i<40 && unsafeAt(b,gx,gy);i++){ gs-=ld*40; gp=lanePoint(gs); gx=gp.x-gp.ty*side; gy=gp.y+gp.tx*side; }
+    // Çalı: beklerken yakında çalı varsa bazen içinde bekle (yakın dövüşçüler daha çok: pusu)
+    if(S.time>=(M.bushT||0)){ M.bushT=S.time+5+rand()*5; M.bushGo = rand() < LVP(b).bushP*(ranged(b)?0.5:1.2)*(0.5+M.pers.bush); }
+    if(M.bushGo && !outn && LVP(b).bushOn){ const bp=bushNear(gx,gy,450,b); if(bp){ gx=bp.x; gy=bp.y; } }
     const dx=gx-b.x, dy=gy-b.y;
     mv = hyp(dx,dy)<20 ? { x:0, y:0 } : { x:dx, y:dy };
   }
   // Güçlü rakipten uzak dur (eşit güçteyse dalgayla oynamaya devam)
   const LPl=LVP(b), dgr = LPl.dng && eVis ? dangerR(e,b) : 0;   // Uzman: hazır tehlikeli yeteneğin menzilinden uzak dur
-  if(eVis && ev && (ev.adv<AI.fleeAdv || (dgr>0 && ev.adv<1.3))){
-    const d=dist(b,e), tr = ev.adv<AI.fleeAdv ? threatR(e,b) : Math.max(threatR(e,b), dgr);
+  const kd = !!M.inDanger;   // rakibin öldürme penceresindeyiz: menzilinden çık
+  if(eVis && ev && (ev.adv<AI.fleeAdv || (dgr>0 && ev.adv<1.3) || kd)){
+    const d=dist(b,e), tr = kd ? Math.max(threatR(e,b), skillReach(e))+120 : ev.adv<AI.fleeAdv ? threatR(e,b) : Math.max(threatR(e,b), dgr);
     if(d<tr){
       const l=hyp(mv.x,mv.y)||1, w=(tr-d)/tr*2.5+0.6;
       mv={ x:mv.x/l+(b.x-e.x)/d*w+homeDir(b)*AI.homeBias*w, y:mv.y/l+(b.y-e.y)/d*w };
+      // kaçarken canımız azsa yakındaki çalıya (rakipten uzak tarafta) gir: görüşü kır
+      if(hpNow(b)<0.5){ const bp=bushNear(b.x,b.y,380,b); if(bp && hyp(bp.x-e.x,bp.y-e.y)>d){ const bl=hyp(bp.x-b.x,bp.y-b.y)||1; mv.x+=(bp.x-b.x)/bl*w*0.8; mv.y+=(bp.y-b.y)/bl*w*0.8; } }
       // 2v2: kaçarken yakın dosta doğru çekil (birlikte dövüşmek için)
       const al=nearestAlly(b);
       if(al && dist(al,e)>d*0.8){ const ad=dist(al,b)||1; if(ad>200 && ad<1800){ mv.x+=(al.x-b.x)/ad*w*0.6; mv.y+=(al.y-b.y)/ad*w*0.6; } }
@@ -720,7 +811,7 @@ function structOnLine(b, e, w){
    Dönüş: nişan açısı ya da null. */
 function tetherPlan(b, e, eVis, d, fight, M, sk, ev){
   if(!eVis || M.recall || b.ic.tether || e.stasis>0 || e.pulled || d-e.r>=sk.range-80) return null;
-  if(!(fight || (ev && ev.adv>=AI.pokeAdv))) return null;
+  if(!(fight || M.poking || (ev && ev.adv>=AI.pokeAdv))) return null;
   const ang=leadAim(b,e,sk.cast,sk.speed,M);
   if(!heroHitSafe(b,e,b.x,b.y) || unsafeAt(b,b.x,b.y) || blocker(b,ang,e,sk.radius)) return null;
   return ang;
@@ -737,7 +828,7 @@ function blinkPlan(b, e, eVis, d, fight, M, sk){
     }
     return null;
   }
-  if(fight && !M.recall && hpNow(b)>=0.45 && d>200 && d<sk.range+sk.radius-30){
+  if((fight || M.poking) && !M.recall && hpNow(b)>=0.45 && d>200 && d<sk.range+sk.radius-30){
     const t=Math.min(sk.range, d-130), ux=(e.x-b.x)/d, uy=(e.y-b.y)/d, px=b.x+ux*t, py=b.y+uy*t;
     if(inWall(px,py,b.r+4) || unsafeAt(b,px,py) || !heroHitSafe(b,e,px,py)) return null;
     if(hyp(px-e.x,py-e.y)-e.r>sk.radius-15) return null;
@@ -864,6 +955,8 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
   const acting=canAct(b);
   if(!acting && b.st.freeze<=0) return;   // sersemken yalnız Arınma türü denenir (aşağıda)
   const d=eVis ? dist(b,e) : 1e9, quiet=!eVis || d>900;
+  const fp = fight || !!M.poking;                            // dürtme: uzak hasar yetenekleri dövüş gibi kullanılır
+  const pz = fp || !!(ev && ev.adv>=AI.pokeAdv);
   const near=(r)=>{ let n=0; for(const m of S.minions) if(!m.dead && m.team!==b.team && dist(m,b)<r) n++; return n; };
   // Gölge Adımı dönüşü (bekleme süresinden bağımsız): canımız düşükse ve rakip üstümüzdeyse ya da indiğimiz yer kule menzilindeyse başladığımız yere dön.
   // Kaçış için atılan adımda ve ilk 0,35 sn içinde dönmez.
@@ -871,8 +964,9 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
     for(const kk of ['e','s']){
       const bk=b.ic.back && b.ic.back[kk];
       if(!bk || S.time>bk.until || S.time-(bk.until-bk.total)<0.35) continue;
-      const danger=(eVis && hpNow(b)<0.4 && d<threatR(e,b)+250) || (eVis && hpNow(b)<hpNow(e)-0.25 && d<threatR(e,b)+150) || !!unsafeAt(b,b.x,b.y);
-      if(danger){ cmd[KEY[kk]]=true; return; }
+      const danger=(eVis && hpNow(b)<0.4 && d<threatR(e,b)+250 && !M.kw) || (eVis && hpNow(b)<hpNow(e)-0.25 && d<threatR(e,b)+150 && !M.kw) || !!unsafeAt(b,b.x,b.y);
+      const pokeBack = M.blinkPoke && S.time>=M.blinkPoke && !fight;   // dürtme adımı: patlattıktan sonra geri dön
+      if(danger || pokeBack){ M.blinkPoke=0; cmd[KEY[kk]]=true; return; }
     }
   }
   // Güçlendir (Ruh Rehberi): dövüşte Ruh Patlaması hazırken ya da yavaşlatılıp kaçarken Ruh Kalkanı hazırken; önce Güçlendir, sonra güçlenen yetenek
@@ -895,7 +989,7 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
     if(sk.type==='haste'){
       use = (fight && d<reachTo(b,e)+60) || (quiet && tgt && (tgt.kind==='struct' || near(450)>=3));
     } else if(sk.type==='volley'){
-      if(fight && d<sk.range-30){ use=true; cmd.aim=leadAim(b,e,sk.cast,sk.speed,M); }
+      if(fp && eVis && d<sk.range-30){ use=true; cmd.aim=leadAim(b,e,sk.cast,sk.speed,M); }
       else if(quiet && tgt && (tgt.kind==='minion' || tgt.kind==='monster')){
         let n=0; const a=Math.atan2(tgt.y-b.y,tgt.x-b.x);
         for(const m of S.minions) if(!m.dead && m.team!==b.team && dist(m,b)<sk.range-20 && Math.abs(Math.atan2(m.y-b.y,m.x-b.x)-a)<sk.spread/2) n++;
@@ -905,17 +999,22 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
       if(eVis && d<sk.range-40){
         const ang=leadAim(b,e,sk.cast,sk.speed,M), threat=!ranged(e) && d<threatR(e,b)+40;
         const kill = e.hp < atkDmg(b)*sk.ratio*0.95;
-        if(fight || threat || kill){ use=true; cmd.aim=ang; }   // Kalın Ok minyonlardan geçer
+        if(fp || threat || kill || M.kw){ use=true; cmd.aim=ang; }   // Kalın Ok minyonlardan geçer
       }
     } else if(sk.type==='dash'){
-      if(fight && eVis){
+      if(eVis && !M.kw && hpNow(b)<AI.recallHp*1.4 && d<threatR(e,b)+60 && !fight){   // kaçış: üsse doğru
+        const home=Math.atan2(b.spawnY-b.y, b.spawnX-b.x);
+        for(const o of [0,0.5,-0.5,1,-1]){ const a=home+o, nx=b.x+Math.cos(a)*sk.dist, ny=b.y+Math.sin(a)*sk.dist;
+          if(leapOK(b,a,sk.dist) && hyp(nx-e.x,ny-e.y)>d+60){ use=true; cmd.aim=a; break; } }
+      } else if(fight && eVis){
         const reach=reachTo(b,e);
         if(d>reach+5 && d<sk.dist+reach-10){
           const ang=Math.atan2(e.y+(e.vy||0)*0.15-b.y, e.x+(e.vx||0)*0.15-b.x);
-          if(!blocker(b,ang,e,b.r)){ use=true; cmd.aim=ang; }
+          if(!blocker(b,ang,e,b.r)){ use=true; cmd.aim=ang; M.dashAt=S.time; }
         }
       }
     } else if(sk.type==='shield'){
+      if(eVis && S.time-(M.dashAt||-9)<0.7 && d<420){ cmd[KEY[k]]=true; if(cands) cands.push({ k, type:sk.type, aim:cmd.aim, tx:cmd.tx, ty:cmd.ty }); continue; }   // atılışla girince kalkanı hemen aç
       // yakın dövüşçü kalkanı vuruş menzili yakınında ya da hasar yerken açar (eskiden fight && d<450: dalıştan önce boşa gidiyordu)
       const hurt = S.time-(b.ic.lastHurt??-99) < 0.6;
       use = (fight && (ranged(b) ? d<450 : (d<reachTo(b,e)+90 || (hurt && d<450)))) || (eVis && d<300 && b.hp<b.maxHp*0.6) || (M.recall && eVis && d<500);
@@ -923,15 +1022,15 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
       use = (fight && d<210) || (quiet && tgt && tgt.kind==='struct' && dist(b,tgt)<reachTo(b,tgt)) || (quiet && near(220)>=3);
     } else if(sk.type==='fireball'){
       // kısa bekleme: rakibe fırsat buldukça, sakinken dalgaya
-      const poke = eVis && d<sk.range-60 && (fight || ev && ev.adv>=AI.pokeAdv) && heroHitSafe(b,e,b.x,b.y);
+      const poke = eVis && d<sk.range-30 && pz && heroHitSafe(b,e,b.x,b.y);
       if(poke){
         const ang=leadAim(b,e,sk.cast,sk.speed,M);
         if(!blocker(b,ang,e,sk.radius)){ use=true; cmd.aim=ang; }
       } else if(quiet && tgt && (tgt.kind==='minion' || tgt.kind==='monster') && dist(b,tgt)<sk.range-100){ use=true; cmd.aim=Math.atan2(tgt.y-b.y,tgt.x-b.x); }
     } else if(sk.type==='ignite'){
-      if(eVis && d-e.r<sk.range-10 && (fight || ev && ev.adv>=AI.pokeAdv) && heroHitSafe(b,e,b.x,b.y)){ use=true; cmd.tx=e.x; cmd.ty=e.y; }
+      if(eVis && d-e.r<sk.range-10 && pz && heroHitSafe(b,e,b.x,b.y)){ use=true; cmd.tx=e.x; cmd.ty=e.y; }
     } else if(sk.type==='meteor'){
-      if(eVis && d<sk.range && (fight || ev && ev.adv>=AI.pokeAdv)){
+      if(eVis && d<sk.range && (fight || M.kw || (ev && ev.adv>=AI.pokeAdv))){
         // gecikme boyunca rakibin gideceği yere, kısmen (rakip kaçabilir)
         const k2=e.st.freeze>0 ? 0 : 0.6;
         cmd.tx=e.x+((e.vx||0)+(e.kx||0))*sk.delay*k2; cmd.ty=e.y+((e.vy||0)+(e.ky||0))*sk.delay*k2; use=true;
@@ -945,7 +1044,7 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
         if(a!==null){ use=true; cmd.aim=a; }
       }
     } else if(sk.type==='bomb'){
-      if(fight && eVis){
+      if(fp && eVis){
         // rakibin gecikme sonundaki tahmini yerine (hızıyla), menzildeyse
         const kk=e.st.freeze>0 ? 0 : 1, px=e.x+((e.vx||0)+(e.kx||0))*sk.delay*kk, py=e.y+((e.vy||0)+(e.ky||0))*sk.delay*kk;
         if(hyp(px-b.x,py-b.y)<=sk.range){ use=true; cmd.tx=px; cmd.ty=py; }
@@ -961,7 +1060,7 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
       }
     } else if(sk.type==='boomerang'){
       // dövüşte menzildeki rakibe (öne nişan); sakinken yolu üstünde 3+ minyon varsa o yöne
-      if(fight && eVis && d-e.r<sk.range-30){ use=true; cmd.aim=leadAim(b,e,sk.cast,sk.speed,M); }
+      if(fp && eVis && d-e.r<sk.range-30){ use=true; cmd.aim=leadAim(b,e,sk.cast,sk.speed,M); }
       else if(quiet && tgt && (tgt.kind==='minion' || tgt.kind==='monster')){
         const a=Math.atan2(tgt.y-b.y,tgt.x-b.x), ux=Math.cos(a), uy=Math.sin(a); let n=0;
         for(const m of S.minions){
@@ -988,7 +1087,7 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
       if(eVis && d-e.r<sk.range-40 && !e.pulled && !(e.stasis>0)){
         const ang=leadAim(b,e,sk.cast,sk.speed,M);
         let ownT=false; for(const s of S.lane[b.team]) if(!s.dead && s.sub!=='nexus' && dist(s,b)<=s.range-70){ ownT=true; break; }
-        const want = fight || (ev && ev.adv>=AI.pokeAdv) || ownT;
+        const want = pz || ownT;
         if(want && !M.recall && heroHitSafe(b,e,b.x,b.y) && !unsafeAt(b,b.x,b.y) && !blocker(b,ang,e,sk.radius)){ use=true; cmd.aim=ang; }
       }
     } else if(sk.type==='slam'){
@@ -1046,7 +1145,7 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
     } else if(sk.type==='bloodbolt'){
       // dövüşte menzildeki rakip kahramana; sakinken son vuruş için (canı ok hasarından az) minyona, canımız eksikse en yakın minyona
       const dm=sk.dmg[b.rank[k]-1]+(sk.ap||0)*apOf(b);
-      if(eVis && fight && d-e.r<sk.range-20 && !(e.stasis>0) && heroHitSafe(b,e,b.x,b.y)){ use=true; cmd.tx=e.x; cmd.ty=e.y; }
+      if(eVis && fp && d-e.r<sk.range-20 && !(e.stasis>0) && heroHitSafe(b,e,b.x,b.y)){ use=true; cmd.tx=e.x; cmd.ty=e.y; }
       else if(quiet && !M.recall){
         let lh=null, near=null, nd=1e9;
         for(const m of S.minions){
@@ -1071,7 +1170,7 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
       }
     } else if(sk.type==='beam'){
       // dövüşte ya da dürterken menzildeki rakip kahramana (öne nişan, rakip şeritte kalacak biçimde); sakinken 3+ minyon şeritteyse
-      if(eVis && d-e.r<sk.range-40 && !(e.stasis>0) && (fight || ev && ev.adv>=AI.pokeAdv) && heroHitSafe(b,e,b.x,b.y)){
+      if(eVis && d-e.r<sk.range-40 && !(e.stasis>0) && pz && heroHitSafe(b,e,b.x,b.y)){
         const kk=e.st.freeze>0 ? 0 : 1, px=e.x+((e.vx||0)+(e.kx||0))*sk.cast*kk, py=e.y+((e.vy||0)+(e.ky||0))*sk.cast*kk;
         if(hyp(px-b.x,py-b.y)<sk.range-20){ use=true; cmd.aim=Math.atan2(py-b.y, px-b.x); }
       } else if(quiet && tgt && (tgt.kind==='minion' || tgt.kind==='monster')){
@@ -1089,7 +1188,7 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
         const ang=leadAim(b,e,sk.cast,sk.speed,M);
         const toward=((e.vx||0)*(b.x-e.x)+(e.vy||0)*(b.y-e.y))/(d||1)>40;
         const meleeIn=!ranged(e) && d<threatR(e,b)+450 && toward;
-        if((fight || meleeIn) && heroHitSafe(b,e,b.x,b.y) && !blocker(b,ang,e,sk.radius)){ use=true; cmd.aim=ang; }
+        if((fp || meleeIn) && heroHitSafe(b,e,b.x,b.y) && !blocker(b,ang,e,sk.radius)){ use=true; cmd.aim=ang; }
       }
     } else if(sk.type==='artillery'){
       // rakip kahraman 2500 içinde ve görünüyor ya da son görüldüğü yer yeni; kendimiz güvendeysek (yakında tehdit, rakip kule, minyon yok).
@@ -1107,7 +1206,7 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
       // dövüşte rakibe girerken (patlama rakibe değer) ya da canı düşükken üsse doğru kaçış; zincir bu tikte atılmıyorsa
       if(!cmd.rmb){
         const p=blinkPlan(b,e,eVis,d,fight,M,sk);
-        if(p){ use=true; cmd.tx=p.x; cmd.ty=p.y; if(p.esc) M.noBack=S.time+sk.back+0.2; }
+        if(p){ use=true; cmd.tx=p.x; cmd.ty=p.y; if(p.esc) M.noBack=S.time+sk.back+0.2; else if(!fight) M.blinkPoke=S.time+0.5+rand()*0.4; }
       }
     } else if(sk.type==='mimic'){
       // en son kullanılan yeteneği tekrarlar: Zincir ise rakip menzildeyken, Gölge Adımı ise kombo/kaçış koşullarında
@@ -1124,7 +1223,7 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
       if(!cmd.rmb && !cmd.e && b.form && formWant(b,e,eVis,d,fight,M)!==b.form) use=true;
     } else if(sk.type==='groworb'){
       // dövüşte ya da güvenli dürtmede menzildeki rakip kahramana (uzaktan atmak daha güçlü: dürtme yalnız 480+ mesafede); sakinken 3+ minyon kümesine
-      if(eVis && !(e.stasis>0) && d-e.r<sk.range-60 && (fight || (ev && ev.adv>=AI.pokeAdv && d>480)) && heroHitSafe(b,e,b.x,b.y)){
+      if(eVis && !(e.stasis>0) && d-e.r<sk.range-40 && (fp || (ev && ev.adv>=AI.pokeAdv && d>480)) && heroHitSafe(b,e,b.x,b.y)){
         const a=orbPlan(b,e,sk,M);
         if(a!==null){ use=true; cmd.aim=a; }
       } else if(quiet && !M.recall && tgt && (tgt.kind==='minion' || tgt.kind==='monster') && dist(b,tgt)<sk.range-150){
@@ -1191,7 +1290,7 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
       }
     } else if(sk.type==='spiritburst'){
       if(mantraGo) continue;   // önce Güçlendir
-      const a=burstPlan(b,e,eVis,d,fight,M,sk,tgt,quiet,false);
+      const a=burstPlan(b,e,eVis,d,fp,M,sk,tgt,quiet,false);
       if(a!==null){ use=true; cmd.aim=a; }
     } else if(sk.type==='spiritshield'){
       if(mantraGo) continue;   // önce Güçlendir
@@ -1219,6 +1318,7 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
     for(const o of cands) if(o!==c) cmd[KEY[o.k]]=false;
     cmd.aim=c.aim; if(c.tx!==undefined){ cmd.tx=c.tx; cmd.ty=c.ty; }
   }
+  if(M.poking && !fight) for(const k of ['r','e','s']) if(cmd[KEY[k]] && POKE_T.has(b.def.skills[k].type)){ M.tradeBack=S.time+0.7+rand()*0.8; break; }   // vurduk: geri çekil
 }
 
 /* ---- ana giriş ---- */
@@ -1258,13 +1358,14 @@ function campAttack(b, c){
 function bigCamp(){ return S.camps.find(c=>c.big); }
 /* Baskın hedefi: dost koridorcuya yakın, dövüşteki ya da canı az görünen rakip (rakip kule altında değil) */
 function gankTarget(b){
-  if(b.hp/b.maxHp<AI.jgGankHp) return null;
+  const ro=mem(b).pers.roam;   // kişilik: baskın eğilimi
+  if(b.hp/b.maxHp<AI.jgGankHp*(1.15-0.3*ro)) return null;
   let best=null, bs=1e18;
   for(const u of S.heroes){
     if(u.team===b.team || u.dead || !canSee(b.team,u)) continue;
-    const d=dist(b,u); if(d>AI.jgGankR) continue;
+    const d=dist(b,u); if(d>AI.jgGankR*(0.8+0.5*ro)) continue;
     if(unsafeAt(b,u.x,u.y)) continue;
-    let ok=u.hp/u.maxHp<AI.jgLowHp;
+    let ok=u.hp/u.maxHp<AI.jgLowHp*(0.8+0.6*ro);
     for(const a of S.heroes){
       if(a===b || a.dead || a.team!==b.team || a.role==='jungle' || dist(a,u)>900) continue;
       const am=a.ai && a.ai.v2;
@@ -1359,14 +1460,33 @@ function bigHelp(b, eVis, e){
   }
   return null;
 }
+/* Dost ormancısı olmayan koridorcu (1v1 dahil): rakip görünmüyor ya da ölüyken, güçlüysek Vaha Titanı'nı tek başına al (12.10.2026).
+   Başladıysak canımız yettikçe bitir; rakip yaklaşırsa bırak. */
+AI.soloTitanLv = 8;
+function bigSolo(b, eVis, e){
+  if(b.noJungle || b.role==='jungle' || !LVP(b).titan) return null;
+  if(S.heroes.some(a=>a!==b && a.team===b.team && a.role==='jungle' && !a.dead)) return null;
+  const bc=bigCamp(); if(!bc || !campLive(bc) || b.level<AI.soloTitanLv) return null;
+  const started=bc.mobs.some(m=>m.aggro && m.aggro.team===b.team), hpF=hpNow(b);
+  if(foeNear(b,bc.x,bc.y,started?900:1500)) return null;
+  if(started ? hpF<0.3 : (hpF<0.75 || !campOK(b,bc,0.85))) return null;
+  if(!started){
+    if(dist(b,bc)>2600) return null;
+    // yalnız bütün rakipler ölüyken ve dönmeleri titanı bitirmemize yetmeyecekse (yoksa koridoru ve kuleyi kaybederiz)
+    const need=campCost(b,bc).t+dist(b,bc)/stat(b,'spd');
+    for(const u of S.heroes) if(u.team!==b.team && !(u.dead && u.respawn>need*0.8)) return null;
+  }
+  return campAttack(b,bc);
+}
 /* Tek koridorcu (dost ormancı yok): dalga yokken ve rakip görünmüyorken yakındaki kendi kampını kes */
 function laneCamp(b, eVis){
   if(b.noJungle || eVis || b.hp/b.maxHp<0.6) return null;
   const jg=S.heroes.find(a=>a!==b && a.team===b.team && a.role==='jungle' && !a.dead);   // dost ormancı varsa: güçlendirme kampları onun, yakındaki kampa girme
   for(const m of S.minions) if(!m.dead && dist(m,b)<1100) return null;
-  let best=null, bd=1100;
+  const ro=mem(b).pers.roam, inv=ro>0.65 && !jg;   // kişilik: gezgin koridorcu rakip ormana da girer
+  let best=null, bd=1100+500*ro;
   for(const c of S.camps){
-    if(c.big || !campLive(c) || (c.side>=0 && c.side!==b.team)) continue;
+    if(c.big || !campLive(c) || (c.side>=0 && c.side!==b.team && !inv)) continue;
     if(jg && (c.buff || hyp(jg.x-c.x,jg.y-c.y)<AI.laneCampAllyR)) continue;
     const d=dist(b,c); if(d<bd && campOK(b,c,0.5)){ bd=d; best=c; }
   }
@@ -1394,6 +1514,13 @@ function botCommandCore(b, dt){
   const d = eVis ? dist(b,e) : 1e9;
   if(ev && (LP.win || LP.dng)) ev=adjustEv(b,e,ev,d,LP);
   if(eVis) M.eLast={ x:e.x, y:e.y, vx:(e.vx||0)+(e.kx||0), vy:(e.vy||0)+(e.ky||0), t:S.time };   // son görülen yer (Kök Sal)
+  // Öldürme penceresi: kendi can eşiğimizden önce gelir (rakip 1-2 vuruşluksa kaçmayız)
+  const kw = eVis && mode!=='duel' && !b.chan && !inFountain(b) ? killWindow(b,e,d,M) : false;
+  M.kw=kw;
+  // Ters öldürme hesabı: rakip bizi şimdi öldürebilir mi? (biz öldüremiyorsak menzilinden çıkarız)
+  M.inDanger=false;
+  if(eVis && !kw && LP.selfKw && mode!=='duel' && d<1100){ const k2=killCalc(e,b); M.inDanger = k2.myDmg > (b.hp+(b.st.shield?b.st.shield.amt:0))*0.95; }
+  if(S.time>=(M.engT||0)){ M.engT=S.time+2+rand()*2; M.engJit=1+(rand()*2-1)*LP.misjudge*0.6; }
 
   // Kum Saati: can çok azken ve rakip yakındayken dokunulmazlık
   if(b.bonus && b.bonus.stasis && (b.ic.stasisCd||0)<=S.time && hpNow(b)<AI.stasisHp && eVis && d<450) cmd.item=true;
@@ -1416,8 +1543,9 @@ function botCommandCore(b, dt){
 
   // Geri çekilme
   const hpF=b.hp/b.maxHp;
+  if(M.recall && kw && !b.recallCh){ M.recall=false; M.shop=false; }
   if(M.recall){ if((hpF>=AI.recallOut && (!M.shop || canShop(b))) || (defend && hpF>AI.diveFloor)) { M.recall=false; M.shop=false; } }
-  else if(mode!=='duel' && !defend && hpF<AI.recallHp && !(ev && ev.adv>2.5 && ev.tKill<1.5)){
+  else if(mode!=='duel' && !defend && hpF<AI.recallHp && !(ev && ev.adv>2.5 && ev.tKill<1.5) && !kw){
     // uzaktaysak sadece rakip bizi tehdit ediyorsa dön, yoksa dikkatli oynamaya devam
     const far=respawnTime(S.time)<=AI.cheapDeath && dist(b,S.lane[b.team][3])>AI.recallDist;
     if(!far || (ev && ev.adv<1 && d<threatR(e,b)+250)) M.recall=true;
@@ -1441,14 +1569,18 @@ function botCommandCore(b, dt){
     // kovalayana karşılık ver: menzilli rakibe vur, yakın dövüşçüden kaç
     if(eVis && d<=reachTo(b,e) && (ranged(e) || d>reachTo(e,b)+60 || inFountain(b))) tgt=e;
   } else {
-    const L=(b.role==='jungle' && jungleMove(b,e,eVis,M,ev)) || bigHelp(b,eVis,e) || laneMove(b,e,eVis,M,ev);
+    const L=(b.role==='jungle' && jungleMove(b,e,eVis,M,ev)) || bigHelp(b,eVis,e) || bigSolo(b,eVis,e) || laneMove(b,e,eVis,M,ev);
     if(eVis){
       if(mode==='duel') fight=true;
       else {
         let engR = ranged(b) ? reachTo(b,e)+220 : 560;
         if(allyFighting(b,e)) engR+=AI.helpRange;   // dostumuz dövüşüyorsa yardıma gel
         const engBase=engR;
-        if(ev.adv>=(M.fight?AI.stayAdv:AI.engageAdv) && d<engR) fight=true;
+        const pa=LP.persOn ? M.pers.aggr : 1, engA=AI.engageAdv/pa*(LP.persOn ? (M.engJit||1) : 1);   // kişilik ve anlık yanılma: bazen erken, bazen geç girer
+        if(ev.adv>=(M.fight?AI.stayAdv/pa:engA) && d<engR) fight=true;
+        if(M.inDanger && ev.adv<1.6 && !defend) fight=false;
+        if(kw){ fight=true; M.killUntil=S.time+1.5; }
+        else if(!fight && S.time<(M.killUntil||0) && hpNow(b)>0.12 && ev.adv>=0.6) fight=true;   // öldürmeye girdiysek hemen bırakma
         if(defend) fight=true;
         // dostumuz saldırı altında ve dövüş lehimizeyse uzaktan da yardıma koş
         if(!fight && ev.adv>=AI.engageAdv && d<AI.helpRun && allyUnderAttack(b,e)) fight=true;
@@ -1466,19 +1598,27 @@ function botCommandCore(b, dt){
           if(!fight && (M.commitUntil||0)>S.time && hpNow(b)>AI.recallHp && heroHitSafe(b,e,e.x,e.y)) fight=true;
         }
         // yapıya vurabiliyorsak ve rakip bize dokunmuyorsa kovalamaya gerek yok
-        if(fight && L.tgt && L.tgt.kind==='struct' && d>threatR(e,b)+40 && ev.tKill>1.5) fight=false;
+        if(fight && !kw && L.tgt && L.tgt.kind==='struct' && d>threatR(e,b)+40 && ev.tKill>1.5) fight=false;
         if(fight){
           const sp = ranged(b) ? standPoint(b,e,reachTo(b,e)-20) : e;
           if(!heroHitSafe(b,e,sp.x,sp.y)){
-            if(ev.tKill<1.2 && b.hp>b.maxHp*0.45) allowDive=true; else fight=false;
+            if((ev.tKill<1.2 && b.hp>b.maxHp*0.45) || kw) allowDive=true; else fight=false;
           }
         }
       }
     }
     M.fight=fight;
+    M.poking=false;
     if(fight){ tgt=e; mv=fightMove(b,e,M,ev); }
     else {
       mv=L.mv; tgt=L.tgt; allowDive=L.dive; M.hold=L.hold;
+      // Dürtme: hazır uzak hasar yeteneğinin menziline gir, at, kısa süre geri çekil (alışveriş)
+      const pk = eVis && mode!=='duel' && !b.chan && !(L.tgt && L.tgt.kind==='struct') ? pokePlan(b,e,d,ev,M) : null;
+      if(pk){ M.poking=true; mv={ x:pk.x-b.x, y:pk.y-b.y }; }
+      else if(eVis && S.time<(M.tradeBack||0) && d<threatR(e,b)+500){
+        const l=hyp(mv.x,mv.y)||1;
+        mv={ x:mv.x/l*0.5+(b.x-e.x)/d*1.2+homeDir(b)*0.4, y:mv.y/l*0.5+(b.y-e.y)/d*1.2 };
+      }
       // menzilli kahraman fırsat buldukça rakibi dürter
       if(eVis && ranged(b) && ev.adv>=AI.pokeAdv && d<=reachTo(b,e) && heroHitSafe(b,e,b.x,b.y)) tgt=e;
     }
