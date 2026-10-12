@@ -41,7 +41,7 @@ if(!isMainThread && workerData && workerData.worker){
 } else if(isMain(import.meta.url)){
   const o=parseArgs(process.argv.slice(2));
   const a=(o.a||'archer,warrior').split(','), b=(o.b||'mage,hook').split(',');
-  const jobs=duoJobs({ a, b, matches:+(o.matches||20), seed:+(o.seed||1), maxTime:+(o.maxTime||2400), level:+(o.level||1), diffA:o.diffA||'easy', diffB:o.diffB||'easy', noJungleB:!!o.noJungleB, ...(o.naiveB ? { aiB:'cand', candAI:{ team:0 } } : {}), ...(o.noCoh ? { aiB:'cand', candAI:{ cohesion:0 } } : {}) });
+  const jobs=duoJobs({ a, b, matches:+(o.matches||20), seed:+(o.seed||1), maxTime:+(o.maxTime||2400), level:+(o.level||1), aiA:o.aiA||'yeni', aiB:o.aiB||'yeni', diffA:o.diffA||'easy', diffB:o.diffB||'easy', noJungleB:!!o.noJungleB, ...(o.naiveB ? { aiB:'cand', candAI:{ team:0 } } : {}), ...(o.noCoh ? { aiB:'cand', candAI:{ cohesion:0 } } : {}) });
   const t0=Date.now(), rs=await runDuoJobs(jobs, o.threads ? +o.threads : undefined), s=summarize(rs);
   console.log(`A [${a}] vs B [${b}] | ${s.n} maç, ${((Date.now()-t0)/1000).toFixed(0)} sn`);
   console.log(`A kazanma ${s.aWin===null?'-':pct(s.aWin)} | ort. süre ${(s.time/60).toFixed(1)} dk | zaman aşımı ${s.timeouts}`);

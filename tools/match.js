@@ -6,6 +6,7 @@ import { botCommand, LEVEL_IDS } from '../ai.js';
 import { botCommand as botV1 } from '../ai_v1.js';
 import { botCommand as botV2 } from '../ai_v2.js';
 import { botCommand as botUtil } from '../ai_util.js';
+import { botCommand as botEski2 } from '../ai_eski.js';   // 12.10.2026 öncesi bot (yeni-eski karşılaştırma)
 import * as CAND from '../ai.js?cand';   // ana botun ayrı bir kopyası: ayarları (AI) bağımsız değiştirilebilir (tools/evolve.js)
 export const CAND_AI = CAND.AI;
 
@@ -13,7 +14,7 @@ export const CAND_AI = CAND.AI;
 /* Bot zorluğu: diffA/diffB = 'easy'|'medium'|'hard'|'expert' (varsayılan easy = eski bot); takımdaki bütün kahramanlara uygulanır */
 function applyDiff(team, id){ const i = typeof id==='number' ? id : LEVEL_IDS.indexOf(id||'easy'); if(i<0) throw new Error('Bilinmeyen zorluk: '+id); for(const h of S.heroes) if(h.team===team) h.botLevel = i; }
 
-export const BOTS = { yeni: botCommand, eski: botV1, v2: botV2, util: botUtil, cand: CAND.botCommand };
+export const BOTS = { yeni: botCommand, eski: botV1, v2: botV2, util: botUtil, cand: CAND.botCommand, eski2: botEski2 };
 
 /* a, b: kahraman türleri. aTeam: A'nın takımı (0 veya 1). */
 export function runMatch({ a, b, levelA, levelB, aTeam, seed, maxTime, aiA='yeni', aiB='yeni', buildA='default', buildB='default', diffA='easy', diffB='easy' }){
