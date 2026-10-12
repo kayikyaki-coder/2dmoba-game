@@ -600,7 +600,9 @@ function laneMove(b, e, eVis, M, ev){
   let tgt=null, stand=null;
   const st=S.lane[1-b.team].find(s=>!s.dead);
   let dive=false;
-  if(st && !st.prot && dist(b,st)<1600){
+  const outn=outnumbered(b), ownT=frontTower(b.team);
+  if(outn) M.outn=S.time;
+  if(st && !st.prot && dist(b,st)<1600 && !outn){
     const sp=findStand(b, st, reachTo(b,st)-15);
     if(sp){ tgt=st; stand=sp; }
     else if(canDive(b,st,e,M)){ tgt=st; stand=standPoint(b, st, reachTo(b,st)-15); dive=true; }
@@ -612,6 +614,7 @@ function laneMove(b, e, eVis, M, ev){
     for(const m of S.minions){
       if(m.dead || m.team===b.team || !canSee(b.team,m)) continue;
       const dd=dist(b,m); if(dd>950) continue;
+      if(outn && ownT && dist(m,ownT)>TOWER.range+60) continue;   // sayıca azken yalnız kule altındaki dalgayı temizle
       const sp=findStand(b, m, reachTo(b,m)-12);
       if(!sp) continue;
       // menzilli: yakın dövüşçünün tehdit menzilinde minyon kesme (uzakta durup yetenekle kes)
@@ -645,6 +648,7 @@ function laneMove(b, e, eVis, M, ev){
     for(const m of S.minions) if(!m.dead && m.team===b.team){ const s=laneProject(m.x,m.y).s; if(fs_===null || s*ld>fs_*ld) fs_=s; }
     const own=S.lane[b.team].find(s=>!s.dead && s.sub!=='nexus') || S.lane[b.team][3];
     let gs = fs_!==null ? fs_-ld*(ranged(b)?190:80) : laneProject(own.x,own.y).s+ld*130;
+    if(outn){ const ts=laneProject(own.x,own.y).s-ld*120; if(gs*ld>ts*ld) gs=ts; }   // sayıca azken kulenin arkasında bekle
     if(AI.team && AI.cohesion){   // 2v2: dostumuzdan çok öne geçip tek başına beklemeyiz
       const al=nearestAlly(b);
       if(al && al.role!=='jungle' && !(al.ai.v2 && al.ai.v2.recall)){ const as=laneProject(al.x,al.y).s, lim=as+ld*AI.cohesionGap; if(lim*ld<gs*ld) gs=lim; }
@@ -1270,8 +1274,36 @@ function gankTarget(b){
   }
   return best;
 }
+/* Makro (12.10.2026): koridorda sayıca azlık. Koridorcu yalnızken 2+ rakip görünüyorsa kule altında bekler;
+   ormancı bu durumda (ya da kulemize rakip kahraman dayanmışsa) koridora döner. */
+AI.outnumR = 1500;      // koridorcunun çevresinde rakip sayımı
+AI.allyHelpR = 1100;    // bu uzaklıktaki dost yanında sayılır
+AI.jgDefendR = 3200;
+AI.jgDefendHp = 0.5;
+AI.jgDefendTowerR = 1100; // korunmasız (sıradaki) dost yapıya bu kadar yakın rakip kahraman varsa döner
+AI.jgLateLv = 10;       // ormancı bu seviyeye gelince ve rakip yapısı yıkılmaya başlayınca koridorda takımla oynar (güçlendirme/Titan hariç)    // yalnız koridorcunun canı bunun altındaysa (ya da kule baskıdaysa) döner    // ormancı en fazla bu uzaklıktan savunmaya döner
+function foesAround(b, x, y, R){ let n=0; for(const u of S.heroes) if(u.team!==b.team && !u.dead && canSee(b.team,u) && hyp(u.x-x,u.y-y)<R) n++; return n; }
+function alliesAround(b, x, y, R){ let n=0; for(const u of S.heroes) if(u!==b && u.team===b.team && !u.dead && hyp(u.x-x,u.y-y)<R) n++; return n; }
+export function outnumbered(b){
+  if(!AI.team) return false;
+  return foesAround(b,b.x,b.y,AI.outnumR)>=2 && alliesAround(b,b.x,b.y,AI.allyHelpR)===0;
+}
+function foesInLane(b){ let n=0, all=0; for(const u of S.heroes) if(u.team!==b.team){ all++; if(!u.dead && canSee(b.team,u) && u.y>1450) n++; } return all>=2 && n>=all; }
+function frontTower(team){ return S.lane[team].find(s=>!s.dead && s.sub!=='nexus') || S.lane[team][3]; }
+/* Ormancı savunma: yalnız dost koridorcuya 2+ rakip ya da kulemize dayanan rakip kahraman */
+function defendSpot(b){
+  const ft=frontTower(b.team);
+  for(const a of S.heroes){
+    if(a===b || a.dead || a.team!==b.team) continue;
+    if(foesAround(b,a.x,a.y,AI.outnumR)>=2 && a.hp/a.maxHp<AI.jgDefendHp && dist(a,b)<AI.jgDefendR) return { x:a.x, y:a.y };
+  }
+  for(const st of S.lane[b.team]) if(!st.dead && !st.prot && foesAround(b,st.x,st.y,AI.jgDefendTowerR)>=1 && dist(st,b)<AI.jgDefendR+800) return { x:st.x, y:st.y };
+  return null;
+}
 function jungleMove(b, e, eVis, M, ev){
   if(b.noJungle) return null;
+  const late=b.level>=AI.jgLateLv;   // geç oyun: yalnız Titan, gerisi koridor/itme
+  { const d=defendSpot(b); if(d && b.hp/b.maxHp>0.35){ M.jgS='defend'; if(dist(b,d)>700) return { mv:{ x:d.x-b.x, y:d.y-b.y }, tgt:null, dive:false, hold:false }; return null; } }
   const hpF=b.hp/b.maxHp;
   M.jgGank=null; M.jgS='?';
   if(hpF<0.3 && !(eVis && dist(b,e)<700)){ M.recall=true; }
@@ -1291,6 +1323,7 @@ function jungleMove(b, e, eVis, M, ev){
       return { mv: hyp(dx,dy)>40 ? { x:dx, y:dy } : { x:0, y:0 }, tgt:null, dive:false, hold:false };
     }
   } else if(M.bigWait && S.time>M.bigWait+60) M.bigWait=0;
+  if(late){ M.jgS='lane'; return null; }
   // 3) süren kamp: başladıysak bitir
   if(M.jgCamp && campLive(M.jgCamp) && !M.jgCamp.big && hpF>0.3){
     const r=campAttack(b, M.jgCamp); if(r && dist(b,M.jgCamp)<900){ M.jgS='camp'; return r; }
@@ -1302,7 +1335,7 @@ function jungleMove(b, e, eVis, M, ev){
     if(!campOK(b,c,0.7*hpF)) continue;
     if(foeNear(b,c.x,c.y,1000)) continue;
     let sc=dist(b,c);
-    if(c.side>=0 && c.side!==b.team) sc+=700;
+    if(c.side>=0 && c.side!==b.team) sc+= foesInLane(b) ? 0 : 700;   // iki rakip koridordaysa rakip ormanı da boş
     if(c.buff && !(b.jb && b.jb[c.buff]>S.time)) sc-=400;
     if(sc<bs){ bs=sc; best=c; }
   }

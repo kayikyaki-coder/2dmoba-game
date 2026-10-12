@@ -619,7 +619,7 @@ export const towerMinionHit = m => m.maxHp/(TOWER.minionHits[m.type]||3)+0.01;
 export const JUNGLE = {
   // denge tur 2 (11.10.2026): canavar altın ve XP'si %15 arttı (ormancı kahramanlar %33-47'de kalıyordu)
   leash:520, aggroT:6, returnHeal:0.25,
-  xpMult:0.93, goldMult:0.95,                    // canavar XP ve altın genel çarpanı (denge için)
+  xpMult:1.15, goldMult:1.3,               // canavar XP ve altın çarpanı (J 12.10.2026: 1/1 idi; orman kesmeyen takım deneyi ve 10. dk eşitliği için)
   basicMult:1.2, skillMult:1.6,            // kahramanların canavarlara hasarı: düz vuruş x1,2, yetenek ve diğer x1,6   // tasma yarıçapı (kamp merkezinden), vurmayan saldırganı bırakma süresi (sn), dönerken sn'de azami canın %25'i
   scale:{ hpPerMin:0.05, dmgPerMin:0.04, cap:2.2 },
   monsters:{
@@ -631,12 +631,13 @@ export const JUNGLE = {
     burn:     { name:'Kor Böceği',    r:30, hp:950,  dmg:32, reach:46, period:1.4, wind:0.35, speed:220, mass:3.0, gold:69, xp:161, buff:'burn' },
     titan:    { name:'Vaha Titanı',   r:52, hp:4200, dmg:80, reach:70, period:1.6, wind:0.45, speed:200, mass:12, gold:0, xp:368, big:true, cleave:150 }
   },
+  // J (12.10.2026): kamplar daha sık doğar (80/90/75/120/120 idi) ki orman sık dönülsün
   camps:[
-    { id:'wolves', side:'both', x:1150, y:1065, mobs:['wolf','pup','pup'], respawn:80, first:60 },
-    { id:'golems', side:'both', x:1700, y:400,  mobs:['golem','golem'],    respawn:90, first:60 },
-    { id:'birds',  side:'both', x:2050, y:560,  mobs:['bird','bird','bird'], respawn:75, first:60 },
-    { id:'regen',  side:'both', x:900,  y:480,  mobs:['regen'], respawn:120, first:60 },
-    { id:'burn',   side:'both', x:1720, y:1100, mobs:['burn'],  respawn:120, first:60 },
+    { id:'wolves', side:'both', x:1150, y:1065, mobs:['wolf','pup','pup'], respawn:65, first:60 },
+    { id:'golems', side:'both', x:1700, y:400,  mobs:['golem','golem'],    respawn:72, first:60 },
+    { id:'birds',  side:'both', x:2050, y:560,  mobs:['bird','bird','bird'], respawn:60, first:60 },
+    { id:'regen',  side:'both', x:900,  y:480,  mobs:['regen'], respawn:100, first:60 },
+    { id:'burn',   side:'both', x:1720, y:1100, mobs:['burn'],  respawn:100, first:60 },
     { id:'titan',  side:'mid',  x:2600, y:930,  mobs:['titan'], respawn:360, first:480 }
   ]
 };
