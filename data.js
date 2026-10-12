@@ -67,7 +67,7 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   twin: {
-    hp:{ base:530, per:25 },   // zırh sistemi (11.10.2026): 450 (+25) idi
+    hp:{ base:500, per:25 },   // denge J2 (12.10.2026): 530 idi // zırh sistemi (11.10.2026): 450 (+25) idi
     regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:2.5 },   // denge F1 (11.10.2026, zırh sonrası): 22 (+3) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1 },   // zırh sistemi (11.10.2026): 10 (+0) idi
