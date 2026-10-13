@@ -1,0 +1,3 @@
+{} | A kazanma %62 [54-69] 96/156 | süre 17.1 dk
+{"3":{"towerGate":0,"foeMemory":4}} | A kazanma %70 [63-77] 107/152 | süre 17.7 dk
+DONE
