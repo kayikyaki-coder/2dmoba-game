@@ -1,0 +1,5 @@
+{"3":{"fleeAdv":0.95}} | A kazanma %56 [48-63] 86/154 | süre 17.6 dk
+{"3":{"helpRange":750}} | A kazanma %62 [54-69] 98/158 | süre 18.5 dk
+{"3":{"foeMemory":4}} | A kazanma %64 [56-71] 98/154 | süre 18.5 dk
+{"3":{"dodgeW":3.5}} | A kazanma %61 [54-69] 97/158 | süre 18.1 dk
+DONE
