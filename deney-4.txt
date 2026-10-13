@@ -1,0 +1,3 @@
+{} | A kazanma %54 [46-62] 85/157 | süre 17.9 dk
+{"3":{"towerGate":0}} | A kazanma %59 [51-66] 91/155 | süre 18.3 dk
+DONE
