@@ -1,0 +1,5 @@
+{"3":{"look":0}} | A kazanma %57 [49-64] 90/158 | süre 17.7 dk
+{"3":{"towerGate":0}} | A kazanma %66 [58-73] 102/154 | süre 18.1 dk
+{"3":{"killSense":0.85}} | A kazanma %62 [55-69] 99/159 | süre 17.6 dk
+{"3":{"lhSoon":2.2}} | A kazanma %61 [53-68] 96/157 | süre 18.2 dk
+DONE
