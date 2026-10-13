@@ -60,7 +60,7 @@ const LV = [AI,
   Object.assign(Object.create(AI), MED),
   Object.assign(Object.create(AI), MED, HARD),
   Object.assign(Object.create(AI), MED, HARD, { lvl:3, selfKw:0, misjudge:0.05, pokeP:0.9, killSense:1, lead:1, dng:1, chain:1, focus:1, react:[0.03,0.08], aimNoise:0.015, humanErr:0, humanRange:0, humanAtkDelay:0, humanMoveHold:[0.02,0.04],
-    dodgeW:2.4, dodgeNeed:16, dodgeT:0.6, foeMemory:8, look:2, towerGate:1 })];
+    dodgeW:2.4, dodgeNeed:16, dodgeT:0.6, foeMemory:4, look:2, towerGate:0 })];
 LV.forEach((o,i)=>{ LEVEL_PARAMS[i]=o; });
 const LVP = b => LV[b.botLevel|0] || AI;
 export function setBotLevel(h, id){ const i = typeof id==='number' ? id : LEVEL_IDS.indexOf(id); h.botLevel = i>0 ? i : 0; }
