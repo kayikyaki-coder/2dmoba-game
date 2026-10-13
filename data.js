@@ -461,13 +461,13 @@ export const HEROES = {
       //          (menzil sonuna kadar değmezse orada patlar): büyü hasarı dmg + ap * YG, slowDur sn slow yavaşlatma.
       r:{ name:'Ruh Patlaması', max:4, type:'spiritburst', cd:[7.5,7,6.5,6], cast:0.25, castSlow:0.4, range:420, speed:530, radius:22,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; hız 900, yarıçap 20 idi
          
-          blast:150, dmg:[82,118,155,192], ap:0.45,   /* denge F1: cd 7-5.5, dmg 90-210, ap 0.50 idi */ slow:0.20, slowDur:1 },
+          blast:115, dmg:[82,118,155,192],   /* denge A0 (13.10.2026): Ruh Patlaması patlama yarıçapı 150 idi */ ap:0.45,   /* denge F1: cd 7-5.5, dmg 90-210, ap 0.50 idi */ slow:0.20, slowDur:1 },
       // E: anında; kendine dur sn kalkan (shield + ap * YG) ve süre boyunca (kalkan kırılsa da) spd hareket hızı
       e:{ name:'Ruh Kalkanı', max:4, type:'spiritshield', cd:[12,11,10,9], dur:2.5, shield:[80,120,160,200], ap:0.50, spd:0.30 },
       // boşluk: anında; window sn içinde kullanılan sonraki r ya da e güçlenir.
       //   Ruh Patlaması: patlama burstRadius yarıçap, field sn yerde kalan alan (fieldSlow yavaşlatma, sürekli yenilenir), süre sonunda again oranında hasarla bir kez daha patlar.
       //   Ruh Kalkanı: kalkan shieldMult katı, üstündeki yavaşlatmalar kalkar (sersemletme, kök, susturma kalmaz).
-      s:{ name:'Güçlendir', max:2, type:'mantra', cd:[20,16], window:6, burstRadius:250, field:1.5, fieldSlow:0.40, again:0.50, shieldMult:1.5, allyR:550 }
+      s:{ name:'Güçlendir', max:2, type:'mantra', cd:[20,16], window:6, burstRadius:200,   /* denge A0: güçlü patlama 250 idi */ field:1.5, fieldSlow:0.40, again:0.50, shieldMult:1.5, allyR:550 }
     }
   },
   roller: {
@@ -529,7 +529,7 @@ export const HEROES = {
       //   hasar çarpanı 1'den multEnd'e doğrusal büyür. İlk değdiği rakip birimde (minyon dahil, kule değil) ya da menzil sonunda patlar:
       //   patlama yarıçapı blast'tan blastEnd'e. Fiziksel hasar = dmg + ad * ek SG, çarpanla.
       r:{ name:'Enerji Küresi', max:5, type:'groworb', cd:[8,7.5,7,6.5,6], cast:0.25, castSlow:0.3, range:850,   // kaçılabilirlik: menzil 1000, yarıçap 15, son hız 1600 idi
-          radius:20, radiusEnd:35, speed:900, speedEnd:1300, multEnd:1.5, blast:100, blastEnd:160,
+          radius:20, radiusEnd:35, speed:900, speedEnd:1300, multEnd:1.5, blast:75, blastEnd:120,   /* denge A0: Enerji Küresi patlama 100-160 idi */
           dmg:[70,105,140,175,210], ad:0.85 },   // denge: ad 1.10 idi
       // uzak E: anında, dur sn boyunca as kadar saldırı hızı
       e:{ name:'Hızlı Ateş', max:5, type:'haste', cd:[12,11,10,9,8], as:[.15,.20,.25,.30,.35], dur:4 },

@@ -22,7 +22,7 @@ export const LEVELS = [
 const HERO_IDS = Object.keys(HERO_NAMES);
 const KEY = 'moba2d_menu_v1';
 
-export const pick = { mode:'1v1', hero:'archer', foe:'random', ally:'random', foe2:'random', level:'easy' };
+export const pick = { mode:'1v1', hero:'archer', foe:'random', ally:'random', foe2:'random', level:'medium' };
 try {
   const o = JSON.parse(localStorage.getItem(KEY) || 'null');
   if (o) {

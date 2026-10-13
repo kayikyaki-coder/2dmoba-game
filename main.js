@@ -48,7 +48,7 @@ function newGame(){
   // 2v2: sen (ilk sıra) + dost bot, karşıda iki bot (menü seçimleri settings'te)
   if(settings.perTeam===2) o.types=[[settings.playerType, settings.allyType],[settings.botType, settings.foe2Type]];
   resetGame(o);
-  for(const h of S.heroes) if(h!==S.player) setBotLevel(h, settings.botLevel || 'easy');   // menüdeki zorluk: rakipler ve takım arkadaşı
+  for(const h of S.heroes) if(h!==S.player) setBotLevel(h, settings.botLevel || 'medium');   // menüdeki zorluk: rakipler ve takım arkadaşı
   applyAutoBuy(S.player);   // otomatik alım: kayıtlı eşya sırası (autobuy.js)
 }
 
