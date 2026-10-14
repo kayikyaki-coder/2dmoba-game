@@ -19,9 +19,13 @@ Elf Federasyonu'nda doğan Alerion, yüzyılını doldurmadan adını efsaneye �
 Oyun bağı: vurduğu düşmanı yavaşlatması okun soğuğudur, pasifin seviyeyle %11'den %20'ye artması bağın derinleşmesidir. Kalın Ok, okun kendi iradesiyle hedefe yönelmesidir.
 (Drowlarla ilgili hikâye şimdilik eklenmedi.)
 
-### Çift Okçu: Khan hizbinden Gözyaşı Şövalyesi
-Gözyaşı Şövalyeleri'nin bağımsız, otoritelerce sevilmeyen Khan kolundan gezgin avcı. Her vuruşta iki ok, yan atılış ve bomba: hız ve özgürlük adanmışlığı.
-Bağlantı: Sanguinus ve Khan şehit mirası, simge sarı zeminde damla ve iki kanat.
+### Çift Okçu: Kiralık Çift Yay (adı henüz yok)
+> "Kimin tarafında olduğumu sorma. Kimin kesesinde olduğumu sor."
+
+Yeraltının karanlığında, drow hükümdarlığının gölgesinde yetişen Çift Okçu, bugün diyarın en aranan azılı katillerinden biri. Hükümdarlığın zincirinden kurtulmayı başardı, ama bunun bedelini ödedi: artık ne tam bir drow ne tam bir elf, ne mağarada ne ışıkta kendine yer buluyor. Kimseye bağlı değil, kimseye borcu da yok. Parasını veren herkes için çalışıyor: bir gün bir elf lordu, ertesi gün bir troll çetesi, öbür gün kendi kanından biri. Yayından hep iki ok çıkıyor, ikisi de aynı hedefe, ikisi de pazarlıksız. Onu bir sözleşmeye bağlayan tek şey para, ona kimin adının yazılı olduğunu soran da yok.
+
+Oyun bağı: her vuruşta iki ok, Yan Atılış, Şok Bombası ve Kilitli Yaylım: ucuz, hızlı ve hesaplı bir kiralık katilin araç seti.
+Not: Gözyaşı Şövalyeleri'nin Khan hizbi, drowları avlamayı kendine iş edinmiştir. İstersen peşindeki avcılar olarak bağlanabilir, şimdilik eklenmedi.
 
 ### Seken Okçu: Herbs halflingi
 Elf Federasyonu'nun halfling şehri Herbs'ten, Carya'nın en genç halklarından biri. Bumerang ve seken oklar: küçük bedenin akıllı hileleri. Arınma ve Avcı Coşkusu: kaçıp yeniden dalan halfling inadı.
