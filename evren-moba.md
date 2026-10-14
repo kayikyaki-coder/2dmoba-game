@@ -14,7 +14,7 @@ Kaynak evren: github.com/kayikyaki-coder/Carya-Fantasy (metin/ klasörü).
 ### Okçu: Alerion, Buz Okunun Taşıyıcısı
 > "Eskiden hedefi ben seçerdim. Şimdi ok seçiyor, ben de ona bakmayı öğrendim."
 
-Elf Federasyonu'nda doğan Alerion, yüzyılını doldurmadan adını efsaneye çevirmeye çıkmış, yeteneğine kendinden başka kimseyi layık görmeyen gösterişli bir maceracıydı. Yolu kuzeye düştüğünde buzun altında uyuyan bir ok buldu: soğuk, sessiz ve kendi iradesi olan bir artifakt. Ok onu ilk kez, Alerion'un varlığından bile habersiz olduğu bir kötülüğe doğru çekti ve o gün ilk kez hedefine kendisi değil ok karar verdi. Narsist genç elf, o günden beri okun işaret ettiği, durdurulması gereken şeylerin peşinde. Yayı hâlâ en iyi o çekiyor, ama artık kimin için çektiğini biliyor.
+Elf Federasyonu'nda doğan Alerion, yüzyılını doldurmadan adını efsaneye çevirmeye çıkmış, yeteneğine kendinden başka kimseyi layık görmeyen gösterişli bir maceracıydı. Yolu kuzeye düştüğünde buzun altında uyuyan bir ok buldu: soğuk, sessiz ve kendi iradesi olan bir artifakt. Ok onu ilk kez, Alerion'un varlığından bile habersiz olduğu bir kötülüğe doğru çekti ve o gün ilk kez hedefine kendisi değil ok karar verdi. Şimdilerde Alerion, tam olarak neyi durdurması gerektiğini arıyor. Aradığını bulana dek de yolda gördüğü her kötülüğün önüne çıkıyor, çünkü soğuk bir okun taşıyıcısı için durmak, bir şeyi kaçırmak demek.
 
 Oyun bağı: vurduğu düşmanı yavaşlatması okun soğuğudur, pasifin seviyeyle %11'den %20'ye artması bağın derinleşmesidir. Kalın Ok, okun kendi iradesiyle hedefe yönelmesidir.
 (Drowlarla ilgili hikâye şimdilik eklenmedi.)
