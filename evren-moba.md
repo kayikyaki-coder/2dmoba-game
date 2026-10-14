@@ -35,10 +35,10 @@ Not: Gözyaşı Şövalyeleri'nin Khan hizbi, drowları avlamayı kendine iş ed
 Oyun bağı: oklar yakındaki düşmana seker (bir kapıdan ötekine), Bumerang gidip geri döner (babasının anısına her seferinde dönüş), Arınma ve Avcı Coşkusu kendini ispat hırsıdır.
 Not: Önceki taslakta Seken Okçu Herbs halflingiydi, bu yönle insan kadına çevrildi. "Lejyon" İmparatorluk ordusunun adıdır (Carya-Fantasy'de henüz geçmiyor, senin eklemen).
 
-### Savaşçı: Strazni Hanesinin Gururu (adı henüz yok)
+### Savaşçı: Stanimir, Strazni Hanesinin Gururu
 > "Ben dövüşmem. Hüküm veririm."
 
-Savaşçı, imparatorluk düzeninin en sert ve en tavizsiz yüzü olan Strazni hanesinin gururu ve İmparatorluk'un en iyi birebir dövüşçülerinden biri. Ağır zırhı ikinci derisi, kalkanı ve kılıcı tek vücut; düello meydanında acele etmez, kalkanı kapalı bekler, rakip yaklaşınca açar, vuruşunu tek seferde bitirir. Hane bütün adını onun omuzlarına yüklemiş, o da bu yükü yüzünde tek bir çizgi oynamadan taşıyor. Antrenman salonuna ilk giren de son çıkan da o, ama bunun sebebi gurur değil: Strazni'de yenilgi, bir ailenin ormanı yakmasından beter bir ayıp sayılır ve gururun altında tek bir soru dönüp duruyor: ya yenilirsem? Henüz kimseye yenilmedi, ve yenildiği gün ne olacağını ailesi bile bilmek istemiyor.
+Stanimir, imparatorluk düzeninin en sert ve en tavizsiz yüzü olan Strazni hanesinin gururu ve İmparatorluk'un en iyi birebir dövüşçülerinden biri. Ağır zırhı ikinci derisi, kalkanı ve kılıcı tek vücut; düello meydanında acele etmez, kalkanı kapalı bekler, rakip yaklaşınca açar, vuruşunu tek seferde bitirir. Hane bütün adını onun omuzlarına yüklemiş, o da bu yükü yüzünde tek bir çizgi oynamadan taşıyor. Antrenman salonuna ilk giren de son çıkan da o, ama bunun sebebi gurur değil: Strazni'de yenilgi, bir ailenin ormanı yakmasından beter bir ayıp sayılır ve gururun altında tek bir soru dönüp duruyor: ya yenilirsem? Henüz kimseye yenilmedi, ve yenildiği gün ne olacağını ailesi bile bilmek istemiyor.
 
 Tema: aşırı gurur ve onun altındaki "ya yenilirsem" korkusu. Çok katı bir ailenin beklentisi, durmadan çalışma ve zinde kalma hırsı olarak yaşanıyor.
 Oyun bağı: ağır zırh ve yüksek can, atılış ve rakip yaklaşınca açılan kalkan: sabırlı, tavizsiz bir düellocunun hamleleri.
