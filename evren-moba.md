@@ -55,10 +55,12 @@ Oyun bağı: Yakma (pasif) ve İç Ateş zamanla biriken zarardır, sabırlı ve
 ### Kancalı Tank: Zincirli Kaptan (adı henüz yok)
 > "Beni gömdüler. Borçlarını gömmediler."
 
-Cortax'ın en ünlü korsan kaptanlarından biriydi. Bir seferde öldü sanıldı, tayfası ve onu sevenler dahil herkes yasını tuttu, adı limanlarda gitgide anılmaz oldu. Birkaç yıl sonra geri döndüğünde kimse onu saymadı: eski tayfa başka bir kaptana bağlanmış, onu tanıyan sözünü unutmuş, geri dönüşü bir şaka gibi karşılanmıştı. Cortax'ta ihanet mümkündür ama anlaşma bozmak affedilmez; onu defterden silenler bu kuralı çoktan çiğnemişti. Elindeki zinciri kolundan çıkarmadı, ucundaki kancayla düşmanını kendine çekiyor, ardından yumruğunu, sonra yükünü üstüne indiriyor. Onu sayanlar kadar saymayanların da listesini tutuyor, hepsinden tek tek hesap soracak. Listede kaç isim kaldığını bilmiyor, sonuna geldiğinde ne yapacağını da.
+Cortax'ın en ünlü korsan kaptanlarından biriydi ve deniz geçitlerinin bekçisi Kraken'in sadık takipçisiydi. Bir seferde ölüm döşeğine düştü, Kraken'e yalvardı, ama Kraken onu bıraktı. Karşılık veren çürümenin tanrısı Nurgle oldu: ona nefes borcu bahşetti, ölmesine izin vermedi, onu kendi takipçisi yaptı. Tayfası ve onu sevenler dahil herkes öldüğünü sandı, adı limanlarda gitgide anılmaz oldu. Birkaç yıl sonra geri döndüğünde kimse onu saymadı: eski tayfa başka bir kaptana bağlanmış, onu tanıyan sözünü unutmuş, geri dönüşü bir şaka gibi karşılanmıştı. Cortax'ta ihanet mümkündür ama anlaşma bozmak affedilmez; onu defterden silenler bu kuralı çoktan çiğnemişti. Elindeki zinciri kolundan çıkarmadı: kancayla düşmanını kendine çekiyor, ağzından asit püskürtüyor, çevresine hastalık saçıyor. Kraken'den, onu bırakan tanrıdan nefret ediyor ve onu sayanlar kadar saymayanların da listesini tutuyor, hepsinden tek tek hesap soracak. Listede kaç isim kaldığını bilmiyor, sonuna geldiğinde ne yapacağını da.
 
-Tema: unutulmanın öfkesi ve kendi kendine verdiği intikam yemini. Cortax'ın "anlaşma bozmak affedilmez" kuralı ona meşruiyet veriyor.
-Oyun bağı: Kanca düşmanı çeker, Ezici Darbe yere vurup yavaşlatır, Şok Dalgası susturur. Demir Gövde pasifi (yenilenme) ölümden dönmüş, paslanmayan bir gövdedir.
+Tema: unutulmanın öfkesi, terk edilmişlik ve intikam yemini. Kraken'in bıraktığı, Nurgle'ın sahiplendiği biri.
+Oyun bağı: Kanca düşmanı çeker. Ezici Darbe, önündeki koni içine atılan asittir (hasar ve yavaşlatma). Şok Dalgası, çevresindeki alana hastalık saçmasıdır (hasar ve susturma, yani yeteneklerin çürümesi). Demir Gövde pasifi, Nurgle'ın verdiği ölmeyen, çürümeyen süreklilik.
+Not: Dört Kaos tanrısından birine bağlı olduğu için Gözyaşı Şövalyeleri'nin av hedefidir. Bu bağ metne eklenmedi.
+Not: Yetenek adları ve görselleri henüz değişmedi. Bu yeniden yorumlama ancak mekanikler aynı kalarak betimleme düzeyinde.
 
 ### Yakın Büyücü: Sunland keşişi
 Elf Federasyonu'nun çöl şehri Sunland'den, Solana'ya (güneş) bağlı ruhani, disiplinli bir kol. Alev yumruğuyla dövüşen savaşçı rahip: Alevli Sıçrayış ve Alev Halkası, güneşin yakan yüzü.
