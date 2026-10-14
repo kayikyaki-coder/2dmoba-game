@@ -62,29 +62,69 @@ Oyun bağı: Kanca düşmanı çeker. Ezici Darbe, önündeki koni içine atıla
 Not: Dört Kaos tanrısından birine bağlı olduğu için Gözyaşı Şövalyeleri'nin av hedefidir. Bu bağ metne eklenmedi.
 Not: Yetenek adları ve görselleri henüz değişmedi. Bu yeniden yorumlama ancak mekanikler aynı kalarak betimleme düzeyinde.
 
-### Yakın Büyücü: Sunland keşişi
-Elf Federasyonu'nun çöl şehri Sunland'den, Solana'ya (güneş) bağlı ruhani, disiplinli bir kol. Alev yumruğuyla dövüşen savaşçı rahip: Alevli Sıçrayış ve Alev Halkası, güneşin yakan yüzü.
+### Yakın Büyücü: Saelith, Sessiz Güneşin Yumruğu
+> "Işık her şeyi gösterir. Ateş her şeye cevap verir."
 
-### Vampir: Von Zarovich
-İçe kapanık, gizemli, büyülü eşya ticaretiyle zengin Von Zarovich hanesinden soylu. Servet sessizdir, sır erdemdir. Kan Hasadı, Kan Laneti: bu hanenin neden hep gölgede kaldığının cevabı.
+Elf Federasyonu'nun çöl şehri Sunland'de, Solana'ya adanmış bir keşiş olarak yetişti. Güneşin yaşatan, sıcak yüzünü öğrendi; ama Kaos Savaşı'nda tanrısının tarafsız kalıp savaşmadığını da. Hiçbir ayin bu sessizliği açıklamayınca tapınağı bıraktı. Şimdi yumruklarında alev, aklında tek bir soru var: Solana neden savaşmadı? Cevap ararken yaktığı her şeyin, güneşin yaşatan yüzüne ihanet olup olmadığını bilmiyor.
 
-### Topçu Büyücü: Trumheim topçusu
-Cüce Krallığı'nın dağa oyulmuş şehrinden, uğultu içinde uzun menzilli ağır işçilik yapan topçu. Uzun Işın, Ağır Küre, Kök Sal: inatla, sabırla, tek tek isabet.
+Tema: tanrısının sessizliğine cevap arayan bir inanan. Işığın şefkati ile alevin acımasızlığı arasında.
+Oyun bağı: Kıvılcım (yetenek sonrası vuruş), Alev Üfleme, Alevli Sıçrayış ve Alev Halkası.
 
-### Işınlanan Büyücü: Sessizlik Loncası suikastçısı
-Omnialis merkezli, üyelerinin birbirini tanımadığı suikastçı ve istihbarat şebekesinden. Gölge Adımı, Zincir, Fırsatçı: kimse teşhis edemez, kimse arkasını göremez.
+### Vampir: Ilyana, Susan Hanenin Kızı
+> "Sır saklamak erdemdir. Ben yalnızca kimden sakladığımı unuttum."
 
-### Kalkan Büyücü: Ruhlar Nehri rahibi
-Rakash'a hizmet eden, Shahdadia'nın ritüel ve gizem geleneğinden bir ruh rehberi. Ruh Patlaması, Ruh Kalkanı, Güçlendir: ölülerin geçişini kolaylaştıran, dostlarını ruhlarıyla koruyan.
+Von Zarovich hanesinde sır saklamak erdemdir, servet gürültüsüz büyür. Ilyana ailenin en büyük sırrını doğuştan taşıyor: hanenin sessizliğini ve zenginliğini ayakta tutan şeyin kendi kanı olduğunu. Aldığı her can ona can veriyor, soylu terbiyesi ile içindeki açlık arasında her gece aynı pazarlığı yapıyor. Hane onu korumak için sakladı, o ise saklanmayı bırakıp kaçtı. Şimdi kendi soyunun sırrının kaynağını arıyor ve buldukça kendinden de bir parça kaybettiğini fark ediyor.
 
-### Biçim Değiştiren: Jökulgard kurt kanı
-Kuzey Krallığı'nın vadi şehri Jökulgard'dan, avcı Ulvarr soyundan. Her on iki kişiden birinde kurt kanı vardır, kimse neyi taşıdığını açıkça konuşmaz. Uzak biçim mavi (Enerji Küresi), yakın biçim turuncu (Darbe, Sıçrayış): Greatwolf'a ata gözüyle bakan şehrin sırrı.
+Tema: soyluluk ile açlık, korunma ile özgürlük.
+Oyun bağı: Kan Hasadı, Kan Oku (iyileştiren), Kan Patlaması (canından öder), Kan Laneti.
 
-### Gülle: Cogvrastum gnomu
-Gnomların dişli, kaldıraç ve buhar şehri Cogvrastum'dan yuvarlanan bir makine ya da onu süren mucit. Momentum, Kabuk, Bilardo: hareketin, merakın ve mekanik zekânın şehri.
+### Topçu Büyücü: Durgan, Uğultu Diyarının Topçusu
+> "Söz bir kez verilir. Mermi bir kez atılır."
 
-### Gladyatör: Omnialis arenalarından yeşilderili
-Özgür Şehirler'in farklı ırkların karıştığı büyük merkezi Omnialis'te arenalarda ün yapmış, yeşilderili halklardan (ork ya da ogre soyu) bir dövüşçü. Kızışma, Arena, Meydan Okuma: Morg'un boyun eğmeme mirası.
+Trumheim'ın hiç dinmeyen uğultusu içinde doğdu. Cüce Krallığı'nda onur yakın dövüşte aranır; topçu ise uzaktan vurduğu için kendi klanında yarım asker sayıldı. Durgan her atışını bir söze çevirdi: hedefi bir kez ıskalamamak, ıskaladığı gün ağır topunu bırakmak. Kök Sal ile yere çakılıp bekliyor, uzaktaki her hedefi tek tek, inatla vuruyor. Aradığı şey klanının büyük salonunda hak ettiğini düşündüğü yer; ama onurun yakından mı, isabetten mi geldiğine kendisi de emin değil.
+
+Tema: onur tanımı, klanının kabulü, kendini ispat.
+Oyun bağı: Uzun Işın, Ağır Küre, Kök Sal ve Odak (hareketsiz bekledikçe güçlenir).
+
+### Işınlanan Büyücü: Vesper, Kimsenin Tanımadığı
+> "Bana ad verirseniz, ertesi gün unutursunuz."
+
+Sessizlik Loncası'nın kuralı basit: üyeler birbirini tanımaz. Vesper bu kuralı fazla iyi öğrendi; bir noktada kendi adının da kendisinden silindiğini fark etti. Omnialis'in sokaklarında bir hedefe ışınlanıp vuruyor, ardından geri dönüyor, ama dönülecek yerin neresi olduğunu bilmiyor. Zayıf düşene kıyar, güçlüye dokunmaz. Aradığı şey ona adını geri verebilecek tek kişi ya da bunun neden olduğunu söyleyecek bir iz.
+
+Tema: kimliğini kaybetmiş biri. Gölge Adımı ile gidip dönmek, kaybolmuş bir "ev" arayışıdır.
+Oyun bağı: Fırsatçı (zayıflamış rakibe ek hasar), Zincir, Gölge Adımı ve Taklit.
+
+### Kalkan Büyücü: Kasim, Soğuk Geçişin Rahibi
+> "Ölüm soğuk olmak zorunda değil."
+
+Shahdadia'nın tütsü kokan mabetlerinde Rakash'a hizmet eden bir ruh rehberi. Rakash'ın kalbi çalındığından beri ruhların geçişinin daha soğuk, daha kolay olduğunu görüyor; bırakılan ruhlar titreyerek Nehir'e giriyor. Kalbin çalındığını biliyor, kimin çaldığını bilmiyor. Rahipliği bırakıp ruhları ve yaşayanları kendi kalkanıyla sarmaya başladı. Aradığı şey kayıp kalp, ya da hiç değilse bir ruha son bir sıcaklık vermenin yolu.
+
+Tema: tanrısının eksik bıraktığı şeyi kendi elleriyle tamamlamak.
+Oyun bağı: Ruh Akışı, Ruh Patlaması, Ruh Kalkanı, Güçlendir.
+
+### Biçim Değiştiren: Hrolf, Çitin Ötesindeki
+> "Kanımda ne var diye sormayın. Ben de sormuyorum."
+
+Kuzey Krallığı'nın vadi şehri Jökulgard'ın avcı Ulvarr soyundan. Şehirde her on iki kişiden birinde kurt kanı vardır, ama kimse bunu açıkça konuşmaz. Hrolf yarl düellosunu reddedip Kurtboğazı'nı terk etti. Bir biçimde insan, bir biçimde kurt gibi dövüşüyor; hangisinin gerçek yüzü olduğunu bilmiyor. Greatwolf'a ata gözüyle bakan şehrin sessizliğine kendi cevabını arıyor.
+
+Tema: gizlenmiş bir kimliği kabul etmek, iki biçim arasında kendi yerini bulmak.
+Oyun bağı: Akış, Enerji Küresi, Hızlı Ateş, Sıçrayış Darbesi, Darbe ve Biçim Değiştir.
+
+### Gülle: Tikwick, Durmayı Unutan Mucit
+> "Durmak mı? Bir dakika, önce şu çarkı tamamlayayım."
+
+Cogvrastum'da her gnome bir takıntıyla yaşar. Tikwick'inki hareketti. Kendi yaptığı yuvarlak makineyi içinden yönlendiriyor: düz giderken hızlanıyor, dönerken yavaşlıyor, ama hiç durmuyor. Kabuğuna çekildiğinde bile içeride bir çark dönüyor. Aradığı şey makineyi durdurmanın yolu, ya da neden durmaktan bu kadar korktuğunun cevabı. Makinenin onu mu sürüklediğinden, onun makineyi mi sürdüğünden emin değil.
+
+Tema: takıntı ile korku, durmak istemeyen biri.
+Oyun bağı: Momentum, Yuvarlan, Kabuk, Bilardo.
+
+### Gladyatör: Brakka, Arenanın Kapısını Arayan
+> "Zinciri kırdım. Kapıyı hâlâ arıyorum."
+
+Omnialis'in arenalarında yeşilderili halklardan çıkan bir dövüşçü; Morg'un boyun eğmeme mirasını taşıyor. Vurdukça hızlanıyor, her meydan okumada rakibin zırhını çalıyor. Özgürlüğünü arenada kazandı, ama arenanın dışında ne yapacağını bilmiyor. Yüzlerce kez meydan okudu, kendisi dışında kimse bunu istemedi. Aradığı şey arena kapısının ötesinde ona bir sebep verecek bir yer.
+
+Tema: özgürlüğü kazanıp ne yapacağını bilmemek.
+Oyun bağı: Kızışma, Ağır Darbe, Arena, Meydan Okuma.
 
 ## Açık sorular
 1. Hangi eşleşmeler hoşuna gitmedi, hangi kahramanlar başka hizibe gitsin?
