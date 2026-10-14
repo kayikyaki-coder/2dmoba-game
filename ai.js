@@ -166,14 +166,14 @@ function canDive(b, st, e, M){
   if(st.sub==='nexus') return true;
   if(e && !e.dead && dist(e,st)<AI.diveEnemyDist) return false;
   // ölüm ucuzsa (yeniden doğma kısa) ölene kadar vur, pahalıysa canı koru
-  const cheap=respawnTime(S.time)<=AI.cheapDeath;
-  let floor=b.maxHp*(cheap?0:AI.diveFloor), start=cheap?0.2:AI.diveStart;
+  const cheap=respawnTime(S.time)<=LVP(b).cheapDeath;
+  let floor=b.maxHp*(cheap?0:LVP(b).diveFloor), start=cheap?0.2:LVP(b).diveStart;
   if(M.foesDown && LVP(b).siege){ floor=Math.min(floor, b.maxHp*0.12); start=Math.min(start, 0.3); }   // rakip ölü: daha cesur kuşatma
   if(b.hp < (M.dive ? floor : b.maxHp*start)) return false;
   let myD=dps(b)*0.95;
   for(const m of S.minions) if(!m.dead && m.team===b.team && dist(m,st)<300) myD+=m.def.dmg/m.def.period;
   const live=(b.hp-floor)/(towerChampHit(3)/TOWER.interval);
-  return myD*live >= Math.min(st.hp, AI.diveMinDmg);
+  return myD*live >= Math.min(st.hp, LVP(b).diveMinDmg);
 }
 
 /* Hazır yeteneklerin ham katkısı, türüne göre (ağırlıklar FE.w içinde) */
@@ -613,7 +613,7 @@ function fightMove(b, e, M, ev){
   if(ranged(b)){
     const my=reachTo(b,e);
     // yakın dövüşçüye karşı: düz vuruş menzili kısa ama hazır yetenek menzili uzunsa, yetenek menzilinden oyna
-    const safeD=threatR(e,b)+AI.keepMelee, sr=skillReach(b);
+    const safeD=threatR(e,b)+LVP(b).keepMelee, sr=skillReach(b);
     // yakın dövüşçünün tehdit menziline (atılış dahil) girme; düz vuruş yetişmiyorsa yeteneklerle oyna
     let keep = eR ? my-25 : (my-20>=safeD ? my-20 : (sr>safeD ? safeD+20 : safeD));
     if(ev.adv>2.5) keep=Math.min(keep, my-20);
@@ -627,7 +627,7 @@ function fightMove(b, e, M, ev){
   // (düz vuruş güdümlü: yoldaki minyon engellemez, yana kaymaya gerek yok)
   let mx=nx*radial+px*side, my=ny*radial+py*side;
   // geri çekilirken kendi üssümüze doğru kaç (rakip arkamıza geçtiyse düşman tarafına koşma)
-  if(radial<0){ mx+=homeDir(b)*AI.homeBias; }
+  if(radial<0){ mx+=homeDir(b)*LVP(b).homeBias; }
   return { x:mx, y:my };
 }
 
@@ -690,7 +690,7 @@ function laneMove(b, e, eVis, M, ev){
   // rakiplerin hepsi ölüyse (en az birkaç sn) kuleye yürü ve vur: öldürmeyi yapıya çevir
   let foesDown=true; for(const u of S.heroes) if(u.team!==b.team && !(u.dead && u.respawn>3)) { foesDown=false; break; }
   M.foesDown=foesDown;
-  const pushAdv = !foesDown && LVP(b).numAdv && numEdge(b)>0 && alliesAround(b,b.x,b.y,AI.numAllyR)>0;   // sayı üstünlüğü: dostla birlikte kuleye
+  const pushAdv = !foesDown && LVP(b).numAdv && numEdge(b)>0 && alliesAround(b,b.x,b.y,LVP(b).numAllyR)>0;   // sayı üstünlüğü: dostla birlikte kuleye
   M.pushAdv=pushAdv;
   if(st && !st.prot && dist(b,st)<((foesDown || pushAdv) && LVP(b).siege ? 4200 : 1600) && !outn){
     const sp=findStand(b, st, reachTo(b,st)-15);
@@ -708,7 +708,7 @@ function laneMove(b, e, eVis, M, ev){
       const sp=findStand(b, m, reachTo(b,m)-12);
       if(!sp) continue;
       // menzilli: yakın dövüşçünün tehdit menzilinde minyon kesme (uzakta durup yetenekle kes)
-      if(meleeThreat && hyp(sp.x-e.x,sp.y-e.y) < threatR(e,b)+AI.keepMelee) continue;
+      if(meleeThreat && hyp(sp.x-e.x,sp.y-e.y) < threatR(e,b)+LVP(b).keepMelee) continue;
       // son vuruş önceliği: şimdi öldürebileceğimiz minyon en önde, en kısa sürede son vuruşluk olacak ikinci
       const li=lastHitInfo(b,m);
       if(dd<reachTo(b,m)+150) soonest=Math.min(soonest, li.tUntil);
@@ -741,7 +741,7 @@ function laneMove(b, e, eVis, M, ev){
     if(outn){ const ts=laneProject(own.x,own.y).s-ld*120; if(gs*ld>ts*ld) gs=ts; }   // sayıca azken kulenin arkasında bekle
     if(AI.team && AI.cohesion){   // 2v2: dostumuzdan çok öne geçip tek başına beklemeyiz
       const al=nearestAlly(b);
-      if(al && al.role!=='jungle' && !(al.ai.v2 && al.ai.v2.recall)){ const as=laneProject(al.x,al.y).s, lim=as+ld*AI.cohesionGap; if(lim*ld<gs*ld) gs=lim; }
+      if(al && al.role!=='jungle' && !(al.ai.v2 && al.ai.v2.recall)){ const as=laneProject(al.x,al.y).s, lim=as+ld*LVP(b).cohesionGap; if(lim*ld<gs*ld) gs=lim; }
     }
     let gp=lanePoint(gs), side=b.team===0?70:-70;
     if(teamRank(b)===1) side=-side;   // 2v2: iki dost yan yana dursun, üst üste binmesin
@@ -760,7 +760,7 @@ function laneMove(b, e, eVis, M, ev){
     const d=dist(b,e), tr = kd ? Math.max(threatR(e,b), skillReach(e))+120 : ev.adv<LVP(b).fleeAdv ? threatR(e,b) : Math.max(threatR(e,b), dgr);
     if(d<tr){
       const l=hyp(mv.x,mv.y)||1, w=(tr-d)/tr*2.5+0.6;
-      mv={ x:mv.x/l+(b.x-e.x)/d*w+homeDir(b)*AI.homeBias*w, y:mv.y/l+(b.y-e.y)/d*w };
+      mv={ x:mv.x/l+(b.x-e.x)/d*w+homeDir(b)*LVP(b).homeBias*w, y:mv.y/l+(b.y-e.y)/d*w };
       // kaçarken canımız azsa yakındaki çalıya (rakipten uzak tarafta) gir: görüşü kır
       if(hpNow(b)<0.5){ const bp=bushNear(b.x,b.y,380,b); if(bp && hyp(bp.x-e.x,bp.y-e.y)>d){ const bl=hyp(bp.x-b.x,bp.y-b.y)||1; mv.x+=(bp.x-b.x)/bl*w*0.8; mv.y+=(bp.y-b.y)/bl*w*0.8; } }
       // 2v2: kaçarken yakın dosta doğru çekil (birlikte dövüşmek için)
@@ -816,7 +816,7 @@ function structOnLine(b, e, w){
    Dönüş: nişan açısı ya da null. */
 function tetherPlan(b, e, eVis, d, fight, M, sk, ev){
   if(!eVis || M.recall || b.ic.tether || e.stasis>0 || e.pulled || d-e.r>=sk.range-80) return null;
-  if(!(fight || M.poking || (ev && ev.adv>=AI.pokeAdv))) return null;
+  if(!(fight || M.poking || (ev && ev.adv>=LVP(b).pokeAdv))) return null;
   const ang=leadAim(b,e,sk.cast,sk.speed,M);
   if(!heroHitSafe(b,e,b.x,b.y) || unsafeAt(b,b.x,b.y) || blocker(b,ang,e,sk.radius)) return null;
   return ang;
@@ -961,7 +961,7 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
   if(!acting && b.st.freeze<=0) return;   // sersemken yalnız Arınma türü denenir (aşağıda)
   const d=eVis ? dist(b,e) : 1e9, quiet=!eVis || d>900;
   const fp = fight || !!M.poking;                            // dürtme: uzak hasar yetenekleri dövüş gibi kullanılır
-  const pz = fp || !!(ev && ev.adv>=AI.pokeAdv);
+  const pz = fp || !!(ev && ev.adv>=LVP(b).pokeAdv);
   const near=(r)=>{ let n=0; for(const m of S.minions) if(!m.dead && m.team!==b.team && dist(m,b)<r) n++; return n; };
   // Gölge Adımı dönüşü (bekleme süresinden bağımsız): canımız düşükse ve rakip üstümüzdeyse ya da indiğimiz yer kule menzilindeyse başladığımız yere dön.
   // Kaçış için atılan adımda ve ilk 0,35 sn içinde dönmez.
@@ -1035,7 +1035,7 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
     } else if(sk.type==='ignite'){
       if(eVis && d-e.r<sk.range-10 && pz && heroHitSafe(b,e,b.x,b.y)){ use=true; cmd.tx=e.x; cmd.ty=e.y; }
     } else if(sk.type==='meteor'){
-      if(eVis && d<sk.range && (fight || M.kw || (ev && ev.adv>=AI.pokeAdv))){
+      if(eVis && d<sk.range && (fight || M.kw || (ev && ev.adv>=LVP(b).pokeAdv))){
         // gecikme boyunca rakibin gideceği yere, kısmen (rakip kaçabilir)
         const k2=e.st.freeze>0 ? 0 : 0.6;
         cmd.tx=e.x+((e.vx||0)+(e.kx||0))*sk.delay*k2; cmd.ty=e.y+((e.vy||0)+(e.ky||0))*sk.delay*k2; use=true;
@@ -1228,7 +1228,7 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
       if(!cmd.rmb && !cmd.e && b.form && formWant(b,e,eVis,d,fight,M)!==b.form) use=true;
     } else if(sk.type==='groworb'){
       // dövüşte ya da güvenli dürtmede menzildeki rakip kahramana (uzaktan atmak daha güçlü: dürtme yalnız 480+ mesafede); sakinken 3+ minyon kümesine
-      if(eVis && !(e.stasis>0) && d-e.r<sk.range-40 && (fp || (ev && ev.adv>=AI.pokeAdv && d>480)) && heroHitSafe(b,e,b.x,b.y)){
+      if(eVis && !(e.stasis>0) && d-e.r<sk.range-40 && (fp || (ev && ev.adv>=LVP(b).pokeAdv && d>480)) && heroHitSafe(b,e,b.x,b.y)){
         const a=orbPlan(b,e,sk,M);
         if(a!==null){ use=true; cmd.aim=a; }
       } else if(quiet && !M.recall && tgt && (tgt.kind==='minion' || tgt.kind==='monster') && dist(b,tgt)<sk.range-150){
@@ -1392,11 +1392,11 @@ function foesAround(b, x, y, R){ let n=0; for(const u of S.heroes) if(u.team!==b
 function alliesAround(b, x, y, R){ let n=0; for(const u of S.heroes) if(u!==b && u.team===b.team && !u.dead && hyp(u.x-x,u.y-y)<R) n++; return n; }
 export function outnumbered(b){
   if(!AI.team) return false;
-  return foesAround(b,b.x,b.y,AI.outnumR)>=2 && alliesAround(b,b.x,b.y,AI.allyHelpR)===0;
+  return foesAround(b,b.x,b.y,LVP(b).outnumR)>=2 && alliesAround(b,b.x,b.y,LVP(b).allyHelpR)===0;
 }
 /* Sayı üstünlüğü (13.10.2026): yaşayan dostlar - yaşayan rakipler (yeniden doğuşuna AI.numResp sn'den az kalan ölü rakip yaşıyor sayılır) */
 AI.numResp=7; AI.numAllyR=1400;
-function numEdge(b){ let n=0; for(const u of S.heroes){ const alive=!u.dead || u.respawn<=AI.numResp; if(alive) n+= u.team===b.team ? 1 : -1; } return n; }
+function numEdge(b){ let n=0; for(const u of S.heroes){ const alive=!u.dead || u.respawn<=LVP(b).numResp; if(alive) n+= u.team===b.team ? 1 : -1; } return n; }
 function foesInLane(b){ let n=0, all=0; for(const u of S.heroes) if(u.team!==b.team){ all++; if(!u.dead && canSee(b.team,u) && u.y>1450) n++; } return all>=2 && n>=all; }
 function frontTower(team){ return S.lane[team].find(s=>!s.dead && s.sub!=='nexus') || S.lane[team][3]; }
 /* Ormancı savunma: yalnız dost koridorcuya 2+ rakip ya da kulemize dayanan rakip kahraman */
@@ -1567,16 +1567,16 @@ function botCommandCore(b, dt){
   if(eVis && myS && mode!=='duel' && dist(e,myS) < reachTo(e,myS)+150){
     const sieging = enS && !enS.prot && dist(b,enS) < reachTo(b,enS)+60;
     const raceWon = sieging && enS.hp/dps(b) < myS.hp/dps(e);
-    defend = !raceWon && ev.adv>=AI.defendAdv;
+    defend = !raceWon && ev.adv>=LVP(b).defendAdv;
   }
 
   // Geri çekilme
   const hpF=b.hp/b.maxHp;
   if(M.recall && kw && !b.recallCh){ M.recall=false; M.shop=false; }
-  if(M.recall){ if((hpF>=AI.recallOut && (!M.shop || canShop(b))) || (defend && hpF>AI.diveFloor)) { M.recall=false; M.shop=false; } }
+  if(M.recall){ if((hpF>=LVP(b).recallOut && (!M.shop || canShop(b))) || (defend && hpF>LVP(b).diveFloor)) { M.recall=false; M.shop=false; } }
   else if(mode!=='duel' && !defend && hpF<LP.recallHp && !(ev && ev.adv>2.5 && ev.tKill<1.5) && !kw){
     // uzaktaysak sadece rakip bizi tehdit ediyorsa dön, yoksa dikkatli oynamaya devam
-    const far=respawnTime(S.time)<=AI.cheapDeath && dist(b,S.lane[b.team][3])>AI.recallDist;
+    const far=respawnTime(S.time)<=LVP(b).cheapDeath && dist(b,S.lane[b.team][3])>AI.recallDist;
     if(!far || (ev && ev.adv<1 && d<threatR(e,b)+250)) M.recall=true;
   }
 
@@ -1612,7 +1612,7 @@ function botCommandCore(b, dt){
         else if(!fight && S.time<(M.killUntil||0) && hpNow(b)>0.12 && ev.adv>=0.6) fight=true;   // öldürmeye girdiysek hemen bırakma
         if(defend) fight=true;
         // dostumuz saldırı altında ve dövüş lehimizeyse uzaktan da yardıma koş
-        if(!fight && ev.adv>=LP.engageAdv && d<AI.helpRun && allyUnderAttack(b,e)) fight=true;
+        if(!fight && ev.adv>=LP.engageAdv && d<LVP(b).helpRun && allyUnderAttack(b,e)) fight=true;
         if(!fight && LP.cmb) fight=hardFight(b,e,ev,d,engBase);   // Zor: kombo, öldürme fırsatı, kuleye dalan rakip
         // menzilliye yakın dövüşçü yapıştıysa kaçmak yetmez (hız aynı): vura vura geri çekil
         if(!fight && ranged(b) && !ranged(e) && d<threatR(e,b)) fight=true;
@@ -1621,16 +1621,16 @@ function botCommandCore(b, dt){
           const dk=skillKey(b,'dash'), dashReady=dk && rdy(b,dk);
           const sk=skillKey(b,'shield'), shieldReady=sk && rdy(b,sk);
           const reachAll = reachTo(b,e) + (dashReady ? b.def.skills[dk].dist : 0) + (shieldReady ? AI.diveShieldGap : 0);
-          if(!fight && dashReady && d<reachAll+AI.diveGap && hpNow(b)>=hpNow(e)-AI.diveHpGap && ev.adv>=AI.diveAdv && heroHitSafe(b,e,e.x,e.y)){
-            fight=true; M.commitUntil=S.time+AI.commitTime;
+          if(!fight && dashReady && d<reachAll+LVP(b).diveGap && hpNow(b)>=hpNow(e)-LVP(b).diveHpGap && ev.adv>=LVP(b).diveAdv && heroHitSafe(b,e,e.x,e.y)){
+            fight=true; M.commitUntil=S.time+LVP(b).commitTime;
           }
           if(!fight && (M.commitUntil||0)>S.time && hpNow(b)>AI.recallHp && heroHitSafe(b,e,e.x,e.y)) fight=true;
         }
         // yapıya vurabiliyorsak ve rakip bize dokunmuyorsa kovalamaya gerek yok
         if(fight && !kw && L.tgt && L.tgt.kind==='struct' && d>threatR(e,b)+40 && ev.tKill>1.5) fight=false;
         // Uzman/Zor: vurulurken ne dövüşüp ne kaçma (arada kalma): yakın üstünlükte karşılık ver, değilse geri çekil
-        if(!fight && LP.noLimbo && (b.dmgBy[e.id] ?? -1e9) > S.time-AI.limboT){
-          if(ev.adv>=AI.limboAdv && hpNow(b)>0.3) fight=true; else M.tradeBack=Math.max(M.tradeBack||0, S.time+0.8);
+        if(!fight && LP.noLimbo && (b.dmgBy[e.id] ?? -1e9) > S.time-LVP(b).limboT){
+          if(ev.adv>=LVP(b).limboAdv && hpNow(b)>0.3) fight=true; else M.tradeBack=Math.max(M.tradeBack||0, S.time+0.8);
         }
         if(fight){
           const sp = ranged(b) ? standPoint(b,e,reachTo(b,e)-20) : e;
@@ -1653,7 +1653,7 @@ function botCommandCore(b, dt){
         mv={ x:mv.x/l*0.5+(b.x-e.x)/d*1.2+homeDir(b)*0.4, y:mv.y/l*0.5+(b.y-e.y)/d*1.2 };
       }
       // menzilli kahraman fırsat buldukça rakibi dürter
-      if(eVis && ranged(b) && ev.adv>=AI.pokeAdv && d<=reachTo(b,e) && heroHitSafe(b,e,b.x,b.y)) tgt=e;
+      if(eVis && ranged(b) && ev.adv>=LVP(b).pokeAdv && d<=reachTo(b,e) && heroHitSafe(b,e,b.x,b.y)) tgt=e;
     }
   }
 

@@ -17,7 +17,11 @@ const isMain = () => { try { return process.argv[1] && pathToFileURL(path.resolv
 const mulberry=a=>()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; };
 
 function one(job){
-  if(job.tune) for(const [k,v] of Object.entries(job.tune)) Object.assign(LEVEL_PARAMS[+k], v);
+  const undo=[];   // ayarlar maç sonunda geri alınır (aynı iş parçacığında farklı ayarlı maçlar: tools/evolve.js)
+  if(job.tune) for(const [k,v] of Object.entries(job.tune)){ const L=LEVEL_PARAMS[+k]; for(const key of Object.keys(v)) undo.push([L,key,Object.prototype.hasOwnProperty.call(L,key),L[key]]); Object.assign(L, v); }
+  try { return one0(job); } finally { for(const [L,key,own,val] of undo.reverse()) { if(own) L[key]=val; else delete L[key]; } }
+}
+function one0(job){
   const { a, b, aTeam, seed, maxTime, aiA, aiB, diffA, diffB }=job, A=aTeam, B=1-aTeam;
   resetGame({ types: A===0 ? [a,b] : [b,a], levels:[1,1], human:null, seed, fx:false });
   for(const h of S.heroes) h.botLevel = LEVEL_IDS.indexOf(h.team===A ? diffA : diffB);
