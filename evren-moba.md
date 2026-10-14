@@ -11,12 +11,16 @@ Kaynak evren: github.com/kayikyaki-coder/Carya-Fantasy (metin/ klasörü).
 
 ## Kahramanlar
 
-### Okçu: Drow okçusu
-Loth'u izleyip güneşten uzak yaşayan drow halkından, becerikli bir yeraltı nişancısı. Oklarının vurduğu hedef yavaşlar: karanlıkta iz süren avcının pasif alışkanlığı.
-Bağlantı: Drowlar, Gözyaşı Şövalyeleri'nin Khan hizbinin başlıca av hedefidir (İkiz Ok ile doğal rakip).
+### Okçu: Alerion, Buz Okunun Taşıyıcısı
+> "Eskiden hedefi ben seçerdim. Şimdi ok seçiyor, ben de ona bakmayı öğrendim."
+
+Elf Federasyonu'nda doğan Alerion, yüzyılını doldurmadan adını efsaneye çevirmeye çıkmış, yeteneğine kendinden başka kimseyi layık görmeyen gösterişli bir maceracıydı. Yolu kuzeye düştüğünde buzun altında uyuyan bir ok buldu: soğuk, sessiz ve kendi iradesi olan bir artifakt. Ok onu ilk kez, Alerion'un varlığından bile habersiz olduğu bir kötülüğe doğru çekti ve o gün ilk kez hedefine kendisi değil ok karar verdi. Narsist genç elf, o günden beri okun işaret ettiği, durdurulması gereken şeylerin peşinde. Yayı hâlâ en iyi o çekiyor, ama artık kimin için çektiğini biliyor.
+
+Oyun bağı: vurduğu düşmanı yavaşlatması okun soğuğudur, pasifin seviyeyle %11'den %20'ye artması bağın derinleşmesidir. Kalın Ok, okun kendi iradesiyle hedefe yönelmesidir.
+(Drowlarla ilgili hikâye şimdilik eklenmedi.)
 
 ### Çift Okçu: Khan hizbinden Gözyaşı Şövalyesi
-Gözyaşı Şövalyeleri'nin bağımsız, otoritelerce sevilmeyen Khan kolundan gezgin avcı. Drow avlamayı kendine iş edinmiş. Her vuruşta iki ok, yan atılış ve bomba: hız ve özgürlük adanmışlığı.
+Gözyaşı Şövalyeleri'nin bağımsız, otoritelerce sevilmeyen Khan kolundan gezgin avcı. Her vuruşta iki ok, yan atılış ve bomba: hız ve özgürlük adanmışlığı.
 Bağlantı: Sanguinus ve Khan şehit mirası, simge sarı zeminde damla ve iki kanat.
 
 ### Seken Okçu: Herbs halflingi
