@@ -323,7 +323,7 @@ export const HEROES = {
       p:{ name:'Yakma', burnMin:3, burnMax:10, dur:5, ap:0.02 },   // saniyede +0,02 YG
       // sağ tık: uzun menzilli, düz giden, ilk değdiğine çarpan ateş topu; bekleme kısa
       r:{ name:'Ateş Topu', max:7, type:'fireball', cd:[5,4.5,4,3.5,3.3,3,2.8], cast:0.2, castSlow:0.3,
-          dmg:[58,82,106,130,144,159,173], ap:0.6, speed:870, radius:18, range:650 },   // denge: 52,75,98,120 idi; kaçılabilirlik: hız 1100, yarıçap 12 idi
+          dmg:[58,82,106,130,144,159,173], ap:0.65,   /* denge C1: ap 0.6 idi */ speed:870, radius:18, range:650 },   // denge: 52,75,98,120 idi; kaçılabilirlik: hız 1100, yarıçap 12 idi
       // E: basılı tut = menzili gör, bırak = 450 menzilde imlece en yakın rakibe (şampiyon ya da minyon, kule değil) güdümlü ateş;
       //    4 sn içten yanma + aldığı hasar artar
       e:{ name:'İç Ateş', max:7, type:'ignite', hold:true, cd:[12,11,10,9,8.5,8,7.5], range:400, speed:900,
@@ -380,7 +380,7 @@ export const HEROES = {
       p:{ name:'Kıvılcım', sparkMin:20, sparkMax:80, sparkR:100, window:3, ap:0.40 },
       // sağ tık: önde range menzilli, angle derecelik koni (kenardan ölçülür); büyü hasarı = dmg + ap * YG; minyonlara değer, kuleye değmez
       r:{ name:'Alev Üfleme', max:7, type:'breath', cd:[7,6.5,6,5.5,5.3,5,4.8], cast:0.25, castSlow:0.5, range:600, angle:20,
-          dmg:[76,118,160,202,227,252,278], ap:0.80 },   // denge F1 (11.10.2026, zırh sonrası): Alev Üfleme dmg 70-190 idi; Yuvarlan dmg 60-150, hpPct 0.04 idi
+          dmg:[72,112,152,192,216,239,264], ap:0.80 },   // denge C1: 76-278 idi   // denge F1 (11.10.2026, zırh sonrası): Alev Üfleme dmg 70-190 idi; Yuvarlan dmg 60-150, hpPct 0.04 idi
       // E: imlece doğru dist birim sıçrar (birimlerin üstünden geçer, duvarda durur). Başladığı yerden sıçrama yönünde, GERÇEK gidilen
       //    mesafenin mult katı uzunlukta, width genişliğinde ateş şeridi (sıçrama bitince oluşur): rakiplere bir kez büyü hasarı + slow yavaşlatma
       e:{ name:'Alevli Sıçrayış', max:7, type:'flameleap', cd:[13,12,11,10,9.5,9,8.5], dist:300, speed:1100, width:120, mult:2,
@@ -423,7 +423,7 @@ export const HEROES = {
       // sağ tık: cast sn hazırlık (hazırlıkta castSlow yavaş), bitince imleç yönünde range uzunlukta, 2 x radius genişlikte şerit, anında;
       //          şeritteki bütün rakip birimlere (kule hariç) büyü hasarı dmg + ap * YG. Hazırlık sırasında şerit önizlemesi herkese görünür.
       r:{ name:'Uzun Işın', max:7, type:'beam', cd:[10,9,8,7,6.5,6,5.5],   /* denge F2: cd 9-6 idi */ cast:0.4, castSlow:0.4, range:750, radius:35,
-          dmg:[75,112,150,188,211,233,256], ap:0.70 },   // denge: 70,110,150,190, sonra 80,120,160,200 idi (2v2 tur 3: %65)
+          dmg:[75,112,150,188,211,233,256], ap:0.75 },   // denge C1: ap 0.70 idi   // denge: 70,110,150,190, sonra 80,120,160,200 idi (2v2 tur 3: %65)
       // E: cast sn hazırlık, düz giden mermi; ilk değdiği rakip birimde (minyon dahil, kule değil) durur. Büyü hasarı dmg + ap * YG;
       //    sersemletme gidilen mesafeyle stunMin'den (0 mesafe) stunMax'a (range) doğrusal. Minyon da sersemler.
       e:{ name:'Ağır Küre', max:7, type:'stunorb', cd:[14,13,12,11,10.5,10,9.5], cast:0.25, castSlow:0.4, range:700, speed:700, radius:26,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; menzil 750, yarıçap 22 idi
@@ -471,7 +471,7 @@ export const HEROES = {
       //          (menzil sonuna kadar değmezse orada patlar): büyü hasarı dmg + ap * YG, slowDur sn slow yavaşlatma.
       r:{ name:'Ruh Patlaması', max:7, type:'spiritburst', cd:[7.5,7,6.5,6,5.8,5.5,5.3], cast:0.25, castSlow:0.4, range:420, speed:530, radius:22,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; hız 900, yarıçap 20 idi
          
-          blast:115, dmg:[82,118,155,192,214,236,258],   /* denge A0 (13.10.2026): Ruh Patlaması patlama yarıçapı 150 idi */ ap:0.45,   /* denge F1: cd 7-5.5, dmg 90-210, ap 0.50 idi */ slow:0.20, slowDur:1 },
+          blast:115, dmg:[86,124,163,202,225,248,271],   /* denge C1: 82-258 idi */   /* denge A0 (13.10.2026): Ruh Patlaması patlama yarıçapı 150 idi */ ap:0.45,   /* denge F1: cd 7-5.5, dmg 90-210, ap 0.50 idi */ slow:0.20, slowDur:1 },
       // E: anında; kendine dur sn kalkan (shield + ap * YG) ve süre boyunca (kalkan kırılsa da) spd hareket hızı
       e:{ name:'Ruh Kalkanı', max:7, type:'spiritshield', cd:[12,11,10,9,8.5,8,7.5], dur:2.5, shield:[80,120,160,200,224,248,272], ap:0.50, spd:0.30 },
       // boşluk: anında; window sn içinde kullanılan sonraki r ya da e güçlenir.
