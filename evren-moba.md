@@ -102,13 +102,15 @@ Shahdadia'nın tütsü kokan mabetlerinde Rakash'a hizmet eden bir ruh rehberi. 
 Tema: tanrısının eksik bıraktığı şeyi kendi elleriyle tamamlamak.
 Oyun bağı: Ruh Akışı, Ruh Patlaması, Ruh Kalkanı, Güçlendir.
 
-### Biçim Değiştiren: Hrolf, Çitin Ötesindeki
-> "Kanımda ne var diye sormayın. Ben de sormuyorum."
+### Biçim Değiştiren: Fenwick, Çift Biçimli Mucit
+> "Bir alet iki iş görüyorsa, iki kat hesap sorulur."
 
-Kuzey Krallığı'nın vadi şehri Jökulgard'ın avcı Ulvarr soyundan. Şehirde her on iki kişiden birinde kurt kanı vardır, ama kimse bunu açıkça konuşmaz. Hrolf yarl düellosunu reddedip Kurtboğazı'nı terk etti. Bir biçimde insan, bir biçimde kurt gibi dövüşüyor; hangisinin gerçek yüzü olduğunu bilmiyor. Greatwolf'a ata gözüyle bakan şehrin sessizliğine kendi cevabını arıyor.
+Cogvrastum'un dişli köprüleri ve buhar düzenekleri arasında yetişen en parlak mucitlerden biri. Eseri iki biçimli bir silah: uzakta enerji küresi fırlatan bir top, yakında ağır bir çekiç. Şehir onu dahi diye alkışladı; ama aleti ilk kez, onu korumak için mi yıkmak için mi kullandığını bilmeyen biri tarafından kullanılınca, Fenwick icadının neye yaradığını gerçekten bilmediğini fark etti. Şimdi aleti kendi taşıyor. İki biçim arasındaki geçişin her seferinde kendi elinde olduğunu biliyor, ama hangisini seçeceğinin hâlâ olmadığını.
 
-Tema: gizlenmiş bir kimliği kabul etmek, iki biçim arasında kendi yerini bulmak.
-Oyun bağı: Akış, Enerji Küresi, Hızlı Ateş, Sıçrayış Darbesi, Darbe ve Biçim Değiştir.
+Tema: icat ile sorumluluk, ilerlemenin bedeli, kendi eserini yönlendirme çabası.
+Oyun bağı: Uzak biçim (Enerji Küresi, Hızlı Ateş) ve yakın biçim (Sıçrayış Darbesi, Darbe), Biçim Değiştir.
+Not: Önceki taslakta bu kahraman Jökulgard'dan Hrolf'tu (kurt kanı). Hrolf'u ileride başka bir yerde kullanabiliriz.
+Not: Cogvrastum'dan iki gnome mucit olduğu için (Fenwick ve Gülle'deki Tikwick) birini başka bir yere taşımak gerekebilir.
 
 ### Gülle: Tikwick, Durmayı Unutan Mucit
 > "Durmak mı? Bir dakika, önce şu çarkı tamamlayayım."
