@@ -119,7 +119,7 @@ export const STATS = {
     mr:{ base:32, per:1.5 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:52, per:3 },   // denge O2: 48 idi //   // denge O1: 45 idi //   // zırh sistemi (11.10.2026): 50 (+3) idi
+    dmg:{ base:50, per:3 },   // denge C5: 52 idi // denge O2: 48 idi //   // denge O1: 45 idi //   // zırh sistemi (11.10.2026): 50 (+3) idi
     as:{ base:0.90, per:0.03 },
     spd:{ base:195, per:3 },
     range:{ base:110, per:0 },
@@ -130,7 +130,7 @@ export const STATS = {
     angle:{ base:90, per:0 }
   },
   roller: {   // Gülle: hareket eden tank (yakın dövüş). Zincirli/Savaşçı arası can, düşük temel hız (Momentum +%28 verir)
-    hp:{ base:770, per:37 },   // zırh sistemi (11.10.2026): 920 (+46) idi
+    hp:{ base:750, per:37 },   // denge C5: 770 idi // zırh sistemi (11.10.2026): 920 (+46) idi
     regen:{ base:8, per:1.0 },
     armor:{ base:42, per:5 },   // denge F2: 38 (+4.5) idi //   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:36, per:1.8 },   // denge F1 (11.10.2026, zırh sonrası): 32 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -199,7 +199,7 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   artillery: {
-    hp:{ base:765, per:22 },   // denge J3: 740 idi // denge O3: 710 idi //   // denge O1: 680 idi //   // zırh sistemi (11.10.2026): 580 (+22) idi
+    hp:{ base:790, per:22 },   // denge C5: 765 idi // denge J3: 740 idi // denge O3: 710 idi //   // denge O1: 680 idi //   // zırh sistemi (11.10.2026): 580 (+22) idi
     regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -223,7 +223,7 @@ export const STATS = {
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:57, per:2.5 },   // denge O2: 54 idi //   // zırh sistemi (11.10.2026): 54 (+2.5) idi
+    dmg:{ base:59, per:2.5 },   // denge C5: 57 idi // denge O2: 54 idi //   // zırh sistemi (11.10.2026): 54 (+2.5) idi
     as:{ base:0.80, per:0.03 },
     spd:{ base:210, per:3 },
     range:{ base:270, per:0 },
@@ -253,7 +253,7 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   dual: {   // uzak biçim temel alınır; yakın biçimin farkları HEROES.dual.melee.stats içinde
-    hp:{ base:520, per:26 },   // zırh sistemi (11.10.2026): 480 (+30) idi
+    hp:{ base:540, per:26 },   // denge C5: 520 idi // zırh sistemi (11.10.2026): 480 (+30) idi
     regen:{ base:3, per:0.8 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:26, per:3.5 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:28, per:1.3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
