@@ -113,7 +113,7 @@ export const STATS = {
     projRadius:{ base:6, per:0 }
   },
   hook: {
-    hp:{ base:720, per:32 },   // denge A1 (13.10.2026): 770 idi // denge O2: 720 idi //   // denge O1: 680 idi //   // zırh sistemi (11.10.2026): 690 (+38) idi
+    hp:{ base:690, per:32 },   // denge L1 (14.10.2026, seviye 15): 720 idi // denge A1 (13.10.2026): 770 idi // denge O2: 720 idi //   // denge O1: 680 idi //   // zırh sistemi (11.10.2026): 690 (+38) idi
     regen:{ base:6, per:1.4 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:38, per:4.5 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:32, per:1.5 },   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -235,7 +235,7 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   spirit: {
-    hp:{ base:700, per:24 },   // denge A1 (13.10.2026): 660 idi // denge O2: 620 idi //   // denge O1: 590 idi //   // zırh sistemi (11.10.2026): 500 (+24) idi
+    hp:{ base:760, per:24 },   // denge L1 (14.10.2026, seviye 15): 700 idi // denge A1 (13.10.2026): 660 idi // denge O2: 620 idi //   // denge O1: 590 idi //   // zırh sistemi (11.10.2026): 500 (+24) idi
     regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
