@@ -1,0 +1,266 @@
+{
+ "level": "hard",
+ "cur": {
+  "engageAdv": 1.15,
+  "stayAdv": 0.85,
+  "fleeAdv": 0.85,
+  "recallHp": 0.3,
+  "recallOut": 0.85,
+  "helpRange": 450,
+  "pokeAdv": 0.9,
+  "diveAdv": 0.55,
+  "diveGap": 80,
+  "diveHpGap": 0.15,
+  "commitTime": 3,
+  "defendAdv": 0.6,
+  "keepMelee": 60,
+  "homeBias": 0.8,
+  "cohesionGap": 650,
+  "helpRun": 1900,
+  "outnumR": 1500,
+  "allyHelpR": 1100,
+  "diveStart": 0.6,
+  "diveFloor": 0.25,
+  "diveMinDmg": 250,
+  "cheapDeath": 8,
+  "lhPushGuard": 0,
+  "artHp": 0.4
+ },
+ "hist": [
+  {
+   "g": 1,
+   "best": 0.625,
+   "meanSc": 0.5,
+   "avg": 0.5390625,
+   "sig": 0.12850282605231358,
+   "min": 15.05525
+  },
+  {
+   "g": 2,
+   "best": 0.65625,
+   "meanSc": 0.59375,
+   "avg": 0.515625,
+   "sig": 0.08039006671508919,
+   "min": 15.002266666666667
+  },
+  {
+   "g": 3,
+   "best": 0.625,
+   "meanSc": 0.625,
+   "avg": 0.4609375,
+   "sig": 0.054546719825079804,
+   "min": 16.114233333333335
+  },
+  {
+   "g": 4,
+   "best": 0.625,
+   "meanSc": 0.515625,
+   "avg": 0.548828125,
+   "sig": 0.04642840118218699,
+   "min": 17.951066666666666
+  }
+ ],
+ "finals": [
+  {
+   "tune": {
+    "engageAdv": 1.08,
+    "stayAdv": 0.847,
+    "fleeAdv": 0.808,
+    "recallHp": 0.328,
+    "recallOut": 0.813,
+    "helpRange": 400,
+    "pokeAdv": 0.843,
+    "diveAdv": 0.422,
+    "diveGap": 56.9,
+    "diveHpGap": 0.243,
+    "commitTime": 2.61,
+    "defendAdv": 0.539,
+    "keepMelee": 62.6,
+    "homeBias": 0.767,
+    "cohesionGap": 628,
+    "helpRun": 1800,
+    "outnumR": 1560,
+    "allyHelpR": 1160,
+    "diveStart": 0.585,
+    "diveFloor": 0.203,
+    "diveMinDmg": 230,
+    "cheapDeath": 8.15,
+    "lhPushGuard": 0.034,
+    "artHp": 0.487
+   },
+   "from": "son ortalama",
+   "val": {
+    "sc": 0.4625,
+    "w": 74,
+    "n": 160,
+    "time": 910.7756249995006
+   }
+  },
+  {
+   "tune": {
+    "engageAdv": 1.07,
+    "stayAdv": 0.87,
+    "fleeAdv": 0.792,
+    "recallHp": 0.321,
+    "recallOut": 0.816,
+    "helpRange": 383,
+    "pokeAdv": 0.792,
+    "diveAdv": 0.446,
+    "diveGap": 67.6,
+    "diveHpGap": 0.233,
+    "commitTime": 2.79,
+    "defendAdv": 0.584,
+    "keepMelee": 66.9,
+    "homeBias": 0.737,
+    "cohesionGap": 625,
+    "helpRun": 1870,
+    "outnumR": 1560,
+    "allyHelpR": 1170,
+    "diveStart": 0.582,
+    "diveFloor": 0.201,
+    "diveMinDmg": 240,
+    "cheapDeath": 8.38,
+    "lhPushGuard": 0,
+    "artHp": 0.474
+   },
+   "from": "nesil 3 aday %63",
+   "val": {
+    "sc": 0.465625,
+    "w": 74,
+    "n": 159,
+    "time": 915.82187499954
+   }
+  }
+ ],
+ "best": {
+  "tune": {
+   "engageAdv": 1.07,
+   "stayAdv": 0.87,
+   "fleeAdv": 0.792,
+   "recallHp": 0.321,
+   "recallOut": 0.816,
+   "helpRange": 383,
+   "pokeAdv": 0.792,
+   "diveAdv": 0.446,
+   "diveGap": 67.6,
+   "diveHpGap": 0.233,
+   "commitTime": 2.79,
+   "defendAdv": 0.584,
+   "keepMelee": 66.9,
+   "homeBias": 0.737,
+   "cohesionGap": 625,
+   "helpRun": 1870,
+   "outnumR": 1560,
+   "allyHelpR": 1170,
+   "diveStart": 0.582,
+   "diveFloor": 0.201,
+   "diveMinDmg": 240,
+   "cheapDeath": 8.38,
+   "lhPushGuard": 0,
+   "artHp": 0.474
+  },
+  "from": "nesil 3 aday %63",
+  "val": {
+   "sc": 0.465625,
+   "w": 74,
+   "n": 159,
+   "time": 915.82187499954
+  }
+ },
+ "diff": {
+  "engageAdv": [
+   1.15,
+   1.07
+  ],
+  "stayAdv": [
+   0.85,
+   0.87
+  ],
+  "fleeAdv": [
+   0.85,
+   0.792
+  ],
+  "recallHp": [
+   0.3,
+   0.321
+  ],
+  "recallOut": [
+   0.85,
+   0.816
+  ],
+  "helpRange": [
+   450,
+   383
+  ],
+  "pokeAdv": [
+   0.9,
+   0.792
+  ],
+  "diveAdv": [
+   0.55,
+   0.446
+  ],
+  "diveGap": [
+   80,
+   67.6
+  ],
+  "diveHpGap": [
+   0.15,
+   0.233
+  ],
+  "commitTime": [
+   3,
+   2.79
+  ],
+  "defendAdv": [
+   0.6,
+   0.584
+  ],
+  "keepMelee": [
+   60,
+   66.9
+  ],
+  "homeBias": [
+   0.8,
+   0.737
+  ],
+  "cohesionGap": [
+   650,
+   625
+  ],
+  "helpRun": [
+   1900,
+   1870
+  ],
+  "outnumR": [
+   1500,
+   1560
+  ],
+  "allyHelpR": [
+   1100,
+   1170
+  ],
+  "diveStart": [
+   0.6,
+   0.582
+  ],
+  "diveFloor": [
+   0.25,
+   0.201
+  ],
+  "diveMinDmg": [
+   250,
+   240
+  ],
+  "cheapDeath": [
+   8,
+   8.38
+  ],
+  "artHp": [
+   0.4,
+   0.474
+  ]
+ },
+ "minutes": 84.37483333333333,
+ "done": true
+}
