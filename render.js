@@ -1293,7 +1293,7 @@ function hudSkillTip(p,k){
   if(k!=='p' && !sk.fixed) subs.push('Kademe '+rk+' / '+sk.max);
   if(k!=='p' && rk===0) subs.push('öğrenilmedi');
   if(Array.isArray(sk.cd)){
-    const all=sk.cd.map(hudNum).join(' / ');
+    const all=sk.cd.map(hudNum).join(sk.cd.length>4?'/':' / ');
     lines.push({ t:'Bekleme: '+(sk.cd.length>1?(rk>0?hudNum(pick(sk.cd))+' sn  ':'')+'('+all+')':hudNum(sk.cd[0])+' sn'), c:'#ffe066' });
   }
   if(sk.cast && k!=='p') lines.push({ t:'Hazırlık: '+hudNum(sk.cast)+' sn', c:PAL.muted });
@@ -1303,7 +1303,7 @@ function hudSkillTip(p,k){
     if(typeof v!=='number' && !Array.isArray(v)) continue;
     const id=label+(Array.isArray(v)?v.join():v); if(seen.has(id)) continue; seen.add(id);
     let s;
-    if(Array.isArray(v)){ const all=v.map(x=>hudFmt(kind,x)).join(' / '); s = v.length>1 ? (rk>0?hudFmt(kind,pick(v))+'  ':'')+'('+all+')' : hudFmt(kind,v[0]); }
+    if(Array.isArray(v)){ const all=v.map(x=>hudFmt(kind,x)).join(v.length>4?'/':' / '); s = v.length>1 ? (rk>0?hudFmt(kind,pick(v))+'  ':'')+'('+all+')' : hudFmt(kind,v[0]); }
     else s=hudFmt(kind,v);
     lines.push({ t:label+': '+s, c:'#9fd6ff' });
   }
@@ -1380,7 +1380,7 @@ function hudSkillBox(p,k,x,y,sc,ox,oy){
     ctx.fillStyle=focusOn?'#e6dcff':'#9fd6ff'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(t,cx,y+58);
   } else if(learned){
     if(!sk.fixed){
-      const pw=9, pg=3, tot=sk.max*pw+(sk.max-1)*pg, px0=cx-tot/2;
+      const pw=sk.max>4?7:9, pg=sk.max>4?2:3, tot=sk.max*pw+(sk.max-1)*pg, px0=cx-tot/2;
       for(let j=0;j<sk.max;j++){ ctx.fillStyle=j<rk?'#ffe066':'#323848'; ctx.fillRect(px0+j*(pw+pg),y+S0-11,pw,5); }
     }
     if(p.offCd && (k==='r'||k==='e')){   // İkili: diğer biçimdeki karşılığın

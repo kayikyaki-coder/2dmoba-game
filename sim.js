@@ -1,5 +1,5 @@
 /* Simülasyon: tarayıcıya bağımlı değil (document, window, canvas yok). */
-import { TICK, WORLD, LANE_Y, TEAM_COLORS, TEAM_DARK, MAX_LEVEL, STATS, HEROES, FORMS, TOWER, towerChampHit, towerMinionHit, BASE_TOWER_HP, NEXUS, LAYOUT, FOUNTAIN, MINIONS, WAVE_ORDER, WAVE_FIRST, WAVE_INTERVAL, WAVE_GAP, OFF_TARGET_DMG, MINION_CALL, MINION_CALL_R, MINION_LEASH, respawnTime, RECALL, MINION_SCALE, GOLD, minionGold, XP_NEED, HERO_KILL_XP, STRUCT_XP, XP_RADIUS, VISION, JUNGLE, BUFFS, BIG_BUFF, CATCHUP_XP, CATCHUP_GOLD, JUNGLE_MASTERY } from './data.js';
+import { TICK, ULT_LEVELS, RANK_CAP, LEVEL_PER, WORLD, LANE_Y, TEAM_COLORS, TEAM_DARK, MAX_LEVEL, STATS, HEROES, FORMS, TOWER, towerChampHit, towerMinionHit, BASE_TOWER_HP, NEXUS, LAYOUT, FOUNTAIN, MINIONS, WAVE_ORDER, WAVE_FIRST, WAVE_INTERVAL, WAVE_GAP, OFF_TARGET_DMG, MINION_CALL, MINION_CALL_R, MINION_LEASH, respawnTime, RECALL, MINION_SCALE, GOLD, minionGold, XP_NEED, HERO_KILL_XP, STRUCT_XP, XP_RADIUS, VISION, JUNGLE, BUFFS, BIG_BUFF, CATCHUP_XP, CATCHUP_GOLD, JUNGLE_MASTERY } from './data.js';
 import { ITEMS, PARTS, SLOTS, START_GOLD, CRIT_MULT, BUILDS, DEF, DEF_CLASS, DEF_POOLS, DMG_PHYS } from './items.js';
 import { MAP_W, structPos, SPAWN_OFF, pushOutWalls, pushOutWallsInto, PUSH, wallsFar, inWall, sightBlocked, bushAt, BUSHES, lanePoint, laneProject, laneLength, laneDir } from './map.js';
 
@@ -20,12 +20,12 @@ export function mulberry32(a){
 let rng=mulberry32(1), fxRng=mulberry32(2);
 export function rand(){ return rng(); }
 export function seedRng(seed){ rng=mulberry32(seed); fxRng=mulberry32((seed^0x9e3779b9)>>>0); }
-export function spaceMax(level){ return Math.min(2, Math.floor(level/5)); }
+export function spaceMax(level){ return ULT_LEVELS.filter(l=>level>=l).length; }
 const FLAT_KEYS={ dmg:1, hp:1, armor:1, mr:1, ah:1, ap:1, regen:1 };
 export function stat(h, k){
   let t=STATS[h.type][k];
   const fs=h.formStats; if(fs && fs[k]) t=fs[k];   // İkili yakın biçim: hareket hızı, zırh, BD, menzil farkları
-  let v=t.base + t.per*((h.level||1)-1);
+  let v=t.base + t.per*LEVEL_PER*((h.level||1)-1);
   const F=h.st && h.st.frenzy;   // Avcı Coşkusu: geçici bonus (süre bitince st.frenzy silinir)
   if(F){ if(k==='dmg') v+=F.dmg; else if(k==='spd') v*=1+F.spd; }
   const R=h.st && h.st.fring;   // Alev Halkası: geçici zırh ve büyü direnci
@@ -317,9 +317,9 @@ export function passiveText(h){
 /* Yetenek gücü (YG): STATS'taki ap (ileride eşyalar ekleyecek) */
 export function apOf(h){ return h.kind==='hero' ? Math.max(0, stat(h,'ap')) : 0; }
 /* Ek SG: toplam SG eksi kahramanın temel SG'si (seviyeyle gelen dahil); eşyalardan gelen kısım */
-export function bonusAd(h){ const t=STATS[h.type].dmg; return Math.max(0, stat(h,'dmg') - (t.base + t.per*((h.level||1)-1))); }
+export function bonusAd(h){ const t=STATS[h.type].dmg; return Math.max(0, stat(h,'dmg') - (t.base + t.per*LEVEL_PER*((h.level||1)-1))); }
 /* Ek can: azami can eksi kahramanın temel canı (seviyeyle gelen dahil); eşyalardan gelen kısım */
-export function bonusHp(h){ const t=STATS[h.type].hp; return Math.max(0, h.maxHp - (t.base + t.per*((h.level||1)-1))); }
+export function bonusHp(h){ const t=STATS[h.type].hp; return Math.max(0, h.maxHp - (t.base + t.per*LEVEL_PER*((h.level||1)-1))); }
 /* Odak: sayaç süresi seviyeyle timerMax'tan timerMin'e doğrusal iner */
 export function focusNeed(h){ const p=h.def.skills.p; return p.timerMax - (p.timerMax-p.timerMin)*((h.level||1)-1)/(MAX_LEVEL-1); }
 function focusTick(h, dt){
@@ -863,7 +863,7 @@ export function canLearn(h, k){
   if(h.points<=0) return false;
   if(h.def.skills[k].fixed) return false;   // İkili Biçim Değiştir: baştan açık, kademe almaz
   if(k==='s') return h.rank.s < spaceMax(h.level);
-  return h.rank[k] < h.def.skills[k].max;
+  return h.rank[k] < h.def.skills[k].max && h.rank[k] < RANK_CAP(h.level);
 }
 export function learnSkill(h, k){
   if(!canLearn(h,k)) return;
@@ -873,10 +873,11 @@ export function learnSkill(h, k){
 export function autoLearn(h){
   while(h.points>0){
     let k=null;
+    // seviye 15 (14.10.2026): Boşluk önce; E'ye 2. seviyede 1 puan; sonra sağ tık doldurulur (kademe sınırı izin verdikçe), kalan E'ye
     if(canLearn(h,'s')) k='s';
-    else if(canLearn(h,'r') && h.rank.r<=h.rank.e+1) k='r';
-    else if(canLearn(h,'e')) k='e';
+    else if(h.rank.e===0 && canLearn(h,'e') && h.rank.r>0) k='e';
     else if(canLearn(h,'r')) k='r';
+    else if(canLearn(h,'e')) k='e';
     if(!k) break;
     learnSkill(h,k);
   }
@@ -1933,7 +1934,8 @@ function makeMonster(type, camp, i){
   const d=JUNGLE.monsters[type], min=S.time/60, sc=JUNGLE.scale;
   const hpM=Math.min(sc.cap, 1+sc.hpPerMin*min), dmgM=Math.min(sc.cap, 1+sc.dmgPerMin*min);
   const o=camp.def.mobs.length>1 ? MOB_OFF[i%MOB_OFF.length] : [0,0], x=camp.x+o[0], y=camp.y+o[1];
-  return { id:nextId++, kind:'monster', type, def:d, team:2, camp, hx:x, hy:y, x, y, dmgMult:dmgM,
+  const rewM=Math.min(sc.rewardCap, 1+sc.rewardPerMin*min);   // ödül (altın, XP) doğuş dakikasına göre
+  return { id:nextId++, kind:'monster', type, def:d, team:2, camp, hx:x, hy:y, x, y, dmgMult:dmgM, rewM,
     vx:0, vy:0, kx:0, ky:0, r:d.r, mass:d.mass, hp:d.hp*hpM, maxHp:d.hp*hpM,
     atk:{ state:'ready', t:0, total:0, aim:0, main:null, f:1 },
     st:{ slow:null, freeze:0, amp:null, ignite:null }, cast:null, dash:null, chan:null, pulled:null, dead:false, flash:0,
@@ -2029,7 +2031,7 @@ function killMonster(e, src){
   bloodHarvest(e, src, null);
   if(!k) return;
   const d=e.def;
-  const near=awardXP(k.team, e.x, e.y, d.xp*JUNGLE.xpMult, XP_RADIUS, jmMult);
+  const near=awardXP(k.team, e.x, e.y, d.xp*JUNGLE.xpMult*(e.rewM||1), XP_RADIUS, jmMult);
   k.jCamps=(k.jCamps||0)+1;
   if(e.camp.mobs.every(m=>m.dead || m===e)) for(const h of new Set([k, ...near])) h.jm=(h.jm||0)+1;   // orman hakimiyeti: kamp temizliği
   if(d.big){
@@ -2037,7 +2039,7 @@ function killMonster(e, src){
     for(const h of S.heroes) if(h.team===k.team){ const g=BIG_BUFF.gold+catchupGold(h); h.gold+=g; h.jGold=(h.jGold||0)+g; }
     fx({ type:'boom', x:e.x, y:e.y, r0:e.r, r1:e.r+200, color:BIG_BUFF.color, life:0.9 });
   } else {
-    const g=Math.floor(d.gold*JUNGLE.goldMult*jmMult(k)); k.gold+=g; k.jGold=(k.jGold||0)+g;
+    const g=Math.floor(d.gold*JUNGLE.goldMult*(e.rewM||1)*jmMult(k)); k.gold+=g; k.jGold=(k.jGold||0)+g;
     if(e.camp.mobs.every(m=>m.dead || m===e)) S.jstats.camps[k.team]++;
   }
   if(d.buff){ giveBuff(k, d.buff, BUFFS[d.buff].dur); S.jstats.buffs[k.team]++; }
