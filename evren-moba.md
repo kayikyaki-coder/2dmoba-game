@@ -33,7 +33,7 @@ Not: Gözyaşı Şövalyeleri'nin Khan hizbi, drowları avlamayı kendine iş ed
 İmparatorluk topraklarında, bir lejyonerin kızı olarak büyüyen Cassia'nın küçüklüğünden beri tek bir isteği vardı: babası gibi lejyon askeri olmak. Babası bir savaşta şehit düşünce bu istek yemine dönüştü, ama lejyonun kapıları kadınlara kapalıydı ve başvurusu sorulmadan geri çevrildi. Önce öfkelendi, sonra öfkesini yaya çevirdi: bugün paralı asker ve maceracı olarak bir sözleşmeden ötekine koşuyor, her görevde bir öncekinden iyi olmaya çalışıyor. Okları hedefe değip bir sonrakine seker, tıpkı kendisinin bir kapıdan ötekine sekmesi gibi. Kanıtlayacak bir şeyi olmayan erkeklere karşı biraz fazla sabırsız, ama kendine karşı hiç sabırlı değil. Adı hâlâ lejyon kayıtlarında yok, ama kurtardığı köyler ona kahraman demeye başladı.
 
 Oyun bağı: oklar yakındaki düşmana seker (bir kapıdan ötekine), Bumerang gidip geri döner (babasının anısına her seferinde dönüş), Arınma ve Avcı Coşkusu kendini ispat hırsıdır.
-Not: Önceki taslakta Seken Okçu Herbs halflingiydi, bu yönle insan kadına çevrildi. "Lejyon" şimdilik İmparatorluk ordusu olarak yazıldı, Carya-Fantasy'de bu kelime geçmiyor.
+Not: Önceki taslakta Seken Okçu Herbs halflingiydi, bu yönle insan kadına çevrildi. "Lejyon" İmparatorluk ordusunun adıdır (Carya-Fantasy'de henüz geçmiyor, senin eklemen).
 
 ### Savaşçı: Engizisyon askeri
 Strazni hanesinin başındaki imparatorluk Engizisyonu'nun kalkanlı, tavizsiz infaz askeri. Atılır, kalkanını rakip yaklaşınca açar. Heretiklik kırıntısına bile tahammülsüz bir disiplin.
