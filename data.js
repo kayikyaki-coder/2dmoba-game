@@ -205,7 +205,7 @@ export const STATS = {
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:54, per:2 },   // denge O2: 50 idi //   // zırh sistemi (11.10.2026): 50 (+2) idi
+    dmg:{ base:56, per:2 },   // denge C3: 54 idi // denge O2: 50 idi //   // zırh sistemi (11.10.2026): 50 (+2) idi
     as:{ base:0.75, per:0.03 },
     spd:{ base:195, per:3 },
     range:{ base:230, per:0 },
@@ -428,7 +428,7 @@ export const HEROES = {
       //    sersemletme gidilen mesafeyle stunMin'den (0 mesafe) stunMax'a (range) doğrusal. Minyon da sersemler.
       e:{ name:'Ağır Küre', max:7, type:'stunorb', cd:[14,13,12,11,10.5,10,9.5], cast:0.25, castSlow:0.4, range:700, speed:700, radius:26,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; menzil 750, yarıçap 22 idi
          
-          dmg:[60,90,120,150,168,186,204], ap:0.45, stunMin:0.75, stunMax:1.5 },
+          dmg:[66,98,130,162,181,200,219], ap:0.45,   /* denge C3: 60-204 idi */ stunMin:0.75, stunMax:1.5 },
       // boşluk: bekleme baştan harcanır. dur sn kanallama: hareket edemez (hareket komutu, sersemleme, susturma erken bitirir) ve düz vuruş,
       //         sağ tık, E yapamaz. Her Boşluk basışı (ilki dahil) imlece, range'e kırpılarak topçu atışı: delay sn sonra radius yarıçapta
       //         büyü hasarı dmg + ap * YG (minyonlara da). Toplam shots atış. Atış yeri (sightR yarıçap) takıma atıştan delay + sight sn görünür.
@@ -447,7 +447,7 @@ export const HEROES = {
       //          kule durdurmaz ve hasar almaz. İlk değdiği rakip kahramana büyü hasarı (dmg + ap * YG) ve bağ: bağ süresince aradaki
       //          mesafe range'i geçerse kopar; bind sn dolunca bağ sağlamsa aynı hasar bir kez daha ve root sn kök (yürüyemez, atılış yapamaz;
       //          düz vuruş ve yetenek serbest).
-      r:{ name:'Zincir', max:7, type:'tether', cd:[12,11,10,9,8.5,8,7.5], cast:0.2, castSlow:0.4, range:600, speed:760, radius:22,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; menzil 650, hız 1500, yarıçap 16 idi
+      r:{ name:'Zincir', max:7, type:'tether', cd:[11,10,9,8.5,8,7.5,7],   /* denge C3: cd 12-7.5 idi */ cast:0.2, castSlow:0.4, range:600, speed:760, radius:22,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; menzil 650, hız 1500, yarıçap 16 idi
          
           dmg:[60,90,120,150,168,186,204], ap:0.40, bind:2, root:1 },
       // E: anında, imlece en çok range uzağa ışınlanır (duvar içine düşerse en yakın boş noktaya). İndiği yerde radius yarıçapta
