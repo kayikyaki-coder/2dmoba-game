@@ -19,7 +19,7 @@ Elf Federasyonu'nda doğan Alerion, yüzyılını doldurmadan adını efsaneye �
 Oyun bağı: vurduğu düşmanı yavaşlatması okun soğuğudur, pasifin seviyeyle %11'den %20'ye artması bağın derinleşmesidir. Kalın Ok, okun kendi iradesiyle hedefe yönelmesidir.
 (Drowlarla ilgili hikâye şimdilik eklenmedi.)
 
-### Çift Okçu: Drazhen, Kiralık El Arbaleti
+### Çift Okçu: Drazhen, Kiralık Ok
 > "Kimin tarafında olduğumu sorma. Kimin kesesinde olduğumu sor."
 
 Yeraltının karanlığında, drow hükümdarlığının gölgesinde yetişen Drazhen, bugün diyarın en aranan azılı katillerinden biri. Hükümdarlığın zincirinden kurtulmayı başardı, ama bunun bedelini ödedi: artık ne tam bir drow ne tam bir elf, ne mağarada ne ışıkta kendine yer buluyor. Kimseye bağlı değil, kimseye borcu da yok. Parasını veren herkes için çalışıyor: bir gün bir elf lordu, ertesi gün bir troll çetesi, öbür gün kendi kanından biri. Silahı bir el arbaleti, ve onu öyle hızlı ateşliyor ki hedef ne olduğunu anlamadan iki ok yerini bulmuş oluyor. Uzun kovalamayı sevmez: imzası, hedefini birkaç nefeste, hiç bağırmadan bitirmek. Onu bir sözleşmeye bağlayan tek şey para, ona kimin adının yazılı olduğunu soran da yok.
@@ -36,7 +36,7 @@ Oyun bağı: oklar yakındaki düşmana seker (bir kapıdan ötekine), Bumerang 
 Not: Önceki taslakta Seken Okçu Herbs halflingiydi, bu yönle insan kadına çevrildi. "Lejyon" İmparatorluk ordusunun adıdır (Carya-Fantasy'de henüz geçmiyor, senin eklemen).
 
 ### Savaşçı: Stanimir, Strazni Hanesinin Gururu
-> "Ben dövüşmem. Hüküm veririm."
+> "Ben dövüşürüm. Hüküm onlar verir."
 
 Stanimir, imparatorluk düzeninin en sert ve en tavizsiz yüzü olan Strazni hanesinin gururu ve İmparatorluk'un en iyi birebir dövüşçülerinden biri. Ağır zırhı ikinci derisi, kalkanı ve kılıcı tek vücut; düello meydanında acele etmez, kalkanı kapalı bekler, rakip yaklaşınca açar, vuruşunu tek seferde bitirir. Hane bütün adını onun omuzlarına yüklemiş, o da bu yükü yüzünde tek bir çizgi oynamadan taşıyor. Antrenman salonuna ilk giren de son çıkan da o, ama bunun sebebi gurur değil: Strazni'de yenilgi, bir ailenin ormanı yakmasından beter bir ayıp sayılır ve gururun altında tek bir soru dönüp duruyor: ya yenilirsem? Henüz kimseye yenilmedi, ve yenildiği gün ne olacağını ailesi bile bilmek istemiyor.
 
@@ -63,7 +63,7 @@ Not: Dört Kaos tanrısından birine bağlı olduğu için Gözyaşı Şövalyel
 Not: Yetenek adları ve görselleri henüz değişmedi. Bu yeniden yorumlama ancak mekanikler aynı kalarak betimleme düzeyinde.
 
 ### Yakın Büyücü: Saelith, Sessiz Güneşin Yumruğu
-> "Işık her şeyi gösterir. Ateş her şeye cevap verir."
+> "Işık her şeyi gösterirdi ama cevabı göstermiyor."
 
 Elf Federasyonu'nun çöl şehri Sunland'de, Solana'ya adanmış bir keşiş olarak yetişti. Güneşin yaşatan, sıcak yüzünü öğrendi; ama Kaos Savaşı'nda tanrısının tarafsız kalıp savaşmadığını da. Hiçbir ayin bu sessizliği açıklamayınca tapınağı bıraktı. Şimdi yumruklarında alev, aklında tek bir soru var: Solana neden savaşmadı? Cevap ararken yaktığı her şeyin, güneşin yaşatan yüzüne ihanet olup olmadığını bilmiyor.
 
@@ -87,7 +87,7 @@ Tema: onur tanımı, klanının kabulü, kendini ispat.
 Oyun bağı: Uzun Işın, Ağır Küre, Kök Sal ve Odak (hareketsiz bekledikçe güçlenir).
 
 ### Işınlanan Büyücü: Vesper, Kimsenin Tanımadığı
-> "Bana ad verirseniz, ertesi gün unutursunuz."
+> "Kimse beni tanımaz, ben dahil."
 
 Sessizlik Loncası'nın kuralı basit: üyeler birbirini tanımaz. Vesper bu kuralı fazla iyi öğrendi; bir noktada kendi adının da kendisinden silindiğini fark etti. Omnialis'in sokaklarında bir hedefe ışınlanıp vuruyor, ardından geri dönüyor, ama dönülecek yerin neresi olduğunu bilmiyor. Zayıf düşene kıyar, güçlüye dokunmaz. Aradığı şey ona adını geri verebilecek tek kişi ya da bunun neden olduğunu söyleyecek bir iz.
 
