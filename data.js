@@ -358,7 +358,7 @@ export const HEROES = {
       p:{ name:'Demir Gövde', missPct:0.015, combatT:4, combatMult:2 },   // denge: missPct 0.03 idi (0.015 oldu); saniyede eksik canın %1,5'i, savaşta (son 4 sn kahramanla hasar alışverişi) 2 katı
       // sağ tık: cast sn hazırlık, ince bir kanca fırlar (duvarın üstünden geçer); ilk değdiği rakip birimi (kahraman ya da minyon, kule değil)
       //          yakalar: büyü hasarı (dmg + ap * YG), kahramansa freeze sn sersemler, pull sn içinde Zincirli'nin önüne çeker (gap: ek boşluk).
-      r:{ name:'Kanca', max:7, type:'hook', cd:[18,16,14,12,11,10,9], cast:0.25, castSlow:0.5, range:600, speed:690, radius:30,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; menzil 700, hız 1600, yarıçap 20 idi
+      r:{ name:'Kanca', max:7, type:'hook', cd:[19,17,15,13,12,11,10],   /* denge C10: cd 18-9 idi */ cast:0.25, castSlow:0.5, range:600, speed:690, radius:30,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; menzil 700, hız 1600, yarıçap 20 idi
          
           dmg:[70,110,150,190,214,238,262], ap:0.70, freeze:0.5, pull:0.4, gap:6 },
       // E: önünde range menzilli, angle derecelik koni (kenardan ölçülür); fiziksel hasar = dmg + ad * ek SG + hpPct * ek can;
@@ -423,7 +423,7 @@ export const HEROES = {
       // sağ tık: cast sn hazırlık (hazırlıkta castSlow yavaş), bitince imleç yönünde range uzunlukta, 2 x radius genişlikte şerit, anında;
       //          şeritteki bütün rakip birimlere (kule hariç) büyü hasarı dmg + ap * YG. Hazırlık sırasında şerit önizlemesi herkese görünür.
       r:{ name:'Uzun Işın', max:7, type:'beam', cd:[9.5,8.5,7.5,6.5,6,5.5,5],   /* denge C2: cd 10-5.5 idi */   /* denge F2: cd 9-6 idi */ cast:0.4, castSlow:0.4, range:750, radius:35,
-          dmg:[75,112,150,188,211,233,256], ap:0.75 },   // denge C1: ap 0.70 idi   // denge: 70,110,150,190, sonra 80,120,160,200 idi (2v2 tur 3: %65)
+          dmg:[79,118,158,197,222,245,269], ap:0.75 },   /* denge C10: 75-256 idi */   // denge C1: ap 0.70 idi   // denge: 70,110,150,190, sonra 80,120,160,200 idi (2v2 tur 3: %65)
       // E: cast sn hazırlık, düz giden mermi; ilk değdiği rakip birimde (minyon dahil, kule değil) durur. Büyü hasarı dmg + ap * YG;
       //    sersemletme gidilen mesafeyle stunMin'den (0 mesafe) stunMax'a (range) doğrusal. Minyon da sersemler.
       e:{ name:'Ağır Küre', max:7, type:'stunorb', cd:[13,12,11,10,9.5,9,8.5],   /* denge C9: cd 14-9.5 idi */ cast:0.25, castSlow:0.4, range:700, speed:700, radius:26,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; menzil 750, yarıçap 22 idi
@@ -449,7 +449,7 @@ export const HEROES = {
       //          düz vuruş ve yetenek serbest).
       r:{ name:'Zincir', max:7, type:'tether', cd:[11,10,9,8.5,8,7.5,7],   /* denge C3: cd 12-7.5 idi */ cast:0.2, castSlow:0.4, range:600, speed:760, radius:22,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; menzil 650, hız 1500, yarıçap 16 idi
          
-          dmg:[64,95,126,158,177,196,215], ap:0.40,   /* denge C6: 60-204 idi */ bind:2, root:1 },
+          dmg:[67,100,132,166,186,206,226], ap:0.40,   /* denge C10: 64-215 idi */   /* denge C6: 60-204 idi */ bind:2, root:1 },
       // E: anında, imlece en çok range uzağa ışınlanır (duvar içine düşerse en yakın boş noktaya). İndiği yerde radius yarıçapta
       //    rakip birimlere (kule hariç) büyü hasarı. Bekleme ilk kullanımda başlar. back sn içinde aynı tuşa tekrar basılırsa başladığı
       //    yere döner (hasarsız, kullanım sayılmaz, bekleme süresinden bağımsız).
