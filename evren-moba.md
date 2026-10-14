@@ -35,8 +35,13 @@ Not: Gözyaşı Şövalyeleri'nin Khan hizbi, drowları avlamayı kendine iş ed
 Oyun bağı: oklar yakındaki düşmana seker (bir kapıdan ötekine), Bumerang gidip geri döner (babasının anısına her seferinde dönüş), Arınma ve Avcı Coşkusu kendini ispat hırsıdır.
 Not: Önceki taslakta Seken Okçu Herbs halflingiydi, bu yönle insan kadına çevrildi. "Lejyon" İmparatorluk ordusunun adıdır (Carya-Fantasy'de henüz geçmiyor, senin eklemen).
 
-### Savaşçı: Engizisyon askeri
-Strazni hanesinin başındaki imparatorluk Engizisyonu'nun kalkanlı, tavizsiz infaz askeri. Atılır, kalkanını rakip yaklaşınca açar. Heretiklik kırıntısına bile tahammülsüz bir disiplin.
+### Savaşçı: Strazni Hanesinin Gururu (adı henüz yok)
+> "Ben dövüşmem. Hüküm veririm."
+
+Savaşçı, imparatorluk düzeninin en sert ve en tavizsiz yüzü olan Strazni hanesinin gururu ve İmparatorluk'un en iyi birebir dövüşçülerinden biri. Çocukluğundan beri düello meydanlarında yetişmiş, ağır zırhı ikinci derisi, kalkanı ve kılıcı tek vücut. Her düelloda yalnızca kendi canını değil, ailesinin adını da kefil gösteriyor; Strazni'de yenilgi, bir ailenin ormanı yakmasından beter bir ayıp sayılır. Acele etmez: kalkanı kapalı bekler, rakip yaklaşınca açar, vuruşunu tek seferde bitirir. Henüz kimseye yenilmedi, ve yenildiği gün ne olacağını ailesi bile bilmek istemiyor.
+
+Oyun bağı: ağır zırh ve yüksek can, atılış ve rakip yaklaşınca açılan kalkan: sabırlı, tavizsiz bir düellocunun hamleleri.
+Not: Strazni, Engizisyon'un temelini atan haneydir (imparatora doğrudan bağlı güvenlik ve yargı gücü). Savaşçı'nın doğrudan Engizisyon üyesi olup olmadığı açık bırakıldı.
 
 ### Büyücü: El Birliği büyücüsü
 Büyücülerin üstün olduğuna inanan gizli birliğin ateş ustası. Ateş topu, iç ateş, meteor: Arcan'ın örülmüş ağından öğrenilebilir arcane düzenin gösteri hali.
