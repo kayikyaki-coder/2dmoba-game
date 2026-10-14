@@ -103,21 +103,20 @@ Tema: tanrısının eksik bıraktığı şeyi kendi elleriyle tamamlamak.
 Oyun bağı: Ruh Akışı, Ruh Patlaması, Ruh Kalkanı, Güçlendir.
 
 ### Biçim Değiştiren: Fenwick, Çift Biçimli Mucit
-> "Bir alet iki iş görüyorsa, iki kat hesap sorulur."
+> "Bir dakika dursak, hepsini düzeltirim."
 
-Cogvrastum'un dişli köprüleri ve buhar düzenekleri arasında yetişen en parlak mucitlerden biri. Eseri iki biçimli bir silah: uzakta enerji küresi fırlatan bir top, yakında ağır bir çekiç. Şehir onu dahi diye alkışladı; ama aleti ilk kez, onu korumak için mi yıkmak için mi kullandığını bilmeyen biri tarafından kullanılınca, Fenwick icadının neye yaradığını gerçekten bilmediğini fark etti. Şimdi aleti kendi taşıyor. İki biçim arasındaki geçişin her seferinde kendi elinde olduğunu biliyor, ama hangisini seçeceğinin hâlâ olmadığını.
+Cogvrastum'un dişli köprüleri ve buhar düzenekleri arasında yetişen en parlak mucitlerden biri. Eseri iki biçimli bir silah: uzakta enerji küresi fırlatan bir top, yakında ağır bir çekiç. Aleti ilk kez, onu korumak için mi yıkmak için mi kullandığını bilmeyen biri tarafından kullanılınca, icadının neye yaradığını gerçekten bilmediğini fark etti. Bu yüzden şehrin durmaksızın dönen çarklarından yoruldu: her şey bir an dursa, yaptıklarını düzeltmeye vakit bulacağını sanıyor. Atölyeyi uzun yıllar paylaştığı Tikwick hem en yakın dostu hem en büyük rakibi; ikisi de kendi icadının daha iyi olduğundan emin ve ikisi de bunu birbirine söylemekten vazgeçmedi.
 
-Tema: icat ile sorumluluk, ilerlemenin bedeli, kendi eserini yönlendirme çabası.
+Tema: icat ile sorumluluk, her şeyin durmasını isteyen bir mucit. Tikwick'in tam tersi.
 Oyun bağı: Uzak biçim (Enerji Küresi, Hızlı Ateş) ve yakın biçim (Sıçrayış Darbesi, Darbe), Biçim Değiştir.
 Not: Önceki taslakta bu kahraman Jökulgard'dan Hrolf'tu (kurt kanı). Hrolf'u ileride başka bir yerde kullanabiliriz.
-Not: Cogvrastum'dan iki gnome mucit olduğu için (Fenwick ve Gülle'deki Tikwick) birini başka bir yere taşımak gerekebilir.
 
 ### Gülle: Tikwick, Durmayı Unutan Mucit
 > "Durmak mı? Bir dakika, önce şu çarkı tamamlayayım."
 
-Cogvrastum'da her gnome bir takıntıyla yaşar. Tikwick'inki hareketti. Kendi yaptığı yuvarlak makineyi içinden yönlendiriyor: düz giderken hızlanıyor, dönerken yavaşlıyor, ama hiç durmuyor. Kabuğuna çekildiğinde bile içeride bir çark dönüyor. Aradığı şey makineyi durdurmanın yolu, ya da neden durmaktan bu kadar korktuğunun cevabı. Makinenin onu mu sürüklediğinden, onun makineyi mi sürdüğünden emin değil.
+Cogvrastum'da her gnome bir takıntıyla yaşar. Tikwick'inki hareketti. Kendi yaptığı yuvarlak makineyi içinden yönlendiriyor: düz giderken hızlanıyor, dönerken yavaşlıyor, ama hiç durmuyor. Kabuğuna çekildiğinde bile içeride bir çark dönüyor. Atölyeyi paylaştığı Fenwick hem en yakın dostu hem en büyük rakibi; ikisi de kendi icadının daha iyi olduğundan emin. Fenwick her şeyin durmasını istiyor, Tikwick ise durmaktan ölesiye korkuyor ve nedenini kendine bile söylemiyor. İkisi de birbirinin cevabını taşıyor, ama bunu henüz bilmiyorlar.
 
-Tema: takıntı ile korku, durmak istemeyen biri.
+Tema: durmaktan korkan, takıntılı bir mucit. Fenwick'in tam tersi.
 Oyun bağı: Momentum, Yuvarlan, Kabuk, Bilardo.
 
 ### Gladyatör: Brakka, Arenanın Kapısını Arayan
