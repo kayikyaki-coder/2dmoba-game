@@ -59,7 +59,7 @@ export const STATS = {
     angle:{ base:90, per:0 }        // koni açısı (derece)
   },
   mage: {
-    hp:{ base:640, per:22 },   // zırh sistemi (11.10.2026): 540 (+22) idi
+    hp:{ base:665, per:22 },   // denge C2: 640 idi // zırh sistemi (11.10.2026): 540 (+22) idi
     regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -422,7 +422,7 @@ export const HEROES = {
       p:{ name:'Odak', timerMax:15, timerMin:10, cut:0.70 },
       // sağ tık: cast sn hazırlık (hazırlıkta castSlow yavaş), bitince imleç yönünde range uzunlukta, 2 x radius genişlikte şerit, anında;
       //          şeritteki bütün rakip birimlere (kule hariç) büyü hasarı dmg + ap * YG. Hazırlık sırasında şerit önizlemesi herkese görünür.
-      r:{ name:'Uzun Işın', max:7, type:'beam', cd:[10,9,8,7,6.5,6,5.5],   /* denge F2: cd 9-6 idi */ cast:0.4, castSlow:0.4, range:750, radius:35,
+      r:{ name:'Uzun Işın', max:7, type:'beam', cd:[9.5,8.5,7.5,6.5,6,5.5,5],   /* denge C2: cd 10-5.5 idi */   /* denge F2: cd 9-6 idi */ cast:0.4, castSlow:0.4, range:750, radius:35,
           dmg:[75,112,150,188,211,233,256], ap:0.75 },   // denge C1: ap 0.70 idi   // denge: 70,110,150,190, sonra 80,120,160,200 idi (2v2 tur 3: %65)
       // E: cast sn hazırlık, düz giden mermi; ilk değdiği rakip birimde (minyon dahil, kule değil) durur. Büyü hasarı dmg + ap * YG;
       //    sersemletme gidilen mesafeyle stunMin'den (0 mesafe) stunMax'a (range) doğrusal. Minyon da sersemler.
@@ -492,7 +492,7 @@ export const HEROES = {
       // sağ tık: basılı tutuldukça mesafe dMin'den dMax'a (charge sn'de) artar (bot imleç noktasına göre seçer); bırakınca o yöne speed hızıyla yuvarlanır
       //          (birimlerin içinden geçer, duvarda ve yapıda durur, kök engeller). İnişte radius yarıçapta rakiplere (kule hariç) fiziksel hasar
       //          dmg + hpPct * ek can, kahraman ve minyonlar stun sn sersemler (havaya atılır).
-      r:{ name:'Yuvarlan', max:7, type:'roll', cd:[12,11,10,9,8.5,8,7.5],   /* denge F2: cd 13-10 idi */ dMin:300, dMax:900, charge:1, speed:1300, radius:130,
+      r:{ name:'Yuvarlan', max:7, type:'roll', cd:[12.5,11.5,10.5,9.5,9,8.5,8],   /* denge C2: cd 12-7.5 idi */   /* denge F2: cd 13-10 idi */ dMin:300, dMax:900, charge:1, speed:1300, radius:130,
           dmg:[70,105,140,175,196,217,238], hpPct:0.05, stun:[0.6,0.65,0.7,0.75,.78,.81,.84] },
       // E: anında, dur sn kabuk: kütle massMult katı, itilemez/çekilemez (kanca, Darbe, momentum itmesi, geri tepme), dr hasar azaltma,
       //    düz vuruş menzili +range, düz vuruşlar rakiplere ek dmg + hpPct * ek can fiziksel hasar ve slowDur sn slow yavaşlatma
