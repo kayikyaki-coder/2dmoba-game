@@ -38,8 +38,9 @@ Not: Önceki taslakta Seken Okçu Herbs halflingiydi, bu yönle insan kadına ç
 ### Savaşçı: Strazni Hanesinin Gururu (adı henüz yok)
 > "Ben dövüşmem. Hüküm veririm."
 
-Savaşçı, imparatorluk düzeninin en sert ve en tavizsiz yüzü olan Strazni hanesinin gururu ve İmparatorluk'un en iyi birebir dövüşçülerinden biri. Çocukluğundan beri düello meydanlarında yetişmiş, ağır zırhı ikinci derisi, kalkanı ve kılıcı tek vücut. Her düelloda yalnızca kendi canını değil, ailesinin adını da kefil gösteriyor; Strazni'de yenilgi, bir ailenin ormanı yakmasından beter bir ayıp sayılır. Acele etmez: kalkanı kapalı bekler, rakip yaklaşınca açar, vuruşunu tek seferde bitirir. Henüz kimseye yenilmedi, ve yenildiği gün ne olacağını ailesi bile bilmek istemiyor.
+Savaşçı, imparatorluk düzeninin en sert ve en tavizsiz yüzü olan Strazni hanesinin gururu ve İmparatorluk'un en iyi birebir dövüşçülerinden biri. Ağır zırhı ikinci derisi, kalkanı ve kılıcı tek vücut; düello meydanında acele etmez, kalkanı kapalı bekler, rakip yaklaşınca açar, vuruşunu tek seferde bitirir. Hane bütün adını onun omuzlarına yüklemiş, o da bu yükü yüzünde tek bir çizgi oynamadan taşıyor. Antrenman salonuna ilk giren de son çıkan da o, ama bunun sebebi gurur değil: Strazni'de yenilgi, bir ailenin ormanı yakmasından beter bir ayıp sayılır ve gururun altında tek bir soru dönüp duruyor: ya yenilirsem? Henüz kimseye yenilmedi, ve yenildiği gün ne olacağını ailesi bile bilmek istemiyor.
 
+Tema: aşırı gurur ve onun altındaki "ya yenilirsem" korkusu. Çok katı bir ailenin beklentisi, durmadan çalışma ve zinde kalma hırsı olarak yaşanıyor.
 Oyun bağı: ağır zırh ve yüksek can, atılış ve rakip yaklaşınca açılan kalkan: sabırlı, tavizsiz bir düellocunun hamleleri.
 Not: Strazni, Engizisyon'un temelini atan haneydir (imparatora doğrudan bağlı güvenlik ve yargı gücü). Savaşçı'nın doğrudan Engizisyon üyesi olup olmadığı açık bırakıldı.
 
