@@ -1335,8 +1335,8 @@ AI.jgGankHp = 0.45;    // ormancı en az bu canla baskın yapar
 AI.jgGankR = 2600;     // baskın için rakibe en fazla bu uzaklık
 AI.jgLowHp = 0.35;     // baskın: görünen rakibin canı bunun altındaysa dost dövüşmese de git
 AI.jgWait = 12;        // kamp en geç bu kadar sn içinde doğacaksa başında bekle
-AI.jgBigLv = 6;        // büyük canavar için en az seviye (dost yanındaysa)
-AI.jgBigSolo = 9;      // bu seviyeden sonra tek başına da dener
+AI.jgBigLv = 7;   /* seviye 15 (14.10.2026): 6 idi */       // büyük canavar için en az seviye (dost yanındaysa)
+AI.jgBigSolo = 11;   /* 9 idi */     // bu seviyeden sonra tek başına da dener
 AI.jgBigWait = 18;
 AI.laneCampAllyR = 1200;   // koridorcu: dost ormancı bu kadar yakındaysa o kampa girmez     // dostu bu kadar sn bekler
 const campLive = c => c.alive && c.mobs.some(m=>!m.dead);
@@ -1387,7 +1387,7 @@ AI.allyHelpR = 1100;    // bu uzaklıktaki dost yanında sayılır
 AI.jgDefendR = 3200;
 AI.jgDefendHp = 0.5;
 AI.jgDefendTowerR = 1100; // korunmasız (sıradaki) dost yapıya bu kadar yakın rakip kahraman varsa döner
-AI.jgLateLv = 10;       // ormancı bu seviyeye gelince ve rakip yapısı yıkılmaya başlayınca koridorda takımla oynar (güçlendirme/Titan hariç)    // yalnız koridorcunun canı bunun altındaysa (ya da kule baskıdaysa) döner    // ormancı en fazla bu uzaklıktan savunmaya döner
+AI.jgLateLv = 12;   /* 10 idi */      // ormancı bu seviyeye gelince ve rakip yapısı yıkılmaya başlayınca koridorda takımla oynar (güçlendirme/Titan hariç)    // yalnız koridorcunun canı bunun altındaysa (ya da kule baskıdaysa) döner    // ormancı en fazla bu uzaklıktan savunmaya döner
 function foesAround(b, x, y, R){ let n=0; for(const u of S.heroes) if(u.team!==b.team && !u.dead && canSee(b.team,u) && hyp(u.x-x,u.y-y)<R) n++; return n; }
 function alliesAround(b, x, y, R){ let n=0; for(const u of S.heroes) if(u!==b && u.team===b.team && !u.dead && hyp(u.x-x,u.y-y)<R) n++; return n; }
 export function outnumbered(b){
@@ -1483,7 +1483,7 @@ function titanAdv(b, eVis, e){
 }
 /* Dost ormancısı olmayan koridorcu (1v1 dahil): rakip görünmüyor ya da ölüyken, güçlüysek Vaha Titanı'nı tek başına al (12.10.2026).
    Başladıysak canımız yettikçe bitir; rakip yaklaşırsa bırak. */
-AI.soloTitanLv = 8;
+AI.soloTitanLv = 9;   // seviye 15 (14.10.2026): 8 idi
 function bigSolo(b, eVis, e){
   if(b.noJungle || b.role==='jungle' || !LVP(b).titan) return null;
   if(S.heroes.some(a=>a!==b && a.team===b.team && a.role==='jungle' && !a.dead)) return null;
