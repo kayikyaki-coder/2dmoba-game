@@ -44,8 +44,13 @@ Tema: aşırı gurur ve onun altındaki "ya yenilirsem" korkusu. Çok katı bir 
 Oyun bağı: ağır zırh ve yüksek can, atılış ve rakip yaklaşınca açılan kalkan: sabırlı, tavizsiz bir düellocunun hamleleri.
 Not: Strazni, Engizisyon'un temelini atan haneydir (imparatora doğrudan bağlı güvenlik ve yargı gücü). Savaşçı'nın doğrudan Engizisyon üyesi olup olmadığı açık bırakıldı.
 
-### Büyücü: El Birliği büyücüsü
-Büyücülerin üstün olduğuna inanan gizli birliğin ateş ustası. Ateş topu, iç ateş, meteor: Arcan'ın örülmüş ağından öğrenilebilir arcane düzenin gösteri hali.
+### Büyücü: Külün Vaizi (adı henüz yok)
+> "Yanan şey kül olur. Kül, yeni dünyanın toprağıdır."
+
+El Birliği'nin en genç ve en hevesli üyelerinden biri olan Büyücü, büyü yapabilenlerin yapamayanlardan üstün olduğuna bütün samimiyetiyle inanıyor. Birlik gölgede kalmayı öğütlerken o, yaptığı abartı işlerle gizliliğin perdesini yırttı. Foyası meydana çıkınca İmparatorluk peşine düştü, Birlik de onu sahiplenmedi. Şimdi kaçıyor ve karşısına çıkan herkese aynı soruyu soruyor: büyücü mü? Değilse onu bir çıra gibi yakmakta vicdan azabı duymuyor, çünkü ona göre büyüyle kurulacak bir dünya her bedele değer ve bunun adı iyilik. Ateş her şeyi yutuyor, iyilik cümlesi de bazen kendi içinde bile yutuluyor: ne zaman haklı olmaktan çıkıp yalnızca yakmayı sevmeye başladığını henüz kendine sormadı.
+
+Tema: büyüyle dünyayı daha iyi yapma inancı ile bu inancın doğurduğu yıkım. Kendini iyilik yapan biri sanan bir faşist büyücü.
+Oyun bağı: Yakma (pasif) ve İç Ateş zamanla biriken zarardır, sabırlı ve hesaplı bir yakıştır. Ateş Topu ve Meteor ise gösterişli, yıkıcı vuruşlardır.
 
 ### Kancalı Tank: Cortax zincir ustası
 Cortax'ın korsan geleneğinden, geçit bekçisi Kraken'e karşı kanca ve zincir kullanan tayfa tankı. Kanca ile çeker, Ezici Darbe, Şok Dalgası. Cortax'ta anlaşma bozmak affedilmez: hedefini bırakmaz.
