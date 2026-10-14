@@ -113,7 +113,7 @@ export const STATS = {
     projRadius:{ base:6, per:0 }
   },
   hook: {
-    hp:{ base:690, per:32 },   // denge L1 (14.10.2026, seviye 15): 720 idi // denge A1 (13.10.2026): 770 idi // denge O2: 720 idi //   // denge O1: 680 idi //   // zırh sistemi (11.10.2026): 690 (+38) idi
+    hp:{ base:670, per:32 },   // denge C7: 690 idi // denge L1 (14.10.2026, seviye 15): 720 idi // denge A1 (13.10.2026): 770 idi // denge O2: 720 idi //   // denge O1: 680 idi //   // zırh sistemi (11.10.2026): 690 (+38) idi
     regen:{ base:6, per:1.4 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:38, per:4.5 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:32, per:1.5 },   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -217,7 +217,7 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   shadow: {
-    hp:{ base:800, per:26 },   // denge O2: 760 idi //   // denge O1: 730 idi //   // zırh sistemi (11.10.2026): 620 (+26) idi
+    hp:{ base:820, per:26 },   // denge C7: 800 idi // denge O2: 760 idi //   // denge O1: 730 idi //   // zırh sistemi (11.10.2026): 620 (+26) idi
     regen:{ base:3, per:0.7 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -380,7 +380,7 @@ export const HEROES = {
       p:{ name:'Kıvılcım', sparkMin:20, sparkMax:80, sparkR:100, window:3, ap:0.40 },
       // sağ tık: önde range menzilli, angle derecelik koni (kenardan ölçülür); büyü hasarı = dmg + ap * YG; minyonlara değer, kuleye değmez
       r:{ name:'Alev Üfleme', max:7, type:'breath', cd:[7,6.5,6,5.5,5.3,5,4.8], cast:0.25, castSlow:0.5, range:600, angle:20,
-          dmg:[72,112,152,192,216,239,264], ap:0.80 },   // denge C1: 76-278 idi   // denge F1 (11.10.2026, zırh sonrası): Alev Üfleme dmg 70-190 idi; Yuvarlan dmg 60-150, hpPct 0.04 idi
+          dmg:[72,112,152,192,216,239,264], ap:0.75 },   // denge C7: ap 0.80 idi   // denge C1: 76-278 idi   // denge F1 (11.10.2026, zırh sonrası): Alev Üfleme dmg 70-190 idi; Yuvarlan dmg 60-150, hpPct 0.04 idi
       // E: imlece doğru dist birim sıçrar (birimlerin üstünden geçer, duvarda durur). Başladığı yerden sıçrama yönünde, GERÇEK gidilen
       //    mesafenin mult katı uzunlukta, width genişliğinde ateş şeridi (sıçrama bitince oluşur): rakiplere bir kez büyü hasarı + slow yavaşlatma
       e:{ name:'Alevli Sıçrayış', max:7, type:'flameleap', cd:[13,12,11,10,9.5,9,8.5], dist:300, speed:1100, width:120, mult:2,
