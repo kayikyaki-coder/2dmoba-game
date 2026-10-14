@@ -75,38 +75,256 @@
    "min": 14.473916666666666
   }
  ],
- "mean": {
-  "engageAdv": 1.15,
-  "stayAdv": 0.789,
-  "fleeAdv": 0.845,
-  "recallHp": 0.342,
-  "recallOut": 0.843,
-  "helpRange": 394,
-  "pokeAdv": 0.938,
-  "diveAdv": 0.62,
-  "diveGap": 112,
-  "diveHpGap": 0.0926,
-  "commitTime": 3.52,
-  "defendAdv": 0.552,
-  "keepMelee": 55.4,
-  "homeBias": 0.535,
-  "cohesionGap": 733,
-  "helpRun": 1700,
-  "outnumR": 1390,
-  "allyHelpR": 1050,
-  "diveStart": 0.514,
-  "diveFloor": 0.236,
-  "diveMinDmg": 318,
-  "cheapDeath": 7.57,
-  "lhPushGuard": 0.0643,
-  "artHp": 0.445,
-  "limboT": 1.16,
-  "limboAdv": 0.984,
-  "numResp": 8,
-  "numAllyR": 1390,
-  "dodgeW": 1.95,
-  "dodgeNeed": 15.6,
-  "foeMemory": 3.12
+ "finals": [
+  {
+   "tune": {
+    "engageAdv": 1.15,
+    "stayAdv": 0.789,
+    "fleeAdv": 0.845,
+    "recallHp": 0.342,
+    "recallOut": 0.843,
+    "helpRange": 394,
+    "pokeAdv": 0.938,
+    "diveAdv": 0.62,
+    "diveGap": 112,
+    "diveHpGap": 0.0926,
+    "commitTime": 3.52,
+    "defendAdv": 0.552,
+    "keepMelee": 55.4,
+    "homeBias": 0.535,
+    "cohesionGap": 733,
+    "helpRun": 1700,
+    "outnumR": 1390,
+    "allyHelpR": 1050,
+    "diveStart": 0.514,
+    "diveFloor": 0.236,
+    "diveMinDmg": 318,
+    "cheapDeath": 7.57,
+    "lhPushGuard": 0.0643,
+    "artHp": 0.445,
+    "limboT": 1.16,
+    "limboAdv": 0.984,
+    "numResp": 8,
+    "numAllyR": 1390,
+    "dodgeW": 1.95,
+    "dodgeNeed": 15.6,
+    "foeMemory": 3.12
+   },
+   "from": "son ortalama",
+   "val": {
+    "sc": 0.525,
+    "w": 83,
+    "n": 158,
+    "time": 880.7197916662544
+   }
+  },
+  {
+   "tune": {
+    "engageAdv": 1.15,
+    "stayAdv": 0.804,
+    "fleeAdv": 0.836,
+    "recallHp": 0.34,
+    "recallOut": 0.857,
+    "helpRange": 435,
+    "pokeAdv": 0.9,
+    "diveAdv": 0.554,
+    "diveGap": 121,
+    "diveHpGap": 0.0996,
+    "commitTime": 3.58,
+    "defendAdv": 0.524,
+    "keepMelee": 51.9,
+    "homeBias": 0.643,
+    "cohesionGap": 723,
+    "helpRun": 1760,
+    "outnumR": 1370,
+    "allyHelpR": 1060,
+    "diveStart": 0.52,
+    "diveFloor": 0.228,
+    "diveMinDmg": 322,
+    "cheapDeath": 7.21,
+    "lhPushGuard": 0.0653,
+    "artHp": 0.447,
+    "limboT": 1.23,
+    "limboAdv": 1.01,
+    "numResp": 8.01,
+    "numAllyR": 1460,
+    "dodgeW": 1.92,
+    "dodgeNeed": 15.6,
+    "foeMemory": 3.12
+   },
+   "from": "nesil 4 aday %63",
+   "val": {
+    "sc": 0.46875,
+    "w": 74,
+    "n": 158,
+    "time": 901.654374999569
+   }
+  }
+ ],
+ "best": {
+  "tune": {
+   "engageAdv": 1.15,
+   "stayAdv": 0.789,
+   "fleeAdv": 0.845,
+   "recallHp": 0.342,
+   "recallOut": 0.843,
+   "helpRange": 394,
+   "pokeAdv": 0.938,
+   "diveAdv": 0.62,
+   "diveGap": 112,
+   "diveHpGap": 0.0926,
+   "commitTime": 3.52,
+   "defendAdv": 0.552,
+   "keepMelee": 55.4,
+   "homeBias": 0.535,
+   "cohesionGap": 733,
+   "helpRun": 1700,
+   "outnumR": 1390,
+   "allyHelpR": 1050,
+   "diveStart": 0.514,
+   "diveFloor": 0.236,
+   "diveMinDmg": 318,
+   "cheapDeath": 7.57,
+   "lhPushGuard": 0.0643,
+   "artHp": 0.445,
+   "limboT": 1.16,
+   "limboAdv": 0.984,
+   "numResp": 8,
+   "numAllyR": 1390,
+   "dodgeW": 1.95,
+   "dodgeNeed": 15.6,
+   "foeMemory": 3.12
+  },
+  "from": "son ortalama",
+  "val": {
+   "sc": 0.525,
+   "w": 83,
+   "n": 158,
+   "time": 880.7197916662544
+  }
  },
- "done": false
+ "diff": {
+  "stayAdv": [
+   0.85,
+   0.789
+  ],
+  "fleeAdv": [
+   0.85,
+   0.845
+  ],
+  "recallHp": [
+   0.3,
+   0.342
+  ],
+  "recallOut": [
+   0.85,
+   0.843
+  ],
+  "helpRange": [
+   450,
+   394
+  ],
+  "pokeAdv": [
+   0.9,
+   0.938
+  ],
+  "diveAdv": [
+   0.55,
+   0.62
+  ],
+  "diveGap": [
+   80,
+   112
+  ],
+  "diveHpGap": [
+   0.15,
+   0.0926
+  ],
+  "commitTime": [
+   3,
+   3.52
+  ],
+  "defendAdv": [
+   0.6,
+   0.552
+  ],
+  "keepMelee": [
+   60,
+   55.4
+  ],
+  "homeBias": [
+   0.8,
+   0.535
+  ],
+  "cohesionGap": [
+   650,
+   733
+  ],
+  "helpRun": [
+   1900,
+   1700
+  ],
+  "outnumR": [
+   1500,
+   1390
+  ],
+  "allyHelpR": [
+   1100,
+   1050
+  ],
+  "diveStart": [
+   0.6,
+   0.514
+  ],
+  "diveFloor": [
+   0.25,
+   0.236
+  ],
+  "diveMinDmg": [
+   250,
+   318
+  ],
+  "cheapDeath": [
+   8,
+   7.57
+  ],
+  "lhPushGuard": [
+   0,
+   0.0643
+  ],
+  "artHp": [
+   0.4,
+   0.445
+  ],
+  "limboT": [
+   1.2,
+   1.16
+  ],
+  "limboAdv": [
+   0.95,
+   0.984
+  ],
+  "numResp": [
+   7,
+   8
+  ],
+  "numAllyR": [
+   1400,
+   1390
+  ],
+  "dodgeW": [
+   2.4,
+   1.95
+  ],
+  "dodgeNeed": [
+   16,
+   15.6
+  ],
+  "foeMemory": [
+   4,
+   3.12
+  ]
+ },
+ "minutes": 102.23416666666667,
+ "done": true
 }
