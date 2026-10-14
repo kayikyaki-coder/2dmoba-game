@@ -4,3 +4,37 @@
 19:00:03 nesil 3: en iyi %65.6, ortalama aday %53.1, nesil ortalaması %56.1, yayılım 0.076 (14.4 dk)
 19:14:07 nesil 4: en iyi %62.5, ortalama aday %62.5, nesil ortalaması %55.1, yayılım 0.053 (14.1 dk)
 19:27:40 nesil 5: en iyi %68.8, ortalama aday %68.8, nesil ortalaması %59.4, yayılım 0.042 (13.5 dk)
+19:44:32 doğrulama son ortalama: %60.0 [52-67] 96/160, süre 15.1 dk
+19:44:32 doğrulama nesil 5 aday %69: %62.2 [55-69] 99/159, süre 14.5 dk
+19:44:32 bitti (86 dk). en iyi: nesil 5 aday %69 %62.2
+19:44:32   engageAdv: 1.15 -> 1.12
+19:44:32   stayAdv: 0.85 -> 0.876
+19:44:32   fleeAdv: 0.85 -> 0.853
+19:44:32   recallHp: 0.3 -> 0.309
+19:44:32   recallOut: 0.85 -> 0.886
+19:44:32   helpRange: 450 -> 519
+19:44:32   pokeAdv: 0.9 -> 0.868
+19:44:32   diveAdv: 0.55 -> 0.537
+19:44:32   diveGap: 80 -> 89.1
+19:44:32   diveHpGap: 0.15 -> 0.158
+19:44:32   commitTime: 3 -> 2.88
+19:44:32   defendAdv: 0.6 -> 0.549
+19:44:32   keepMelee: 60 -> 71.5
+19:44:32   homeBias: 0.8 -> 0.874
+19:44:32   cohesionGap: 650 -> 691
+19:44:32   helpRun: 1900 -> 2380
+19:44:32   outnumR: 1500 -> 1510
+19:44:32   allyHelpR: 1100 -> 998
+19:44:32   diveStart: 0.6 -> 0.509
+19:44:32   diveFloor: 0.25 -> 0.249
+19:44:32   diveMinDmg: 250 -> 223
+19:44:32   cheapDeath: 8 -> 5.18
+19:44:32   lhPushGuard: 0 -> 0.0558
+19:44:32   artHp: 0.4 -> 0.426
+19:44:32   limboT: 1.2 -> 0.836
+19:44:32   limboAdv: 0.95 -> 0.945
+19:44:32   numResp: 7 -> 7.39
+19:44:32   numAllyR: 1400 -> 1320
+19:44:32   dodgeW: 2.4 -> 2.29
+19:44:32   dodgeNeed: 16 -> 15.4
+19:44:32   foeMemory: 4 -> 3.78
