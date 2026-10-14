@@ -323,7 +323,7 @@ export const HEROES = {
       p:{ name:'Yakma', burnMin:3, burnMax:10, dur:5, ap:0.02 },   // saniyede +0,02 YG
       // sağ tık: uzun menzilli, düz giden, ilk değdiğine çarpan ateş topu; bekleme kısa
       r:{ name:'Ateş Topu', max:7, type:'fireball', cd:[5,4.5,4,3.5,3.3,3,2.8], cast:0.2, castSlow:0.3,
-          dmg:[58,82,106,130,144,159,173], ap:0.65,   /* denge C1: ap 0.6 idi */ speed:870, radius:18, range:650 },   // denge: 52,75,98,120 idi; kaçılabilirlik: hız 1100, yarıçap 12 idi
+          dmg:[62,87,112,138,153,169,184], ap:0.65,   /* denge C6: 58-173 idi */   /* denge C1: ap 0.6 idi */ speed:870, radius:18, range:650 },   // denge: 52,75,98,120 idi; kaçılabilirlik: hız 1100, yarıçap 12 idi
       // E: basılı tut = menzili gör, bırak = 450 menzilde imlece en yakın rakibe (şampiyon ya da minyon, kule değil) güdümlü ateş;
       //    4 sn içten yanma + aldığı hasar artar
       e:{ name:'İç Ateş', max:7, type:'ignite', hold:true, cd:[12,11,10,9,8.5,8,7.5], range:400, speed:900,
@@ -449,7 +449,7 @@ export const HEROES = {
       //          düz vuruş ve yetenek serbest).
       r:{ name:'Zincir', max:7, type:'tether', cd:[11,10,9,8.5,8,7.5,7],   /* denge C3: cd 12-7.5 idi */ cast:0.2, castSlow:0.4, range:600, speed:760, radius:22,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; menzil 650, hız 1500, yarıçap 16 idi
          
-          dmg:[60,90,120,150,168,186,204], ap:0.40, bind:2, root:1 },
+          dmg:[64,95,126,158,177,196,215], ap:0.40,   /* denge C6: 60-204 idi */ bind:2, root:1 },
       // E: anında, imlece en çok range uzağa ışınlanır (duvar içine düşerse en yakın boş noktaya). İndiği yerde radius yarıçapta
       //    rakip birimlere (kule hariç) büyü hasarı. Bekleme ilk kullanımda başlar. back sn içinde aynı tuşa tekrar basılırsa başladığı
       //    yere döner (hasarsız, kullanım sayılmaz, bekleme süresinden bağımsız).
