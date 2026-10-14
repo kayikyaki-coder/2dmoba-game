@@ -19,10 +19,10 @@ Elf Federasyonu'nda doğan Alerion, yüzyılını doldurmadan adını efsaneye �
 Oyun bağı: vurduğu düşmanı yavaşlatması okun soğuğudur, pasifin seviyeyle %11'den %20'ye artması bağın derinleşmesidir. Kalın Ok, okun kendi iradesiyle hedefe yönelmesidir.
 (Drowlarla ilgili hikâye şimdilik eklenmedi.)
 
-### Çift Okçu: Kiralık El Arbaleti (adı henüz yok)
+### Çift Okçu: Drazhen, Kiralık El Arbaleti
 > "Kimin tarafında olduğumu sorma. Kimin kesesinde olduğumu sor."
 
-Yeraltının karanlığında, drow hükümdarlığının gölgesinde yetişen Çift Okçu, bugün diyarın en aranan azılı katillerinden biri. Hükümdarlığın zincirinden kurtulmayı başardı, ama bunun bedelini ödedi: artık ne tam bir drow ne tam bir elf, ne mağarada ne ışıkta kendine yer buluyor. Kimseye bağlı değil, kimseye borcu da yok. Parasını veren herkes için çalışıyor: bir gün bir elf lordu, ertesi gün bir troll çetesi, öbür gün kendi kanından biri. Silahı bir el arbaleti, ve onu öyle hızlı ateşliyor ki hedef ne olduğunu anlamadan iki ok yerini bulmuş oluyor. Uzun kovalamayı sevmez: imzası, hedefini birkaç nefeste, hiç bağırmadan bitirmek. Onu bir sözleşmeye bağlayan tek şey para, ona kimin adının yazılı olduğunu soran da yok.
+Yeraltının karanlığında, drow hükümdarlığının gölgesinde yetişen Drazhen, bugün diyarın en aranan azılı katillerinden biri. Hükümdarlığın zincirinden kurtulmayı başardı, ama bunun bedelini ödedi: artık ne tam bir drow ne tam bir elf, ne mağarada ne ışıkta kendine yer buluyor. Kimseye bağlı değil, kimseye borcu da yok. Parasını veren herkes için çalışıyor: bir gün bir elf lordu, ertesi gün bir troll çetesi, öbür gün kendi kanından biri. Silahı bir el arbaleti, ve onu öyle hızlı ateşliyor ki hedef ne olduğunu anlamadan iki ok yerini bulmuş oluyor. Uzun kovalamayı sevmez: imzası, hedefini birkaç nefeste, hiç bağırmadan bitirmek. Onu bir sözleşmeye bağlayan tek şey para, ona kimin adının yazılı olduğunu soran da yok.
 
 Oyun bağı: her vuruşta iki ok ve yüksek ateş hızı, el arbaletinin seri atışıdır. Yan Atılış, Şok Bombası ve Kilitli Yaylım: hızlı, hesaplı ve acımasız bir kiralık katilin araç seti.
 Not: Gözyaşı Şövalyeleri'nin Khan hizbi, drowları avlamayı kendine iş edinmiştir. İstersen peşindeki avcılar olarak bağlanabilir, şimdilik eklenmedi.
