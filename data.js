@@ -454,7 +454,7 @@ export const HEROES = {
       //    rakip birimlere (kule hariç) büyü hasarı. Bekleme ilk kullanımda başlar. back sn içinde aynı tuşa tekrar basılırsa başladığı
       //    yere döner (hasarsız, kullanım sayılmaz, bekleme süresinden bağımsız).
       e:{ name:'Gölge Adımı', max:7, type:'blink', cd:[14,13,12,11,10.5,10,9.5], range:420, radius:140,
-          dmg:[70,105,140,175,196,217,238], ap:0.50, back:3 },
+          dmg:[76,113,151,189,212,234,257], ap:0.50, back:3 },   // denge C4: 70-238 idi
       // boşluk: en son kullanılan sağ tık ya da E yeteneğini (dönüşler sayılmaz) bir kez daha kullanır, hasarı bonus oranında fazla;
       //         o yeteneğin bekleme süresini etkilemez. Taklit edilen Gölge Adımı'nın dönüşü Boşluk'a tekrar basılarak yapılır.
       //         Henüz yetenek kullanılmadıysa atılamaz.
