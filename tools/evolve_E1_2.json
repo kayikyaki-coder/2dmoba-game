@@ -68,31 +68,207 @@
    "min": 18.150783333333333
   }
  ],
- "mean": {
-  "engageAdv": 1.05,
-  "stayAdv": 0.845,
-  "fleeAdv": 0.906,
-  "recallHp": 0.28,
-  "recallOut": 0.816,
-  "helpRange": 419,
-  "pokeAdv": 0.847,
-  "diveAdv": 0.557,
-  "diveGap": 64.9,
-  "diveHpGap": 0.0514,
-  "commitTime": 3.02,
-  "defendAdv": 0.576,
-  "keepMelee": 80.3,
-  "homeBias": 0.785,
-  "cohesionGap": 754,
-  "helpRun": 1940,
-  "outnumR": 1610,
-  "allyHelpR": 1140,
-  "diveStart": 0.56,
-  "diveFloor": 0.306,
-  "diveMinDmg": 280,
-  "cheapDeath": 7.12,
-  "lhPushGuard": 0.0737,
-  "artHp": 0.437
+ "finals": [
+  {
+   "tune": {
+    "engageAdv": 1.05,
+    "stayAdv": 0.845,
+    "fleeAdv": 0.906,
+    "recallHp": 0.28,
+    "recallOut": 0.816,
+    "helpRange": 419,
+    "pokeAdv": 0.847,
+    "diveAdv": 0.557,
+    "diveGap": 64.9,
+    "diveHpGap": 0.0514,
+    "commitTime": 3.02,
+    "defendAdv": 0.576,
+    "keepMelee": 80.3,
+    "homeBias": 0.785,
+    "cohesionGap": 754,
+    "helpRun": 1940,
+    "outnumR": 1610,
+    "allyHelpR": 1140,
+    "diveStart": 0.56,
+    "diveFloor": 0.306,
+    "diveMinDmg": 280,
+    "cheapDeath": 7.12,
+    "lhPushGuard": 0.0737,
+    "artHp": 0.437
+   },
+   "from": "son ortalama",
+   "val": {
+    "sc": 0.45625,
+    "w": 73,
+    "n": 160,
+    "time": 859.7848958328799
+   }
+  },
+  {
+   "tune": {
+    "engageAdv": 1.04,
+    "stayAdv": 0.85,
+    "fleeAdv": 0.909,
+    "recallHp": 0.284,
+    "recallOut": 0.827,
+    "helpRange": 424,
+    "pokeAdv": 0.848,
+    "diveAdv": 0.568,
+    "diveGap": 64.2,
+    "diveHpGap": 0.0734,
+    "commitTime": 3.05,
+    "defendAdv": 0.597,
+    "keepMelee": 79.8,
+    "homeBias": 0.798,
+    "cohesionGap": 749,
+    "helpRun": 1930,
+    "outnumR": 1580,
+    "allyHelpR": 1130,
+    "diveStart": 0.56,
+    "diveFloor": 0.302,
+    "diveMinDmg": 265,
+    "cheapDeath": 7.21,
+    "lhPushGuard": 0.0693,
+    "artHp": 0.433
+   },
+   "from": "nesil 5 aday %69",
+   "val": {
+    "sc": 0.48125,
+    "w": 77,
+    "n": 160,
+    "time": 856.5636458328829
+   }
+  }
+ ],
+ "best": {
+  "tune": {
+   "engageAdv": 1.04,
+   "stayAdv": 0.85,
+   "fleeAdv": 0.909,
+   "recallHp": 0.284,
+   "recallOut": 0.827,
+   "helpRange": 424,
+   "pokeAdv": 0.848,
+   "diveAdv": 0.568,
+   "diveGap": 64.2,
+   "diveHpGap": 0.0734,
+   "commitTime": 3.05,
+   "defendAdv": 0.597,
+   "keepMelee": 79.8,
+   "homeBias": 0.798,
+   "cohesionGap": 749,
+   "helpRun": 1930,
+   "outnumR": 1580,
+   "allyHelpR": 1130,
+   "diveStart": 0.56,
+   "diveFloor": 0.302,
+   "diveMinDmg": 265,
+   "cheapDeath": 7.21,
+   "lhPushGuard": 0.0693,
+   "artHp": 0.433
+  },
+  "from": "nesil 5 aday %69",
+  "val": {
+   "sc": 0.48125,
+   "w": 77,
+   "n": 160,
+   "time": 856.5636458328829
+  }
  },
- "done": false
+ "diff": {
+  "engageAdv": [
+   1.15,
+   1.04
+  ],
+  "fleeAdv": [
+   0.85,
+   0.909
+  ],
+  "recallHp": [
+   0.3,
+   0.284
+  ],
+  "recallOut": [
+   0.85,
+   0.827
+  ],
+  "helpRange": [
+   450,
+   424
+  ],
+  "pokeAdv": [
+   0.9,
+   0.848
+  ],
+  "diveAdv": [
+   0.55,
+   0.568
+  ],
+  "diveGap": [
+   80,
+   64.2
+  ],
+  "diveHpGap": [
+   0.15,
+   0.0734
+  ],
+  "commitTime": [
+   3,
+   3.05
+  ],
+  "defendAdv": [
+   0.6,
+   0.597
+  ],
+  "keepMelee": [
+   60,
+   79.8
+  ],
+  "homeBias": [
+   0.8,
+   0.798
+  ],
+  "cohesionGap": [
+   650,
+   749
+  ],
+  "helpRun": [
+   1900,
+   1930
+  ],
+  "outnumR": [
+   1500,
+   1580
+  ],
+  "allyHelpR": [
+   1100,
+   1130
+  ],
+  "diveStart": [
+   0.6,
+   0.56
+  ],
+  "diveFloor": [
+   0.25,
+   0.302
+  ],
+  "diveMinDmg": [
+   250,
+   265
+  ],
+  "cheapDeath": [
+   8,
+   7.21
+  ],
+  "lhPushGuard": [
+   0,
+   0.0693
+  ],
+  "artHp": [
+   0.4,
+   0.433
+  ]
+ },
+ "minutes": 111.95625,
+ "done": true
 }
