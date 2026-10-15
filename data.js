@@ -323,7 +323,7 @@ export const HEROES = {
       p:{ name:'Yakma', burnMin:3, burnMax:10, dur:5, ap:0.02 },   // saniyede +0,02 YG
       // sağ tık: uzun menzilli, düz giden, ilk değdiğine çarpan ateş topu; bekleme kısa
       r:{ name:'Ateş Topu', max:7, type:'fireball', cd:[5,4.5,4,3.5,3.3,3,2.8], cast:0.2, castSlow:0.3,
-          dmg:[65,91,118,145,161,177,193], ap:0.65,   /* denge C9: 62-184 idi */   /* denge C6: 58-173 idi */   /* denge C1: ap 0.6 idi */ speed:870, radius:18, range:650 },   // denge: 52,75,98,120 idi; kaçılabilirlik: hız 1100, yarıçap 12 idi
+          dmg:[65,91,118,145,161,177,193], ap:0.70,   /* denge C11: ap 0.65 idi */   /* denge C9: 62-184 idi */   /* denge C6: 58-173 idi */   /* denge C1: ap 0.6 idi */ speed:870, radius:18, range:650 },   // denge: 52,75,98,120 idi; kaçılabilirlik: hız 1100, yarıçap 12 idi
       // E: basılı tut = menzili gör, bırak = 450 menzilde imlece en yakın rakibe (şampiyon ya da minyon, kule değil) güdümlü ateş;
       //    4 sn içten yanma + aldığı hasar artar
       e:{ name:'İç Ateş', max:7, type:'ignite', hold:true, cd:[12,11,10,9,8.5,8,7.5], range:400, speed:900,
@@ -488,7 +488,7 @@ export const HEROES = {
       //        breakDeg ve üstü ani dönüş sıfırlar; yürümüyorsa (ya da kontrol altında) saniyede decay söner. Momentum ms oranında hareket hızı verir.
       //        Düz vuruş ya da yetenek isabeti ek fiziksel hasar (dmgMin..dmgMax seviyeyle + ad * ek SG) * momentum/100 verir; momentum pushAt üstündeyse
       //        rakibi gidiş yönünde push birim iter (pushT sn). İsabet momentumu harcar (sıfırlar). Kahraman/minyon, kule değil.
-      p:{ name:'Momentum', gain:55, decay:140, turnLoss:0.5, breakDeg:80, ms:0.28, dmgMin:30, dmgMax:80,   /* denge C8: dmgMax 90 idi */ ad:0.30, pushAt:60, push:100, pushT:0.15 },
+      p:{ name:'Momentum', gain:55, decay:140, turnLoss:0.5, breakDeg:80, ms:0.28, dmgMin:30, dmgMax:70,   /* denge C11: dmgMax 80 idi */   /* denge C8: dmgMax 90 idi */ ad:0.30, pushAt:60, push:100, pushT:0.15 },
       // sağ tık: basılı tutuldukça mesafe dMin'den dMax'a (charge sn'de) artar (bot imleç noktasına göre seçer); bırakınca o yöne speed hızıyla yuvarlanır
       //          (birimlerin içinden geçer, duvarda ve yapıda durur, kök engeller). İnişte radius yarıçapta rakiplere (kule hariç) fiziksel hasar
       //          dmg + hpPct * ek can, kahraman ve minyonlar stun sn sersemler (havaya atılır).
