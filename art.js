@@ -134,6 +134,15 @@ export function drawIcon(g, name, x, y, s, col, dark){
   f(g,col,dark); g.restore();
 }
 
+/* Kahraman portre görselleri (Higgsfield GPT Image 2.5, 15.10.2026): assets/token/<id>.png daire kırpılmış. Yüklenmezse simge diski çizilir. */
+const TOKEN_IMG={};
+export function tokenImg(type){
+  if(typeof Image==='undefined') return null;
+  let e=TOKEN_IMG[type];
+  if(!e){ const im=new Image(); e=TOKEN_IMG[type]={ im, ok:false }; im.onload=()=>{ e.ok=true; }; im.onerror=()=>{ e.bad=true; }; im.src='assets/token/'+type+'.png'; }
+  return e.ok ? e.im : null;
+}
+
 /* ---------- kahraman tokeni ----------
    o: { team (0/1, yoksa kahraman rengi), aim (radyan, yön oku), flash (0..1 beyaz parlama) } */
 export function drawToken(g, type, x, y, r, o){
@@ -148,7 +157,8 @@ export function drawToken(g, type, x, y, r, o){
   }
   g.beginPath(); g.arc(x,y,r,0,TAU); g.fillStyle=PAL.ink; g.fill();
   g.beginPath(); g.arc(x,y,r-1.7,0,TAU); g.fillStyle=ring; g.fill();
-  const ri=r*0.73;
+  const img=tokenImg(type);
+  const ri=img ? r*0.78 : r*0.73;
   // halka alt gölgesi ve üst parlaması
   g.lineCap='round';
   g.beginPath(); g.arc(x,y,r*0.87,0.35,2.8); g.lineWidth=r*0.11; g.strokeStyle='rgba(8,6,32,0.28)'; g.stroke();
@@ -157,7 +167,10 @@ export function drawToken(g, type, x, y, r, o){
   const gr=g.createRadialGradient(x-ri*0.35,y-ri*0.42,ri*0.1,x,y,ri);
   gr.addColorStop(0,mix(th.c,PAL.ink,0.28)); gr.addColorStop(1,mix(th.c,PAL.ink,0.7));
   g.beginPath(); g.arc(x,y,ri,0,TAU); g.fillStyle=gr; g.fill(); g.lineWidth=1.6; g.strokeStyle=PAL.ink; g.stroke();
-  if(th.icon) drawIcon(g,th.icon,x,y+ri*0.02,ri*0.6,mix(th.c,'#ffffff',0.82),mix(th.c,PAL.ink,0.55));
+  if(img){   // portre: iç diske kırpılır, takım halkası dışta kalın kalır
+    g.save(); g.beginPath(); g.arc(x,y,ri-0.8,0,TAU); g.clip(); g.drawImage(img,x-ri,y-ri,ri*2,ri*2); g.restore();
+    g.beginPath(); g.arc(x,y,ri,0,TAU); g.lineWidth=Math.max(1.2,r*0.06); g.strokeStyle=PAL.ink; g.stroke();
+  } else if(th.icon) drawIcon(g,th.icon,x,y+ri*0.02,ri*0.6,mix(th.c,'#ffffff',0.82),mix(th.c,PAL.ink,0.55));
   if(o.flash>0){ g.beginPath(); g.arc(x,y,r,0,TAU); g.fillStyle='rgba(255,255,255,'+(o.flash*0.7).toFixed(3)+')'; g.fill(); }
 }
 

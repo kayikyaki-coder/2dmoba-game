@@ -1148,9 +1148,8 @@ function drawMinimap(W,H){
   for(const m of S.minions){ if(m.dead || !unitSeen(m)) continue; ctx.fillStyle=TEAM_COLORS[m.team]; ctx.fillRect(x0+m.x*sx-1.5,y0+m.y*sy-1.5,3,3); }
   for(const h of S.heroes){
     if(h.dead || !unitSeen(h)) continue;
-    ctx.beginPath(); ctx.arc(x0+h.x*sx,y0+h.y*sy,3.5,0,Math.PI*2); ctx.fillStyle=TEAM_COLORS[h.team]; ctx.fill();
-    ctx.lineWidth=1.5; ctx.strokeStyle=h===S.player?'#ffd24d':'#fff'; ctx.stroke();
-    if(h===S.player){ ctx.beginPath(); ctx.arc(x0+h.x*sx,y0+h.y*sy,6.5,0,Math.PI*2); ctx.lineWidth=1.5; ctx.strokeStyle='#ffd24d'; ctx.stroke(); }
+    drawToken(ctx,h.type,x0+h.x*sx,y0+h.y*sy,7,{ team:h.team });   // minimapte de portreli token
+    if(h===S.player){ ctx.beginPath(); ctx.arc(x0+h.x*sx,y0+h.y*sy,8.5,0,Math.PI*2); ctx.lineWidth=1.5; ctx.strokeStyle='#ffd24d'; ctx.stroke(); }
   }
   // kamera çerçevesi (iki eksen), harita içine kırpılır
   const fx=Math.max(0,cam.x), fy=Math.max(0,cam.y), fx2=Math.min(MAP_W,cam.x+view.visW), fy2=Math.min(MAP_H,cam.y+view.visH);
