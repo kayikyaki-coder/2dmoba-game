@@ -1,0 +1,3 @@
+expert 121 {"3":{"invade":1,"hurtFlee":1}} | A kazanma %45 [37-53] 72/160 | süre 14.8 dk | ölüm           A     8.3  B     8.1  | 10. dk fark (A-B) servet -39 XP -125 (123 maç)
+expert 122 {"3":{"invade":1,"hurtFlee":1}} | A kazanma %55 [47-62] 86/157 | süre 15.2 dk | ölüm           A     7.7  B     8.5  | 10. dk fark (A-B) servet 114 XP 79 (127 maç)
+DONE
