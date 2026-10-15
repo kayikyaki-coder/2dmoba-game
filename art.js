@@ -174,6 +174,36 @@ export function drawToken(g, type, x, y, r, o){
   if(o.flash>0){ g.beginPath(); g.arc(x,y,r,0,TAU); g.fillStyle='rgba(255,255,255,'+(o.flash*0.7).toFixed(3)+')'; g.fill(); }
 }
 
+/* ---------- birim tokeni (minyon, yapı, canavar; 15.10.2026) ----------
+   assets/token/unit/<ad>.png daire kırpılmış görsel. drawToken ile aynı görünüm: dışta halka (ring), içte r*0.78 disk.
+   Görsel yüklenmemişse false döner, çağıran eski canvas çizimine düşer. o: { flash, mark:'diamond' (menzilli işareti), lw } */
+const UNIT_IMG={};
+export function unitImg(n){
+  if(typeof Image==='undefined') return null;
+  let e=UNIT_IMG[n];
+  if(!e){ const im=new Image(); e=UNIT_IMG[n]={ im, ok:false }; im.onload=()=>{ e.ok=true; }; im.src='assets/token/unit/'+n+'.png'; }
+  return e.ok ? e.im : null;
+}
+export function drawUnitToken(g, n, x, y, r, ring, o){
+  const img=unitImg(n); if(!img) return false;
+  o=o||{};
+  g.beginPath(); g.arc(x,y,r,0,TAU); g.fillStyle=PAL.ink; g.fill();
+  g.beginPath(); g.arc(x,y,r-Math.max(1,r*0.07),0,TAU); g.fillStyle=ring; g.fill();
+  const ri=r*0.78;
+  g.lineCap='round';
+  g.beginPath(); g.arc(x,y,r*0.89,0.35,2.8); g.lineWidth=r*0.1; g.strokeStyle='rgba(8,6,32,0.28)'; g.stroke();
+  g.beginPath(); g.arc(x,y,r*0.89,-2.55,-1.15); g.lineWidth=r*0.09; g.strokeStyle='rgba(255,255,255,0.38)'; g.stroke();
+  g.save(); g.beginPath(); g.arc(x,y,ri,0,TAU); g.clip(); g.drawImage(img,x-ri,y-ri,ri*2,ri*2); g.restore();
+  g.beginPath(); g.arc(x,y,ri,0,TAU); g.lineWidth=Math.max(1.2,r*0.06); g.strokeStyle=PAL.ink; g.stroke();
+  if(o.mark==='diamond'){   // menzilli minyon: halkanın üstünde küçük elmas
+    const q=Math.max(3.5,r*0.32), my=y-r;
+    g.beginPath(); g.moveTo(x,my-q); g.lineTo(x+q,my); g.lineTo(x,my+q); g.lineTo(x-q,my); g.closePath();
+    g.fillStyle=ring; g.fill(); g.lineWidth=1.5; g.lineJoin='round'; g.strokeStyle=PAL.ink; g.stroke();
+  }
+  if(o.flash>0){ g.beginPath(); g.arc(x,y,r,0,TAU); g.fillStyle='rgba(255,255,255,'+(o.flash*0.7).toFixed(3)+')'; g.fill(); }
+  return true;
+}
+
 /* ---------- harita katmanı ---------- */
 function rrectP(g,x,y,w,h,r){
   r=Math.min(r,w/2,h/2);
