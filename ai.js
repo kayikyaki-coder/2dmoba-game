@@ -1367,7 +1367,8 @@ AI.jgBigSolo = 11;   /* 9 idi */     // bu seviyeden sonra tek başına da dener
 AI.jgBigWait = 18;
 AI.laneCampAllyR = 1200;   // koridorcu: dost ormancı bu kadar yakındaysa o kampa girmez     // dostu bu kadar sn bekler
 /* Kamp canlı mı: takımın bildiği kadarıyla (sim.js campIntel, savaş sisi 15.10.2026). 'unknown' canlı olabilir sayılır (gidip bakılır). */
-const campLive = (c, b) => { const k=campIntel(b.team, c); return k.state!=='dead'; };
+const campLive = (c, b) => { const k=campIntel(b.team, c); return k.state==='alive' || (k.state==='unknown' && !c.big && hyp(b.x-c.x,b.y-c.y)<AI.unknownR); };
+AI.unknownR = 1500;   // bilinmeyen kampa yalnız bu kadar yakınken bakmaya gider; bilinmeyen Titan beklenmez
 /* Kampı (kalan canavarlarla) temizleyebilir miyiz: süre * aldığımız hasar < canımız */
 function campCost(b, c){
   let hp=0, inc=0;

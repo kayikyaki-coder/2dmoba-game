@@ -353,6 +353,7 @@ export function damage(e, amt, src, opts){
   const SB = (src && src.kind==='hero' && src.bonus) || {};
   if(SB.siege && e.kind!=='hero'){ amt*=1+SB.siege; a=amt; }
   if(e.kind==='struct' && src && src.team<2 && S.teamBuff[src.team]>S.time){ amt*=BIG_BUFF.structMult; a=amt; }   // Titan Gücü: yapılara ek hasar
+  if(e.kind==='struct' && src && src.kind==='minion'){ amt*=TOWER.minionTaken; a=amt; }   // dalga kuşatması güçlü
   if(e.kind==='struct' && src && src.kind==='hero' && !waveNear(src.team, e)){ amt*=TOWER.ward.mult; a=amt; }   // kale koruması: dalgasız kuşatma zayıf
   if(e.kind==='monster' && src && src.kind==='hero'){ e.lastHero=src; e.lastHeroT=S.time; monsterAggro(e, src); amt*=opts.basic ? JUNGLE.basicMult : JUNGLE.skillMult; a=amt; }   // canavarlara kahraman hasarı çarpanı (yetenek ağırlıklı kahramanlar da kesebilsin)   // Kuşatma Çekici: yapılara ve minyonlara ek hasar
   // zırh / büyü direnci (sadece kahramanlarda): hasar * 100/(100+değer); 'true' türü delip geçer. Delme ve azaltmalar burada.
@@ -1945,7 +1946,7 @@ export function buildCamps(on){
    Sayaç bitince görmeden 'canlı' denmez: 'unknown'. İlk doğuş herkesçe bilinir (dead, until=first, sonra alive).
    S.intel[team].heroes[id] = { items, value, t }: rakip kahramanın son görülen envanteri (görmediğimiz alışverişi bilmeyiz). */
 export function initIntel(){
-  S.intel=[0,1].map(()=>({ camps:{}, heroes:{} }));
+  S.intel=[0,1].map(()=>({ camps:{}, heroes:{} })); S.intelT=0;
   for(const I of S.intel){
     for(const c of S.camps) I.camps[c.id]={ state:'dead', until:c.spawnAt, first:true };   // ilk doğuş herkesçe bilinir
     for(const h of S.heroes||[]) I.heroes[h.id]={ items:(h.items||[]).slice(), value:itemsValue(h.items), t:0 };

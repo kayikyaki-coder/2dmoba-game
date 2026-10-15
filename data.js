@@ -572,17 +572,18 @@ for(const id of Object.keys(HEROES)){
 
 /* Yapılar: kule ve üs (nexus) */
 export const TOWER = { armorPen:0.40, r:38,
-  hp:900,          /* kule 15.10.2026 (kule gibi hissettirsin): 620 idi (14.10.2026: 1050 idi) */
-  range:540,       /* 480 idi */
+  hp:780,          /* kule 15.10.2026: 620 idi (14.10.2026: 1050 idi) */
+  range:520,       /* 15.10.2026 (kule gibi hissettirsin): 480 idi */
   dmg:80,          /* 60 idi */
-  interval:0.85,   /* 1.0 idi */
-  dmgPerMin:0.03, dmgCap:1.6,   // 15.10.2026: kule hasarı dakikada +%3 (en fazla 1,6 kat), kahraman canı büyürken kule önemini korusun (yoktu)
-  ward:{ mult:0.5, r:700 },     // 15.10.2026 kale koruması: 700 içinde saldıranın dost minyonu yoksa kahramanların yapılara hasarı x0,5 (yoktu)
+  interval:0.9,    /* 1.0 idi */
+  dmgPerMin:0, dmgCap:1.5,      // 15.10.2026: dakikalık kule hasarı artışı (denendi 0,02-0,03: maç 26-30 dk; kapalı)
+  ward:{ mult:0.6, r:700 },     // 15.10.2026 kale koruması: 700 içinde saldıranın dost minyonu yoksa kahramanların yapılara hasarı x0,6 (yoktu)
+  minionTaken:3.0,              // 15.10.2026: minyonların yapılara hasarı x3 (dalga kuşatmanın asıl gücü; yoktu)
   boltSpeed:1000, minionMult:1.6, stack:0.25, maxStack:4,
   champMult:2.0, champStack:0.40,          // şampiyona: ilk vuruş 2 kat, aynı şampiyona art arda her vuruş +%40 (LoL gibi; denge: 1x, +%25 idi)
   minionHits:{ melee:3, ranged:2 } };       // minyona: yakın 3, menzilli 2 vuruşta ölür (azami canın 1/n'i; denge: 60*1,6 idi)   // kule mermisi güdümlü: hedefe gider, önüne giren engelleyemez
-export const BASE_TOWER_HP = 1150;   // 15.10.2026: 800 idi (14.10.2026: 1250 idi)
-export const NEXUS = { r:58, hp:1300 };   // 15.10.2026: 1100 idi (14.10.2026: 1750 idi)
+export const BASE_TOWER_HP = 650;   // 15.10.2026: 800 idi (14.10.2026: 1250 idi)
+export const NEXUS = { r:58, hp:900 };   // 15.10.2026: 1100 idi (14.10.2026: 1750 idi)
 /* Takım 0 için x konumları, takım 1 aynalanır. Sıra: dış kule, iç kule, üs kulesi, nexus */
 export const LAYOUT = [ ['tower',1800], ['tower',1150], ['base',420], ['nexus',160] ];
 export const FOUNTAIN = { radius:260, healPct:0.125 };  // çeşme: saniyede maks canın %12,5 (0 → dolu 8 sn)
@@ -593,7 +594,7 @@ export const MINIONS = {
   ranged:{ name:'Menzilli', r:14, hp:250, speed:130, mass:0.5, dmg:25, kind:'proj', xp:20, range:210, projSpeed:600, projR:5, wind:0.3, period:1.3, aggro:320 }
 };
 /* Minyonlar zamanla güçlenir: dakika başına can ve hasar artışı, en fazla cap katı */
-export const MINION_SCALE = { hpPerMin:0.04, dmgPerMin:0.06, cap:2.5 };   // 14.10.2026 (maç 10-15 dk): dmgPerMin 0.03, cap 2.0 idi
+export const MINION_SCALE = { hpPerMin:0.04, dmgPerMin:0.08, cap:3.0 };   // 15.10.2026 (güçlü kule sonrası maç süresi): 0.06/2.5 idi; 14.10.2026: dmgPerMin 0.03, cap 2.0 idi
 /* Altın (şimdilik sadece minyonlar). Minyon değeri 15'ten başlar, 20. dakikaya kadar doğrusal artıp 20'de sabitlenir.
    Son vuruşu yapan kahraman tam altın alır. Yakındaki (XP_RADIUS) diğer kahramanlar, son vuruş yokmuş gibi kendi sayılarına
    göre kişi başı esas altının share[n-1] katını alır (örn. 3 kişi yakın, biri son vurdu: o %100, diğer ikisi %40'ar). */
@@ -617,7 +618,7 @@ export const MINION_CALL = 1.5, MINION_CALL_R = 450;   // minyon çağrısı: 45
 export const RECALL = { time:8 };   // sabit 8 sn kanallama (her yerden)
 /* Yeniden doğma: başta kısa, sonra hızla uzar (karesel): base + k*dakika², en fazla cap.
    6 sn (0. dk), ~9 (5), ~17 (10), ~31 (15), 50 (20+). (Eski: 10 sn'den 20. dakikada 40'a doğrusal.) */
-export const RESPAWN = { base:6, k:0.2, cap:50 };   // 14.10.2026: k 0.11 idi (10. dk 26 sn, 15. dk 50 sn)
+export const RESPAWN = { base:6, k:0.25, cap:50 };   // 15.10.2026: k 0.2 idi (14.10.2026: 0.11 idi) (10. dk 26 sn, 15. dk 50 sn)
 export const respawnTime = t => Math.min(RESPAWN.cap, RESPAWN.base+RESPAWN.k*(t/60)**2);
 export const XP_NEED = lvl => 140 + 38*(lvl-1);         // seviyeden sonrakine gereken XP (14.10.2026, azami seviye 15: 180 + 54*(lvl-1) idi)
 export const HERO_KILL_XP = 150, STRUCT_XP = 100, XP_RADIUS = 600;
@@ -668,7 +669,7 @@ export const BUFFS = {
 };
 /* Büyük canavar gücü: öldüren takımın bütün kahramanlarına (ölüler dahil) dur sn; takımın minyonları minionDmg/minionHp katı,
    kahraman ve minyonların yapılara hasarı structMult katı. Altın: takımın her üyesine gold. */
-export const BIG_BUFF = { name:'Titan Gücü', dur:120, minionDmg:1.4, minionHp:1.3, structMult:1.5,   /* 14.10.2026: structMult 1.25 idi */ gold:120, color:'#ffd24d' };
+export const BIG_BUFF = { name:'Titan Gücü', dur:120, minionDmg:1.4, minionHp:1.3, structMult:2.0,   /* 15.10.2026: 1.5 idi (14.10.2026: 1.25 idi) */ gold:120, color:'#ffd24d' };
 
 /* ---- Geri kalma telafisi ve orman hakimiyeti (12.10.2026) ----
    CATCHUP_XP: kahramanın toplam XP'si rakip takım ortalamasından en az gap oranı kadar düşükse bütün XP kazancı +bonus (ilk eşleşen, tavan %40).
