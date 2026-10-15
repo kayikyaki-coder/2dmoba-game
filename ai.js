@@ -296,6 +296,9 @@ AI.invadeT = 12;
 AI.hurtFlee = 0;          // erken kaçış (bot D4)
 AI.hurtK = 0.6;
 AI.hurtAdv = 1.2;
+AI.shotWait = 0;          // isabet zamanlaması (bot D6)
+AI.shotHoldT = 0.8;
+AI.jukeUp = 0;            // aktif yan adım (bot D6)
 AI.mageCombo = 0;         // Ateş Büyücüsü: İç Ateş önce, Meteor dalgaya değil (bot D5)
 AI.helpRange = 450;
 AI.helpRun = 1900;        // dostumuz saldırı altındaysa ve dövüş bizim lehimizeyse en fazla bu uzaklıktan yardıma koşarız       // dostumuz dövüşteyse dövüşe girme menzili bu kadar genişler
@@ -545,6 +548,7 @@ const resF = (u) => 100/(100+Math.max(0,(stat(u,'armor')+stat(u,'mr'))/2));
 /* Rakibi şimdi öldürebilir miyiz? myDmg: hazır yetenekler + birkaç düz vuruş (direnç sonrası), ehp: rakibin canı + kalkanı,
    eDmg: aynı sürede bize gelecek hasar (rakip ve yakınındaki dostlarının patlaması + 2 sn düz vuruş, gerekirse kule) */
 /* Beceri atışlarının öldürme hesabındaki isabet payı (kaçılabilir; Uzman/Zor kwHit). Hedefli ve alan dışı yetenekler 1. */
+const SHOT_TYPES=new Set(['fireball','hook','tether','beam','stunorb','spiritburst','groworb','boomerang','bomb','bigarrow']);   // kaçılabilir beceri atışları (bot D6)
 const SHOT_HIT={ fireball:0.6, meteor:0.55, beam:0.6, orb:0.6, sburst:0.6, gorb:0.6, bomb:0.6, hook:0.55, tether:0.6, art:0.35, bigarrow:0.6, boomerang:0.7, bloodnova:0.7, roll:0.7, ball:0.6 };
 function burstHit(h){ let s=0; for(const [t,v] of Object.entries(burstRaw(h,0))) if(!BONUS_T[t] && !EHP_T[t]) s+=v*(SHOT_HIT[t]??1); return s; }
 function killCalc(b, e){
@@ -618,6 +622,7 @@ function bushNear(x, y, R, b){
 /* ---- karar katmanları ---- */
 
 /* Dövüş hareketi: okçu mesafe korur, yakın dövüşçü üstüne gider; ikisi de nişandan kaçmak için yön değiştirir */
+function foeShotReady(e, d){ for(const k of ['r','e','s']){ const sk=e.def.skills[k]; if(sk && SHOT_TYPES.has(sk.type) && rdy(e,k) && d<(sk.range||600)+60) return true; } return false; }
 function fightMove(b, e, M, ev){
   const dx=e.x-b.x, dy=e.y-b.y, d=hyp(dx,dy)||1, nx=dx/d, ny=dy/d, px=-ny, py=nx;
   const eR=ranged(e);
@@ -632,6 +637,7 @@ function fightMove(b, e, M, ev){
     if(AI.human) keep+=M.rangeErr||0;   // insansı: mesafeyi kusursuz tutmaz
     radial = d>keep+25 ? 1 : d<keep-25 ? -1 : 0;
     side = M.juke*(eR?0.7:0.35);
+    if(LVP(b).jukeUp && eR && foeShotReady(e,d)) side = M.juke*1.1;   // aktif yan adım (bot D6): rakibin kaçılabilir atışı hazır ve menzildeyken
   } else {
     radial=1;
     side = eR ? M.juke*(d>250?0.55:0.2) : M.juke*0.15;
@@ -1330,6 +1336,12 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
         const safe=!unsafeAt(b,b.x,b.y) && mins<=2 && (flee || d>threatR(e,b)+(ranged(e)?40:150));
         if((kill||flee) && safe && !structOnLine(b,e,sk.radius)){ use=true; cmd.tx=e.x; cmd.ty=e.y; }
       }
+    }
+    // İsabet zamanlaması (shotWait, bot D6): kaçılabilir beceri atışını dövüşte/dürtmede rakip vururken, yavaşken ya da kontrol altındayken at; en fazla shotHoldT bekle
+    if(use && LP.shotWait && eVis && fp && SHOT_TYPES.has(sk.type)){
+      const good = isCC(e) || (e.st.slow>0) || (e.atk && e.atk.state!=='ready') || !!e.chan || d<(sk.range||600)*0.45;
+      const H=M.shotHold||(M.shotHold={});
+      if(good) H[k]=0; else { if(!H[k]) H[k]=S.time; if(S.time-H[k]<AI.shotHoldT) use=false; else H[k]=0; }
     }
     if(use){ cmd[KEY[k]]=true; if(cands) cands.push({ k, type:sk.type, aim:cmd.aim, tx:cmd.tx, ty:cmd.ty }); }
   }
