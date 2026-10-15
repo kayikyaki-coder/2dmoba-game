@@ -1,13 +1,13 @@
 /* Çizim: durumu sadece okur. Tarayıcıya bağımlı. */
 import { TEAM_COLORS as DATA_TEAM, MAX_LEVEL, FOUNTAIN, XP_NEED, KEY_LABELS, VISION, FORMS, JUNGLE, BUFFS, BIG_BUFF, JUNGLE_MASTERY } from './data.js';
 import { PAL, rgba, mix } from './palette.js';
-import { drawToken, drawGlow, drawCrystal, paintMap, bushLights, texReady } from './art.js';
+import { drawToken, drawGlow, drawCrystal, paintMap, bushLights, texReady, drawIcon, CAMP_ICON } from './art.js';
 texReady.then(()=>{ fieldCache=null; });   // dokular gelince zemini bir kez yeniden çiz
 const TEAM_COLORS=PAL.team, TEAM_DARK=PAL.teamDark, TAU=Math.PI*2;   // takım renkleri görsel dilden (data.js'teki mavi/kırmızı yalnız sim'e)
 import { ITEMS, PARTS, SLOTS } from './items.js';
 import { MAP_W, MAP_H, LANES, WALLS, BUSHES, BASES, rayDist, wallsNear, bushAt } from './map.js';
 import { HERO_NAMES } from './names.js';
-import { S, settings, stat, dist, atkDef, atkDmg, attackSpeed, timings, canLearn, passiveText, visiblePos, canSee, arenaOf } from './sim.js';
+import { S, settings, stat, dist, atkDef, atkDmg, attackSpeed, timings, canLearn, passiveText, visiblePos, canSee, arenaOf, campIntel, seenItems, itemsValue } from './sim.js';
 
 export const cam={ x:0, y:0 };
 export const uiState={ hold:null, aimTgt:null, mx:0, my:0 };   // girdiden gelen çizim bilgisi (basılı yetenek tuşu, nişan hedefi)
@@ -1072,14 +1072,29 @@ function drawMonster(m){
     const ny=m.y-r-(m.def.big?30:20); ctx.strokeText(m.def.name,m.x,ny); ctx.fillStyle=c; ctx.fillText(m.def.name,m.x,ny); ctx.restore();
   }
 }
-/* Kamp yeri: ölü kampın yeniden doğma sayacı (yer görünüyorsa) */
-function drawCampTimers(){
-  ctx.save(); ctx.font='bold 13px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round';
+/* Kamp yeri işareti (15.10.2026, sisten SONRA çizilir: sis altında da silik görünür). Durum takımın bilgisinden (sim.js campIntel):
+   canlı: simge rozeti; ölü (görüldü): sayaç halkası + saat; bilinmiyor (sayaç bitti, görülmedi): '?' */
+const campCol = c => c.big?PAL.gold:c.buff?MON_COL[c.buff]:PAL.monster;
+function drawCampMarks(){
+  if(!S.camps.length) return;
+  const team=S.player?S.player.team:0;
+  ctx.save(); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round';
   for(const c of S.camps){
-    if(c.alive || !onScreen(c.x,c.y,80)) continue;
-    const left=Math.max(0,c.spawnAt-S.time), col=c.big?PAL.gold:c.buff?MON_COL[c.buff]:PAL.monster;
-    ctx.beginPath(); ctx.arc(c.x,c.y,c.big?46:30,-Math.PI/2,-Math.PI/2+TAU*(1-Math.min(1,left/c.def.respawn))); ctx.strokeStyle=rgba(col,0.55); ctx.lineWidth=3; ctx.stroke();
-    const txt=fmtClock(left); ctx.lineWidth=3; ctx.strokeStyle='rgba(6,4,22,0.85)'; ctx.strokeText(txt,c.x,c.y); ctx.fillStyle=rgba(col,0.9); ctx.fillText(txt,c.x,c.y);
+    if(!onScreen(c.x,c.y,160)) continue;
+    const k=campIntel(team,c), vis=visiblePos(team,c.x,c.y,40), col=campCol(c), R0=c.big?120:c.buff?80:70;
+    const bx=c.x, by=c.y-R0-22, br=c.big?20:16, a=vis?0.95:0.55;
+    ctx.globalAlpha=a;
+    ctx.beginPath(); ctx.arc(bx,by,br,0,TAU); ctx.fillStyle=k.state==='alive'?PAL.monsterDark:'rgba(30,26,52,0.92)'; ctx.fill();
+    ctx.lineWidth=2.5; ctx.strokeStyle=k.state==='alive'?col:rgba(col,0.5); ctx.stroke();
+    drawIcon(ctx, CAMP_ICON[c.key]||'star', bx, by, br*0.62, k.state==='alive'?col:'#8f88b4', PAL.ink);
+    if(k.state==='unknown'){
+      ctx.font='bold 22px system-ui'; ctx.lineWidth=4; ctx.strokeStyle='rgba(6,4,22,0.9)'; ctx.strokeText('?',c.x,c.y); ctx.fillStyle='#d9d2ff'; ctx.fillText('?',c.x,c.y);
+    } else if(k.state==='dead'){
+      const left=Math.max(0,k.until-S.time);
+      ctx.beginPath(); ctx.arc(c.x,c.y,c.big?46:30,-Math.PI/2,-Math.PI/2+TAU*(1-Math.min(1,left/c.def.respawn))); ctx.strokeStyle=rgba(col,0.7); ctx.lineWidth=3.5; ctx.stroke();
+      ctx.font='bold 14px system-ui'; const txt=fmtClock(left); ctx.lineWidth=3; ctx.strokeStyle='rgba(6,4,22,0.85)'; ctx.strokeText(txt,c.x,c.y); ctx.fillStyle=rgba(col,0.95); ctx.fillText(txt,c.x,c.y);
+    }
+    ctx.globalAlpha=1;
   }
   ctx.restore();
 }
@@ -1120,15 +1135,16 @@ function drawMinimap(W,H){
     const sz = s.sub==='nexus'?8:5;
     ctx.fillRect(x0+s.x*sx-sz/2, y0+s.y*sy-sz/2, sz, sz);
   }
-  // kamplar: canlı kamp renkli simge (güçlendirme kendi rengi, büyük canavar altın), ölü kamp gri + yeniden doğma saniyesi
+  // kamplar (takım bilgisi, sis): bilinen canlı renkli simge, ölü gri + sayaç, bilinmiyor gri + '?'
   ctx.save(); ctx.font='bold 9px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  const myTeam=S.player?S.player.team:0;
   for(const c of S.camps){
-    const x=x0+c.x*sx, y=y0+c.y*sy, col=c.big?PAL.gold:c.buff?MON_COL[c.buff]:PAL.monster, rr=c.big?5:c.buff?4:3;
-    if(c.alive){ ctx.beginPath(); if(c.big||c.buff) ctx.arc(x,y,rr,0,TAU); else { ctx.moveTo(x,y-rr); ctx.lineTo(x+rr,y); ctx.lineTo(x,y+rr); ctx.lineTo(x-rr,y); ctx.closePath(); } ctx.fillStyle=col; ctx.fill(); ctx.lineWidth=1; ctx.strokeStyle=PAL.ink; ctx.stroke(); }
-    else {
-      const left=Math.max(0,Math.ceil(c.spawnAt-S.time));
-      ctx.beginPath(); ctx.arc(x,y,rr,0,TAU); ctx.fillStyle='rgba(120,112,160,0.55)'; ctx.fill();
-      if(!c.big || left<=90){ ctx.lineWidth=2.5; ctx.strokeStyle='rgba(6,4,22,0.9)'; const tx=left>=60?fmtClock(left):String(left); ctx.strokeText(tx,x,y-rr-5); ctx.fillStyle=rgba(col,0.95); ctx.fillText(tx,x,y-rr-5); }
+    const x=x0+c.x*sx, y=y0+c.y*sy, col=campCol(c), rr=c.big?7:c.buff?6:5, k=campIntel(myTeam,c);
+    ctx.beginPath(); ctx.arc(x,y,rr,0,TAU); ctx.fillStyle=k.state==='alive'?PAL.monsterDark:'rgba(60,54,90,0.85)'; ctx.fill(); ctx.lineWidth=1.2; ctx.strokeStyle=k.state==='alive'?col:'rgba(150,142,190,0.7)'; ctx.stroke();
+    drawIcon(ctx, CAMP_ICON[c.key]||'star', x, y, rr*0.68, k.state==='alive'?col:'#9a93c0', PAL.ink);
+    if(k.state!=='alive'){
+      const left=Math.max(0,Math.ceil(k.until-S.time)), tx=k.state==='unknown' ? '?' : (left>=60?fmtClock(left):String(left));
+      if(k.state==='unknown' || !c.big || left<=90){ ctx.lineWidth=2.5; ctx.strokeStyle='rgba(6,4,22,0.9)'; ctx.strokeText(tx,x,y-rr-5); ctx.fillStyle=k.state==='unknown'?'#d9d2ff':rgba(col,0.95); ctx.fillText(tx,x,y-rr-5); }
     }
   }
   ctx.restore();
@@ -1147,7 +1163,8 @@ function drawMinimap(W,H){
   const bc=S.camps.find(c=>c.big);
   if(bc){
     const tb=S.teamBuff||[0,0], own=S.player ? S.player.team : 0;
-    let txt=bc.alive ? JUNGLE.monsters[bc.def.mobs[0]].name+' hazır' : JUNGLE.monsters[bc.def.mobs[0]].name+' '+fmtClock(Math.max(0,bc.spawnAt-S.time));
+    const bk=campIntel(own,bc), bn=JUNGLE.monsters[bc.def.mobs[0]].name;   // sis: takımın bildiği durum
+    let txt=bk.state==='alive' ? bn+' hazır' : bk.state==='unknown' ? bn+' ?' : bn+' '+fmtClock(Math.max(0,bk.until-S.time));
     for(const t of [0,1]) if(tb[t]>S.time) txt+=' | '+(t===own?'Bizde ':'Rakipte ')+fmtClock(tb[t]-S.time);
     ctx.save(); ctx.font='bold 11px system-ui'; const w=ctx.measureText(txt).width+14;
     ctx.fillStyle=PAL.hudBg; rrect(x0+mw-w,y0-24,w,18,8); ctx.fill(); ctx.strokeStyle=rgba(PAL.gold,0.6); ctx.lineWidth=1.2; rrect(x0+mw-w,y0-24,w,18,8); ctx.stroke();
@@ -1155,10 +1172,10 @@ function drawMinimap(W,H){
   }
 }
 
-/* Skor tablosu (Tab basılıyken): takımlar, kahraman, seviye, K/D/A, altın, eşyalar */
+/* Skor tablosu (Tab basılıyken): takımlar, kahraman, seviye, K/D/A, eşya değeri, eşyalar (rakipte sise girmeden önce son görülen envanter; 15.10.2026: altın idi). Seviye ve K/D/A herkese açık (LoL gibi) */
 function drawScoreboard(W,H){
   const heroes=S.heroes, myT=S.player.team, tw=Math.min(780,W-24), rowH=34, headH=26;
-  const th=14+2*headH+heroes.length*rowH+30, x0=(W-tw)/2, y0=Math.max(56,Math.min(90,(H-th)/2-30));
+  const th=14+2*headH+heroes.length*rowH+46, x0=(W-tw)/2, y0=Math.max(56,Math.min(90,(H-th)/2-30));
   ctx.save();
   ctx.fillStyle='rgba(10,8,30,0.9)'; rrect(x0,y0,tw,th,10); ctx.fill(); ctx.strokeStyle=PAL.hudLine; ctx.lineWidth=1.5; rrect(x0,y0,tw,th,10); ctx.stroke();
   const cN=x0+16, cL=x0+tw*0.30, cK=x0+tw*0.38, cG=x0+tw*0.51, cI=x0+tw*0.62;
@@ -1171,7 +1188,7 @@ function drawScoreboard(W,H){
     ctx.fillStyle=team===myT?'rgba(39,226,205,0.16)':'rgba(255,106,88,0.16)'; rrect(x0+8,y,tw-16,headH-4,6); ctx.fill();
     ctx.textAlign='left'; ctx.font='bold 12px system-ui'; ctx.fillStyle=TEAM_COLORS[team];
     ctx.fillText((team===myT?'Takımın':'Rakip takım')+(S.over&&S.over.winner===team?'  ·  Kazandı':''), cN, y+(headH-4)/2);
-    ctx.fillStyle='#9b9ac4'; ctx.font='11px system-ui'; ctx.fillText('Sv',cL,y+(headH-4)/2); ctx.fillText('K / D / A',cK,y+(headH-4)/2); ctx.fillText('Altın',cG,y+(headH-4)/2); ctx.fillText('Eşyalar',cI,y+(headH-4)/2);
+    ctx.fillStyle='#9b9ac4'; ctx.font='11px system-ui'; ctx.fillText('Sv',cL,y+(headH-4)/2); ctx.fillText('K / D / A',cK,y+(headH-4)/2); ctx.fillText('Eşya değeri',cG,y+(headH-4)/2); ctx.fillText('Eşyalar',cI,y+(headH-4)/2);
     y+=headH;
     for(const h of heroes.filter(u=>u.team===team)){
       const cy=y+rowH/2-2;
@@ -1181,9 +1198,10 @@ function drawScoreboard(W,H){
       ctx.fillText((HERO_NAMES[h.type]||h.def.name)+(h===S.player?' (sen)':''), cN+28, cy);
       ctx.font='13px system-ui'; ctx.fillStyle=h.dead?'#8a87a8':'#dfe3f2';
       ctx.fillText(h.level, cL, cy); ctx.fillText(h.kills+' / '+h.deaths+' / '+h.assists+(h.jm?'  · O'+h.jm:''), cK, cy);
-      ctx.fillStyle='#ffd24d'; ctx.fillText(Math.floor(h.gold), cG, cy);
+      const its=seenItems(myT,h);   // rakip: sise girmeden önce son görülen envanter
+      ctx.fillStyle='#ffd24d'; ctx.fillText(itemsValue(its), cG, cy);
       for(let i=0;i<SLOTS;i++){
-        const id=h.items[i], it=id&&(ITEMS[id]||PARTS[id]), ix=cI+i*(tw*0.075), iw=tw*0.07;
+        const id=its[i], it=id&&(ITEMS[id]||PARTS[id]), ix=cI+i*(tw*0.075), iw=tw*0.07;
         ctx.fillStyle=it?'#1b212d':'#12151c'; rrect(ix,cy-12,iw,24,5); ctx.fill();
         ctx.strokeStyle=it?(ITEMS[id]?'#c9b45a':'#6d7a99'):'#343a49'; ctx.lineWidth=1.5; rrect(ix+0.5,cy-11.5,iw-1,23,5); ctx.stroke();
         if(it){ const w=it.name.split(' '), ab=w.length>1?w.map(q=>q[0]).join('').slice(0,3):it.name.slice(0,3);
@@ -1671,7 +1689,6 @@ export function render(){
   S.heroes.forEach(h=>{ if(unitSeen(h)) drawRanges(h); });
   S.heroes.forEach(h=>{ if(unitSeen(h)) drawTelegraph(h); });
   S.minions.forEach(m=>{ if(unitSeen(m)) inBushAlpha(m, ()=>recoilDraw(m, ()=>drawMinion(m))); });
-  drawCampTimers();
   S.monsters.forEach(m=>{ if(unitSeen(m)) inBushAlpha(m, ()=>recoilDraw(m, ()=>drawMonster(m))); });
   drawBackMarks();
   drawProjectiles();
@@ -1681,6 +1698,7 @@ export function render(){
   drawGoldPops();
   drawFog();
   ctx.setTransform(view.dpr*view.s,0,0,view.dpr*view.s,-view.dpr*cam.x*view.s,view.dpr*(view.oy-cam.y*view.s));   // sis ekran koordinatına geçti, dünyaya dön
+  drawCampMarks();
   drawAttackRange();
   drawAimTarget();
   drawHoldRange();

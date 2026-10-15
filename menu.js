@@ -1,7 +1,7 @@
 /* Ana menü, duraklatma menüsü ve sonuç ekranı (HTML katmanları). Oyun mantığına dokunmaz, yalnız settings yazar ve main.js geri çağrılarını çalıştırır. */
 import { STATS, MAX_LEVEL } from './data.js';
 import { ITEMS, PARTS } from './items.js';
-import { S, settings } from './sim.js';
+import { S, settings, itemsValue } from './sim.js';
 import { GAME_TITLE, HERO_NAMES, HERO_INFO } from './names.js';
 import { drawToken } from './art.js';
 import { applyCssVars } from './palette.js';
@@ -250,7 +250,7 @@ export function showResult() {
   card.append(mk('Tekrar oyna', 'pri', () => cb.restart()), mk('Ana menü', '', () => cb.toMenu()));
   resEl.append(card); root.append(resEl);
 }
-/* Oyun sonu tablosu: iki takım, her kahramanın seviye, K/D/A, altın, eşyaları (kazanan takım vurgulu) */
+/* Oyun sonu tablosu: iki takım, her kahramanın seviye, K/D/A, eşya değeri (15.10.2026: altın idi), eşyaları (kazanan takım vurgulu) */
 function resultTable(myTeam) {
   const box = $('div', 'rtab');
   for (const team of [myTeam, 1 - myTeam]) {
@@ -260,7 +260,7 @@ function resultTable(myTeam) {
       const its = h.items.map(id => (ITEMS[id] || PARTS[id] || { name: id }).name);
       const r = $('div', 'rtr' + (h === S.player ? ' me' : ''));
       r.append($('span', 'n', esc(HERO_NAMES[h.type] || h.type) + (h === S.player ? ' (sen)' : '')), $('span', 'l', 'Sv ' + h.level),
-        $('span', 'kda', h.kills + ' / ' + h.deaths + ' / ' + h.assists), $('span', 'g', Math.floor(h.gold) + ' altın'),
+        $('span', 'kda', h.kills + ' / ' + h.deaths + ' / ' + h.assists), $('span', 'g', itemsValue(h.items) + ' eşya'),
         $('span', 'it', its.length ? esc(its.join(', ')) : 'Eşya yok'));
       box.append(r);
     }

@@ -1,8 +1,8 @@
 /* Bot yapay zekası (v2): tarayıcıya bağımlı değil, iki takımı da oynayabilir.
    Akış: algı -> karar (geri çekil / dövüş / koridor) -> hareket (konum + kaçınma + kule güvenliği) -> saldırı ve yetenekler.
    Eski bot karşılaştırma için ai_v1.js içinde. */
-import { WORLD, LANE_Y, TOWER, towerChampHit, towerMinionHit, FOUNTAIN, respawnTime, RECALL } from './data.js';
-import { S, settings, rand, dist, atkDef, atkDmg, attackSpeed, timings, canSee, canAct, stat, burnDps, apOf, canShop, botShop, nextBuild, itemCostFor, attackTarget, inAttackRange, bonusAd, bonusHp, inCone } from "./sim.js";
+import { JUNGLE, WORLD, LANE_Y, TOWER, towerChampHit, towerScale, towerMinionHit, FOUNTAIN, respawnTime, RECALL } from './data.js';
+import { S, settings, rand, dist, atkDef, atkDmg, attackSpeed, timings, canSee, canAct, stat, burnDps, apOf, canShop, botShop, nextBuild, itemCostFor, attackTarget, inAttackRange, bonusAd, bonusHp, inCone, waveNear, campIntel } from "./sim.js";
 import { CRIT_MULT } from './items.js';
 import { lanePoint, laneProject, laneDir, inWall, BUSHES, bushAt } from './map.js';
 import { navDir, slideDir } from './nav.js';
@@ -157,7 +157,7 @@ function heroHitSafe(b, e, px, py){
 /* Kule T saniyede tek hedefe ne kadar vurur (yığılan hasar dahil) */
 function towerDmgOver(T){
   let sum=0; const n=Math.ceil(T/TOWER.interval);
-  for(let i=0;i<n;i++) sum+=towerChampHit(i);
+  for(let i=0;i<n;i++) sum+=towerChampHit(i, S.time);
   return sum;
 }
 /* Tanksız kule dalışı değer mi? Rakip kahraman uzaktaysa ve ölmeden önce verebileceğimiz hasar yeterliyse dal.
@@ -170,9 +170,9 @@ function canDive(b, st, e, M){
   let floor=b.maxHp*(cheap?0:LVP(b).diveFloor), start=cheap?0.2:LVP(b).diveStart;
   if(M.foesDown && LVP(b).siege){ floor=Math.min(floor, b.maxHp*0.12); start=Math.min(start, 0.3); }   // rakip ölü: daha cesur kuşatma
   if(b.hp < (M.dive ? floor : b.maxHp*start)) return false;
-  let myD=dps(b)*0.95;
+  let myD=dps(b)*0.95*(waveNear(b.team,st)?1:TOWER.ward.mult);   // kale koruması (15.10.2026): dalgasız kuleye hasar yarım
   for(const m of S.minions) if(!m.dead && m.team===b.team && dist(m,st)<300) myD+=m.def.dmg/m.def.period;
-  const live=(b.hp-floor)/(towerChampHit(3)/TOWER.interval);
+  const live=(b.hp-floor)/(towerChampHit(3, S.time)/TOWER.interval);
   return myD*live >= Math.min(st.hp, LVP(b).diveMinDmg);
 }
 
@@ -253,7 +253,7 @@ const homeDir = b => b.team===0 ? -1 : 1;
 function burnOf(h){ const p=h.def.skills.p; return p.burnMin!==undefined ? burnDps(p,h.level)+(p.ap||0)*apOf(h) : 0; }
 /* Bir tarafın ham dövüş bileşenleri (b'nin e'ye karşı) */
 function sideComps(b, e, lv=AI){
-  const tw=towerChampHit(2)/TOWER.interval;
+  const tw=towerChampHit(2, S.time)/TOWER.interval;
   let tower=0, minion=0;
   for(const s of S.structs){
     if(s.dead || s.sub==='nexus') continue;
@@ -557,7 +557,7 @@ function killCalc(b, e){
   const ehp=e.hp+(e.st.shield?e.st.shield.amt:0);
   let eDmg=0;
   for(const u of S.heroes) if(u.team!==b.team && !u.dead && (u===e || (canSee(b.team,u) && dist(u,e)<700))) eDmg+=(burstSum(u)+dps(u)*2)*resF(b);
-  if(!heroHitSafe(b,e,e.x,e.y)) eDmg+=towerChampHit(0)+towerChampHit(1);
+  if(!heroHitSafe(b,e,e.x,e.y)) eDmg+=towerChampHit(0, S.time)+towerChampHit(1, S.time);
   return { myDmg, ehp, eDmg };
 }
 /* Öldürme penceresi: rakip erişimde (düz vuruş, yetenek ya da atılış menzili) ve hasarımız canını götürüyor, karşı hasar canımızı geçmiyor.
@@ -1366,11 +1366,14 @@ AI.jgBigLv = 7;   /* seviye 15 (14.10.2026): 6 idi */       // büyük canavar i
 AI.jgBigSolo = 11;   /* 9 idi */     // bu seviyeden sonra tek başına da dener
 AI.jgBigWait = 18;
 AI.laneCampAllyR = 1200;   // koridorcu: dost ormancı bu kadar yakındaysa o kampa girmez     // dostu bu kadar sn bekler
-const campLive = c => c.alive && c.mobs.some(m=>!m.dead);
+/* Kamp canlı mı: takımın bildiği kadarıyla (sim.js campIntel, savaş sisi 15.10.2026). 'unknown' canlı olabilir sayılır (gidip bakılır). */
+const campLive = (c, b) => { const k=campIntel(b.team, c); return k.state!=='dead'; };
 /* Kampı (kalan canavarlarla) temizleyebilir miyiz: süre * aldığımız hasar < canımız */
 function campCost(b, c){
   let hp=0, inc=0;
-  for(const m of c.mobs) if(!m.dead){ hp+=m.hp; inc+=m.def.dmg*m.dmgMult/m.def.period*(m.def.cleave?1:1); }
+  if(c.alive && c.mobs.some(m=>!m.dead && canSee(b.team,m))){ for(const m of c.mobs) if(!m.dead){ hp+=m.hp; inc+=m.def.dmg*m.dmgMult/m.def.period*(m.def.cleave?1:1); } }
+  else { const sc=JUNGLE.scale, mn=S.time/60, hM=Math.min(sc.cap,1+sc.hpPerMin*mn), dM=Math.min(sc.cap,1+sc.dmgPerMin*mn);   // görünmüyor: taze kamp tahmini (sis)
+    for(const t of c.def.mobs){ const d=JUNGLE.monsters[t]; hp+=d.hp*hM; inc+=d.dmg*dM/d.period; } }
   const t=hp/Math.max(1,dps(b)*1.15);
   return { t, taken:inc*t*100/(100+stat(b,'armor')) };
 }
@@ -1381,8 +1384,8 @@ function foeNear(b, x, y, R){
 }
 /* Kamptaki hedef: en az canlı canavar; ona gidilecek yön */
 function campAttack(b, c){
-  let t=null; for(const m of c.mobs) if(!m.dead && (!t || m.hp<t.hp)) t=m;
-  if(!t) return null;
+  let t=null; if(c.alive) for(const m of c.mobs) if(!m.dead && (!t || m.hp<t.hp)) t=m;
+  if(!t || !canSee(b.team,t)){ const dx=c.x-b.x, dy=c.y-b.y; return hyp(dx,dy)>60 ? { mv:{ x:dx, y:dy }, tgt:null, dive:false, hold:false } : null; }   // bilinen/bilinmeyen kampa git, bak
   const want=reachTo(b,t)-15, dx=t.x-b.x, dy=t.y-b.y, l=hyp(dx,dy);
   const mv = l>want ? { x:dx, y:dy } : { x:0, y:0 };
   return { mv, tgt:t, dive:false, hold:false };
@@ -1441,7 +1444,7 @@ function jungleMove(b, e, eVis, M, ev){
   const late=b.level>=AI.jgLateLv;   // geç oyun: yalnız Titan, gerisi koridor/itme
   { const d=defendSpot(b); if(d && b.hp/b.maxHp>0.35){ M.jgS='defend'; if(dist(b,d)>700) return { mv:{ x:d.x-b.x, y:d.y-b.y }, tgt:null, dive:false, hold:false }; return null; } }
   const hpF=b.hp/b.maxHp;
-  if(LVP(b).numAdv && hpF>0.4 && numEdge(b)>0 && !(bigCamp() && campLive(bigCamp()) && b.level>=AI.jgBigLv)){ M.jgS='push'; return null; }   // sayı üstünlüğü: koridora, itmeye
+  if(LVP(b).numAdv && hpF>0.4 && numEdge(b)>0 && !(bigCamp() && campLive(bigCamp(),b) && b.level>=AI.jgBigLv)){ M.jgS='push'; return null; }   // sayı üstünlüğü: koridora, itmeye
   M.jgGank=null; M.jgS='?';
   if(hpF<0.3 && !(eVis && dist(b,e)<700)){ M.recall=true; }
   // 1) baskın
@@ -1449,7 +1452,7 @@ function jungleMove(b, e, eVis, M, ev){
   if(g){ M.jgGank=g; M.jgS='gank'; return { mv:{ x:g.x-b.x, y:g.y-b.y }, tgt:null, dive:false, hold:false }; }
   // 2) büyük canavar
   const bc=bigCamp();
-  if(bc && campLive(bc) && b.level>=AI.jgBigLv && hpF>0.65 && !foeNear(b,bc.x,bc.y,1400)){
+  if(bc && campLive(bc,b) && b.level>=AI.jgBigLv && hpF>0.65 && !foeNear(b,bc.x,bc.y,1400)){
     let ally=null; for(const a of S.heroes) if(a!==b && !a.dead && a.team===b.team && hyp(a.x-bc.x,a.y-bc.y)<700) ally=a;
     const started=bc.mobs.some(m=>m.aggro && m.aggro.team===b.team);
     if(ally || started || (b.level>=AI.jgBigSolo && campOK(b,bc,0.8))){ M.bigCall=0; M.jgS='big'; return campAttack(b,bc); }
@@ -1462,14 +1465,14 @@ function jungleMove(b, e, eVis, M, ev){
   } else if(M.bigWait && S.time>M.bigWait+60) M.bigWait=0;
   if(late){ M.jgS='lane'; return null; }
   // 3) süren kamp: başladıysak bitir
-  if(M.jgCamp && campLive(M.jgCamp) && !M.jgCamp.big && hpF>0.3){
+  if(M.jgCamp && campLive(M.jgCamp,b) && !M.jgCamp.big && hpF>0.3){
     const r=campAttack(b, M.jgCamp); if(r && dist(b,M.jgCamp)<900){ M.jgS='camp'; return r; }
   }
   // 4) yeni kamp: canlı ve temizlenebilir, yakın; kendi tarafı ve eksik güçlendirme öncelikli; rakip yakınsa olmaz
   let best=null, bs=1e18;
   const jgDead=!!LVP(b).invade && S.heroes.some(u=>u.team!==b.team && u.role==='jungle' && u.dead && u.respawn>AI.invadeT);
   for(const c of S.camps){
-    if(c.big || !campLive(c)) continue;
+    if(c.big || !campLive(c,b)) continue;
     if(!campOK(b,c,0.7*hpF)) continue;
     if(foeNear(b,c.x,c.y,1000)) continue;
     let sc=dist(b,c);
@@ -1480,7 +1483,8 @@ function jungleMove(b, e, eVis, M, ev){
   if(best){ M.jgCamp=best; M.jgS='camp'; return campAttack(b,best); }
   // 5) yakında doğacak kamp: başında bekle
   let soon=null;
-  for(const c of S.camps) if(!c.big && !c.alive && (c.side===b.team) && c.spawnAt-S.time<AI.jgWait && (!soon || c.spawnAt<soon.spawnAt)) soon=c;
+  let soonT=1e9;
+  for(const c of S.camps){ const k=campIntel(b.team,c); if(!c.big && k.state==='dead' && (c.side===b.team) && k.until-S.time<AI.jgWait && k.until<soonT){ soonT=k.until; soon=c; } }
   if(soon){ M.jgS='wait'; const dx=soon.x-b.x, dy=soon.y-b.y; return { mv: hyp(dx,dy)>80 ? { x:dx, y:dy } : { x:0, y:0 }, tgt:null, dive:false, hold:false }; }
   M.jgS='lane';
   return null;
@@ -1489,7 +1493,7 @@ function jungleMove(b, e, eVis, M, ev){
 function bigHelp(b, eVis, e){
   if(b.noJungle || b.role==='jungle' || b.hp/b.maxHp<0.6) return null;
   if(eVis && dist(b,e)<1200) return null;
-  const bc=bigCamp(); if(!bc || !campLive(bc)) return null;
+  const bc=bigCamp(); if(!bc || !campLive(bc,b)) return null;
   for(const a of S.heroes){
     if(a===b || a.dead || a.team!==b.team || a.role!=='jungle' || !a.ai || !a.ai.v2) continue;
     const am=a.ai.v2, busy=bc.mobs.some(m=>m.aggro && m.aggro.team===b.team);
@@ -1501,7 +1505,7 @@ function bigHelp(b, eVis, e){
 AI.titanAdvR=2600;
 function titanAdv(b, eVis, e){
   if(!LVP(b).titanAdv || b.noJungle || b.role==='jungle' || hpNow(b)<0.5 || b.level<AI.jgBigLv) return null;
-  const bc=bigCamp(); if(!bc || !campLive(bc)) return null;
+  const bc=bigCamp(); if(!bc || !campLive(bc,b)) return null;
   const started=bc.mobs.some(m=>m.aggro && m.aggro.team===b.team);
   if(!started){
     if(numEdge(b)<=0 || dist(b,bc)>AI.titanAdvR || foeNear(b,bc.x,bc.y,1400)) return null;
@@ -1515,7 +1519,7 @@ AI.soloTitanLv = 9;   // seviye 15 (14.10.2026): 8 idi
 function bigSolo(b, eVis, e){
   if(b.noJungle || b.role==='jungle' || !LVP(b).titan) return null;
   if(S.heroes.some(a=>a!==b && a.team===b.team && a.role==='jungle' && !a.dead)) return null;
-  const bc=bigCamp(); if(!bc || !campLive(bc) || b.level<AI.soloTitanLv) return null;
+  const bc=bigCamp(); if(!bc || !campLive(bc,b) || b.level<AI.soloTitanLv) return null;
   const started=bc.mobs.some(m=>m.aggro && m.aggro.team===b.team), hpF=hpNow(b);
   if(foeNear(b,bc.x,bc.y,started?900:1500)) return null;
   if(started ? hpF<0.3 : (hpF<0.75 || !campOK(b,bc,0.85))) return null;
@@ -1535,7 +1539,7 @@ function laneCamp(b, eVis){
   const ro=mem(b).pers.roam, inv=ro>0.65 && !jg;   // kişilik: gezgin koridorcu rakip ormana da girer
   let best=null, bd=1100+500*ro;
   for(const c of S.camps){
-    if(c.big || !campLive(c) || (c.side>=0 && c.side!==b.team && !inv)) continue;
+    if(c.big || !campLive(c,b) || (c.side>=0 && c.side!==b.team && !inv)) continue;
     if(jg && (c.buff || hyp(jg.x-c.x,jg.y-c.y)<AI.laneCampAllyR)) continue;
     const d=dist(b,c); if(d<bd && campOK(b,c,0.5)){ bd=d; best=c; }
   }

@@ -571,11 +571,18 @@ for(const id of Object.keys(HEROES)){
 }
 
 /* Yapılar: kule ve üs (nexus) */
-export const TOWER = { armorPen:0.40, r:38, hp:620,   /* 14.10.2026 (maç 10-15 dk): 1050 idi */ range:480, dmg:60, interval:1.0, boltSpeed:1000, minionMult:1.6, stack:0.25, maxStack:4,
+export const TOWER = { armorPen:0.40, r:38,
+  hp:900,          /* kule 15.10.2026 (kule gibi hissettirsin): 620 idi (14.10.2026: 1050 idi) */
+  range:540,       /* 480 idi */
+  dmg:80,          /* 60 idi */
+  interval:0.85,   /* 1.0 idi */
+  dmgPerMin:0.03, dmgCap:1.6,   // 15.10.2026: kule hasarı dakikada +%3 (en fazla 1,6 kat), kahraman canı büyürken kule önemini korusun (yoktu)
+  ward:{ mult:0.5, r:700 },     // 15.10.2026 kale koruması: 700 içinde saldıranın dost minyonu yoksa kahramanların yapılara hasarı x0,5 (yoktu)
+  boltSpeed:1000, minionMult:1.6, stack:0.25, maxStack:4,
   champMult:2.0, champStack:0.40,          // şampiyona: ilk vuruş 2 kat, aynı şampiyona art arda her vuruş +%40 (LoL gibi; denge: 1x, +%25 idi)
   minionHits:{ melee:3, ranged:2 } };       // minyona: yakın 3, menzilli 2 vuruşta ölür (azami canın 1/n'i; denge: 60*1,6 idi)   // kule mermisi güdümlü: hedefe gider, önüne giren engelleyemez
-export const BASE_TOWER_HP = 800;   // 14.10.2026: 1250 idi
-export const NEXUS = { r:58, hp:1100 };   // 14.10.2026: 1750 idi
+export const BASE_TOWER_HP = 1150;   // 15.10.2026: 800 idi (14.10.2026: 1250 idi)
+export const NEXUS = { r:58, hp:1300 };   // 15.10.2026: 1100 idi (14.10.2026: 1750 idi)
 /* Takım 0 için x konumları, takım 1 aynalanır. Sıra: dış kule, iç kule, üs kulesi, nexus */
 export const LAYOUT = [ ['tower',1800], ['tower',1150], ['base',420], ['nexus',160] ];
 export const FOUNTAIN = { radius:260, healPct:0.125 };  // çeşme: saniyede maks canın %12,5 (0 → dolu 8 sn)
@@ -618,7 +625,8 @@ export const KEY_LABELS = { p:'Pasif', r:'Sağ Tık', e:'E', s:'Boşluk' };
 /* Savaş sisi: görüş menzilleri */
 export const VISION = { hero:700, tower:700, minion:500 };
 /* Kule vuruşu (sim ve bot tahmini aynı formülü kullanır) */
-export const towerChampHit = st => TOWER.dmg*TOWER.champMult*(1+TOWER.champStack*Math.min(st,TOWER.maxStack));
+export const towerScale = t => Math.min(TOWER.dmgCap, 1+TOWER.dmgPerMin*(t||0)/60);
+export const towerChampHit = (st, t) => TOWER.dmg*towerScale(t)*TOWER.champMult*(1+TOWER.champStack*Math.min(st,TOWER.maxStack));
 export const towerMinionHit = m => m.maxHp/(TOWER.minionHits[m.type]||3)+0.01;
 
 /* ---- Orman (11.10.2026, "1 koridor + orman") ----

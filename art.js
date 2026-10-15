@@ -100,6 +100,25 @@ const ICONS = {
     g.beginPath(); g.arc(-0.05,-0.2,0.18,0,TAU); g.fillStyle=d; g.fill();
     g.beginPath(); g.moveTo(-1.0,-0.35); g.lineTo(-0.6,-0.35); g.moveTo(-1.05,0.05); g.lineTo(-0.55,0.05); g.moveTo(-1.0,0.45); g.lineTo(-0.6,0.45); g.lineWidth=0.13; g.strokeStyle=c; g.stroke();
   },
+  /* orman kampı simgeleri (15.10.2026, CAMP_ICON) */
+  paw(g,c,d){   // Kurt: pençe izi
+    g.beginPath(); g.ellipse(0,0.38,0.46,0.4,0,0,TAU); g.fill();
+    for(const [x,y] of [[-0.62,-0.18],[-0.24,-0.62],[0.24,-0.62],[0.62,-0.18]]){ g.beginPath(); g.ellipse(x,y,0.19,0.24,x*0.5,0,TAU); g.fill(); }
+  },
+  stone(g,c,d){   // Taş Golem: köşeli taş blok, çatlak
+    g.beginPath(); g.moveTo(-0.55,-0.85); g.lineTo(0.5,-0.9); g.lineTo(0.9,-0.2); g.lineTo(0.7,0.8); g.lineTo(-0.6,0.9); g.lineTo(-0.92,0.05); g.closePath(); g.fill();
+    g.beginPath(); g.moveTo(-0.1,-0.85); g.lineTo(0.05,-0.2); g.lineTo(-0.3,0.25); g.lineTo(-0.1,0.85); g.lineWidth=0.13; g.strokeStyle=d; g.stroke();
+  },
+  wing(g,c,d){   // Gece Kuşu: açık kanatlar
+    g.beginPath(); g.moveTo(0,0.15); g.quadraticCurveTo(-0.45,-0.85,-1.0,-0.5); g.quadraticCurveTo(-0.7,-0.15,-0.85,0.25); g.quadraticCurveTo(-0.4,0.05,0,0.55);
+    g.quadraticCurveTo(0.4,0.05,0.85,0.25); g.quadraticCurveTo(0.7,-0.15,1.0,-0.5); g.quadraticCurveTo(0.45,-0.85,0,0.15); g.closePath(); g.fill();
+    g.beginPath(); g.arc(0,0.05,0.16,0,TAU); g.fillStyle=d; g.fill();
+  },
+  crown(g,c,d){   // Vaha Titanı: taç
+    g.beginPath(); g.moveTo(-0.9,0.6); g.lineTo(-0.95,-0.55); g.lineTo(-0.45,-0.05); g.lineTo(0,-0.8); g.lineTo(0.45,-0.05); g.lineTo(0.95,-0.55); g.lineTo(0.9,0.6); g.closePath(); g.fill();
+    g.beginPath(); g.rect(-0.9,0.68,1.8,0.22); g.fill();
+    g.beginPath(); g.arc(0,0.25,0.14,0,TAU); g.fillStyle=d; g.fill();
+  },
   yin(g,c,d){
     g.beginPath(); g.arc(0,0,0.9,0,TAU); g.lineWidth=0.14; g.stroke();
     g.beginPath(); g.arc(0,0,0.9,Math.PI/2,Math.PI*1.5); g.arc(0,-0.45,0.45,-Math.PI/2,Math.PI/2,false); g.arc(0,0.45,0.45,-Math.PI/2,Math.PI/2,true); g.closePath(); g.fill();
@@ -107,6 +126,8 @@ const ICONS = {
     g.beginPath(); g.arc(0,0.45,0.14,0,TAU); g.fillStyle=c; g.fill();
   }
 };
+/* Kamp türüne göre simge (data.js JUNGLE.camps id) */
+export const CAMP_ICON = { wolves:'paw', golems:'stone', birds:'wing', regen:'drop', burn:'flame', titan:'crown' };
 export function drawIcon(g, name, x, y, s, col, dark){
   const f=ICONS[name]; if(!f) return;
   g.save(); g.translate(x,y); g.scale(s,s); g.lineJoin='round'; g.lineCap='round'; g.fillStyle=col; g.strokeStyle=col; g.lineWidth=0.2;
@@ -259,17 +280,20 @@ export function paintMap(g, M){
     g.save(); g.font='bold 60px system-ui'; g.textAlign='center'; g.textBaseline='middle'; g.lineWidth=8; g.strokeStyle='rgba(8,6,32,0.55)'; g.fillStyle='rgba(200,190,255,0.35)';
     const t=lane.name+' (şimdilik boş)'; g.strokeText(t,m[0],m[1]); g.fillText(t,m[0],m[1]); g.restore();
   }
-  // 4b) orman kampları: taş halka ve soluk rün çemberi (büyük canavar çukuru daha geniş, altın)
+  // 4b) orman kampları (15.10.2026 belirginleşti): renkli zemin lekesi, düz iç halka + kesikli dış halka, taş çember; simge ve sayaç render.js drawCampMarks
   for(const c of (M.CAMPS||[])){
     const R0=c.big?120:c.buff?80:70, col=c.color||PAL.arcane;
     const gr=g.createRadialGradient(c.x,c.y,10,c.x,c.y,R0*1.6); gr.addColorStop(0,rgba(PAL.rockSide,0.55)); gr.addColorStop(1,rgba(PAL.rockSide,0));
     g.fillStyle=gr; g.fillRect(c.x-R0*1.6,c.y-R0*1.6,R0*3.2,R0*3.2);
-    g.beginPath(); g.arc(c.x,c.y,R0,0,TAU); g.lineWidth=3; g.strokeStyle=rgba(col,0.28); g.setLineDash([10,12]); g.stroke(); g.setLineDash([]);
+    const tg=g.createRadialGradient(c.x,c.y,R0*0.2,c.x,c.y,R0); tg.addColorStop(0,rgba(col,0.20)); tg.addColorStop(1,rgba(col,0.06));
+    g.beginPath(); g.arc(c.x,c.y,R0,0,TAU); g.fillStyle=tg; g.fill();
+    g.beginPath(); g.arc(c.x,c.y,R0,0,TAU); g.lineWidth=4; g.strokeStyle=rgba(col,0.55); g.stroke();
+    g.beginPath(); g.arc(c.x,c.y,R0+30,0,TAU); g.lineWidth=2.5; g.strokeStyle=rgba(col,0.32); g.setLineDash([10,12]); g.stroke(); g.setLineDash([]);
     const n=c.big?16:10;
     for(let i=0;i<n;i++){ const a=i/n*TAU+R()*0.2, x=c.x+Math.cos(a)*(R0+14), y=c.y+Math.sin(a)*(R0+14)*0.9, rx=7+R()*7, ry=5+R()*4;
       g.beginPath(); g.ellipse(x,y+3,rx,ry,a,0,TAU); g.fillStyle=rgba(PAL.ink,0.5); g.fill();
       g.beginPath(); g.ellipse(x,y,rx,ry,a,0,TAU); g.fillStyle=mix(PAL.rock,PAL.rockLight,R()*0.4); g.fill(); }
-    if(c.big){ g.beginPath(); for(let i=0;i<6;i++){ const a=i/6*TAU; g.lineTo(c.x+Math.cos(a)*R0*0.55,c.y+Math.sin(a)*R0*0.55); } g.closePath(); g.lineWidth=2.5; g.strokeStyle=rgba(PAL.gold,0.3); g.stroke(); }
+    if(c.big){ g.beginPath(); for(let i=0;i<6;i++){ const a=i/6*TAU; g.lineTo(c.x+Math.cos(a)*R0*0.55,c.y+Math.sin(a)*R0*0.55); } g.closePath(); g.lineWidth=2.5; g.strokeStyle=rgba(PAL.gold,0.45); g.stroke(); }
   }
   // 5) duvarlar: yükseltili obsidyen kaya (gölge, yan yüz, üst yüz, çatlak, kristal)
   for(const w of M.WALLS){

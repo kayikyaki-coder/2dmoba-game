@@ -163,6 +163,7 @@ export function resetGame(opts){
     J.role='jungle';
   }
   S.heroes.forEach((h,i)=>initLevel(h, lvs[i]));
+  initIntel();   // takım bilgisi (savaş sisi): kamp durumları, rakip envanteri
 }
 
 /* ---- yardımcılar ---- */
@@ -336,6 +337,12 @@ export function passiveSlow(owner, e){
 }
 
 /* ---- hasar ---- */
+/* Kale koruması: yapının TOWER.ward.r içinde takımın canlı minyonu var mı */
+export function waveNear(team, s){
+  const R=TOWER.ward.r;
+  for(const m of S.minions) if(!m.dead && m.team===team && Math.abs(m.x-s.x)<R && Math.hypot(m.x-s.x,m.y-s.y)<R) return true;
+  return false;
+}
 export function damage(e, amt, src, opts){
   opts = opts||{};
   if(e.dead) return;
@@ -346,6 +353,7 @@ export function damage(e, amt, src, opts){
   const SB = (src && src.kind==='hero' && src.bonus) || {};
   if(SB.siege && e.kind!=='hero'){ amt*=1+SB.siege; a=amt; }
   if(e.kind==='struct' && src && src.team<2 && S.teamBuff[src.team]>S.time){ amt*=BIG_BUFF.structMult; a=amt; }   // Titan Gücü: yapılara ek hasar
+  if(e.kind==='struct' && src && src.kind==='hero' && !waveNear(src.team, e)){ amt*=TOWER.ward.mult; a=amt; }   // kale koruması: dalgasız kuşatma zayıf
   if(e.kind==='monster' && src && src.kind==='hero'){ e.lastHero=src; e.lastHeroT=S.time; monsterAggro(e, src); amt*=opts.basic ? JUNGLE.basicMult : JUNGLE.skillMult; a=amt; }   // canavarlara kahraman hasarı çarpanı (yetenek ağırlıklı kahramanlar da kesebilsin)   // Kuşatma Çekici: yapılara ve minyonlara ek hasar
   // zırh / büyü direnci (sadece kahramanlarda): hasar * 100/(100+değer); 'true' türü delip geçer. Delme ve azaltmalar burada.
   if(e.kind==='hero'){
@@ -521,6 +529,7 @@ export function kill(e, src){
     e.respawn=respawnTime(S.time); if(src.team<2) S.score[src.team]++;
     const killer=creditKiller(e, src);
     e.deaths++;
+    if(S.structs.some(t=>!t.dead && t.team!==e.team && t.sub!=='nexus' && Math.hypot(t.x-e.x,t.y-e.y)<=t.range+e.r+60)) e.towerDeaths=(e.towerDeaths||0)+1;   // ölçüm: kule altında ölüm
     if(killer && killer.kind==='hero' && killer.team!==e.team){ killer.kills++; for(const a of takedownParticipants(e, killer)) if(a!==killer) a.assists++; }
     bloodHarvest(e, src, killer);
     passBuffs(e, killer);
@@ -835,6 +844,7 @@ export function awardXP(team, x, y, amt, radius, mult){
 }
 /* ---- geri kalma telafisi (data.js CATCHUP_XP / CATCHUP_GOLD) ---- */
 export function totalXP(h){ let t=h.xp; for(let l=1;l<h.level;l++) t+=XP_NEED(l); return t; }
+export function itemsValue(items){ return (items||[]).reduce((t,id)=>t+((ITEMS[id]||PARTS[id]||{}).cost||0),0); }
 export function heroWorth(h){ return h.gold+(h.items||[]).reduce((t,id)=>t+((ITEMS[id]||PARTS[id]||{}).cost||0),0); }
 function foeAvg(h, f){ const F=S.heroes.filter(u=>u.team!==h.team && u.team<2); return F.length ? F.reduce((t,u)=>t+f(u),0)/F.length : 0; }
 function behind(h, f){ const a=foeAvg(h,f); return a>0 ? 1-f(h)/a : 0; }
@@ -1929,6 +1939,53 @@ export function buildCamps(on){
     }
   }
 }
+/* ---- Takım bilgisi (savaş sisi, 15.10.2026) ----
+   S.intel[team].camps[id] = { state:'alive'|'dead'|'unknown', until }: kamp yalnız takımdan biri yerini görünce güncellenir.
+   Ölü görülünce sayaç: ölümü gördüysek gerçek doğuş anı, yoksa gördüğümüz andan itibaren tam bekleme (def.respawn).
+   Sayaç bitince görmeden 'canlı' denmez: 'unknown'. İlk doğuş herkesçe bilinir (dead, until=first, sonra alive).
+   S.intel[team].heroes[id] = { items, value, t }: rakip kahramanın son görülen envanteri (görmediğimiz alışverişi bilmeyiz). */
+export function initIntel(){
+  S.intel=[0,1].map(()=>({ camps:{}, heroes:{} }));
+  for(const I of S.intel){
+    for(const c of S.camps) I.camps[c.id]={ state:'dead', until:c.spawnAt, first:true };   // ilk doğuş herkesçe bilinir
+    for(const h of S.heroes||[]) I.heroes[h.id]={ items:(h.items||[]).slice(), value:itemsValue(h.items), t:0 };
+  }
+}
+export const INTEL_DT = 0.1;   // takım bilgisi güncelleme aralığı (sn)
+export function updateIntel(){
+  if(!S.intel) return;
+  if(S.time<(S.intelT||0)) return;
+  S.intelT=S.time+INTEL_DT;
+  for(let team=0; team<2; team++){
+    const I=S.intel[team];
+    for(const c of S.camps){
+      let k=I.camps[c.id]; if(!k) k=I.camps[c.id]={ state:'unknown', until:0 };
+      if(visiblePos(team, c.x, c.y, 40)){
+        k.first=false;
+        if(c.alive && c.mobs.some(m=>!m.dead)){ k.state='alive'; k.until=0; }
+        else if(k.state!=='dead' || k.until<S.time){   // yeni öğrenilen ölüm: ölümü az önce gördüysek gerçek süre, yoksa tam bekleme
+          k.state='dead'; k.until = (c.spawnAt-c.def.respawn>=S.time-1.5) ? c.spawnAt : S.time+c.def.respawn;
+        }
+      } else if(k.state==='dead' && S.time>=k.until) k.state = k.first ? 'alive' : 'unknown';
+    }
+    for(const h of S.heroes){
+      if(h.team===team) continue;
+      if(canSee(team,h)){ let k=I.heroes[h.id]; if(!k) k=I.heroes[h.id]={};
+        k.items=h.items.slice(); k.value=itemsValue(h.items); k.t=S.time; }
+    }
+  }
+}
+/* Takımın bildiği kamp durumu (ai ve çizim): 'alive' | 'dead' | 'unknown' ve sayaç */
+export function campIntel(team, c){
+  const k=S.intel && S.intel[team] && S.intel[team].camps[c.id];
+  if(!k) return { state:c.alive?'alive':'dead', until:c.spawnAt };
+  return k;
+}
+/* Takımın gördüğü envanter: kendi takımı gerçek, rakip son görülen */
+export function seenItems(team, h){
+  if(h.team===team || !S.intel) return h.items;
+  const k=S.intel[team].heroes[h.id]; return k ? k.items : [];
+}
 const MOB_OFF=[[0,0],[-46,40],[46,40],[0,-50]];
 function makeMonster(type, camp, i){
   const d=JUNGLE.monsters[type], min=S.time/60, sc=JUNGLE.scale;
@@ -1957,6 +2014,7 @@ export function updateJungle(dt){
     if(!c.alive){ if(S.time>=c.spawnAt) spawnCamp(c); continue; }
     if(c.mobs.every(m=>m.dead)){ c.alive=false; c.mobs=[]; c.spawnAt=S.time+c.def.respawn; }
   }
+  updateIntel();
   for(let i=0;i<S.monsters.length;i++) updateMonster(S.monsters[i], dt);
   if(S.dots.length){
     for(const d of S.dots){
@@ -2107,7 +2165,7 @@ export function updateTower(s, dt){
     if(s.last===tgt) s.stacks=Math.min(s.stacks+1,TOWER.maxStack); else { s.stacks=0; s.last=tgt; }
     let dmg;
     if(tgt.kind==='minion') dmg=towerMinionHit(tgt);
-    else dmg=towerChampHit(s.stacks);
+    else dmg=towerChampHit(s.stacks, S.time);
     S.bolts.push({ x:s.x, y:s.y, target:tgt, dmg, team:s.team, src:s, speed:TOWER.boltSpeed, stacks:s.stacks });
     s.cd=TOWER.interval;
   }
