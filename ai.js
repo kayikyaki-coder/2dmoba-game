@@ -296,6 +296,7 @@ AI.invadeT = 12;
 AI.hurtFlee = 0;          // erken kaçış (bot D4)
 AI.hurtK = 0.6;
 AI.hurtAdv = 1.2;
+AI.mageCombo = 0;         // Ateş Büyücüsü: İç Ateş önce, Meteor dalgaya değil (bot D5)
 AI.helpRange = 450;
 AI.helpRun = 1900;        // dostumuz saldırı altındaysa ve dövüş bizim lehimizeyse en fazla bu uzaklıktan yardıma koşarız       // dostumuz dövüşteyse dövüşe girme menzili bu kadar genişler
 /* Rakip kahraman seçimi: görünenlerden en kolay/tehlikesiz hedef (yakın, canı az, kulenin altında değil, dostuma vuran, aynı hedefte ısrar).
@@ -1039,7 +1040,10 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
     } else if(sk.type==='fireball'){
       // kısa bekleme: rakibe fırsat buldukça, sakinken dalgaya
       const poke = eVis && d<sk.range-30 && pz && heroHitSafe(b,e,b.x,b.y);
-      if(poke){
+      // mageCombo (bot D5): İç Ateş hazır ve menzildeyse önce o (hasar artışı), Ateş Topu sonra
+      const igK=LVP(b).mageCombo && skillKey(b,'ignite');
+      if(poke && igK && rdy(b,igK) && d-e.r<b.def.skills[igK].range-10 && !(e.st.ignite)){ }
+      else if(poke){
         const ang=leadAim(b,e,sk.cast,sk.speed,M);
         if(!blocker(b,ang,e,sk.radius)){ use=true; cmd.aim=ang; }
       } else if(quiet && tgt && (tgt.kind==='minion' || tgt.kind==='monster') && dist(b,tgt)<sk.range-100){ use=true; cmd.aim=Math.atan2(tgt.y-b.y,tgt.x-b.x); }
@@ -1050,7 +1054,7 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
         // gecikme boyunca rakibin gideceği yere, kısmen (rakip kaçabilir)
         const k2=e.st.freeze>0 ? 0 : 0.6;
         cmd.tx=e.x+((e.vx||0)+(e.kx||0))*sk.delay*k2; cmd.ty=e.y+((e.vy||0)+(e.ky||0))*sk.delay*k2; use=true;
-      } else if(quiet && tgt && (tgt.kind==='minion' || tgt.kind==='monster')){
+      } else if(quiet && tgt && (tgt.kind==='minion' || tgt.kind==='monster') && !(LVP(b).mageCombo && tgt.kind==='minion')){   // mageCombo: Meteor dalgaya harcanmaz
         let n=0; for(const m of S.minions) if(!m.dead && m.team!==b.team && dist(m,tgt)<sk.radius) n++;
         if(n>=4 && dist(b,tgt)<sk.range){ use=true; cmd.tx=tgt.x; cmd.ty=tgt.y; }
       }
