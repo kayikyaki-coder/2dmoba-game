@@ -1,4 +1,4 @@
-/* Bütün 2v2 takım kombinasyonları: node tools/teams2v2.js [--rounds 1] [--seed 1] [--threads 4] [--top 5] [--out tools/teams2v2_result.json] [--report 1] [--fast 1 --games 20] [--shard i/n] [--merge a.json,b.json] [--diff easy|medium|hard|expert]
+/* Bütün 2v2 takım kombinasyonları: node tools/teams2v2.js [--rounds 1] [--seed 1] [--threads 4] [--top 5] [--out tools/teams2v2_result.json] [--report 1] [--fast 1 --games 20] [--shard i/n] [--merge a.json,b.json] [--diff easy|medium|hard|expert] [--early 1]
    12 kahramandan 66 takım; ortak kahramanı olmayan her takım çifti rounds kez oynar (taraf dönüşümlü).
    Çıktı: en iyi N takım (kazanma oranı) ve bireysel tablo (kahraman başına maç, kazanma, K/D/A, en iyi dost ve en zor rakip).
    Sonuçlar --out dosyasına yazılır; yarıda kalırsa aynı komut kaldığı yerden devam eder. */
@@ -25,7 +25,7 @@ if(fast){
 }
 for(const [x,y] of use){
   const A=teams[x], B=teams[y];
-  for(let r=0;r<rounds;r++){ const k=jobs.length; jobs.push({ key:A+'|'+B+'|'+r, a:A, b:B, aTeam:k%2, seed:seed*100000+k, maxTime:2400, earlyStop:fast, diffA:o.diff||'easy', diffB:o.diff||'easy' }); }
+  for(let r=0;r<rounds;r++){ const k=jobs.length; jobs.push({ key:A+'|'+B+'|'+r, a:A, b:B, aTeam:k%2, seed:seed*100000+k, maxTime:2400, earlyStop:fast||!!o.early, diffA:o.diff||'easy', diffB:o.diff||'easy' }); }
 }
 // --shard i/n: işin yalnız i. parçası (paralel oturumlar/makineler için); sonuçlar --out dosyasına; birleştirme: --merge a.json,b.json
 if(o.shard){ const [si,sn]=String(o.shard).split('/').map(Number); for(let i=jobs.length-1;i>=0;i--) if(i%sn!==si) jobs.splice(i,1); }
