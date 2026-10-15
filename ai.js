@@ -293,6 +293,9 @@ AI.jgMissT = 8;
 AI.jgAhead = 1500;
 AI.invade = 0;            // rakip ormancı ölüyken rakip ormanını kes (bot D3)
 AI.invadeT = 12;
+AI.hurtFlee = 0;          // erken kaçış (bot D4)
+AI.hurtK = 0.6;
+AI.hurtAdv = 1.2;
 AI.helpRange = 450;
 AI.helpRun = 1900;        // dostumuz saldırı altındaysa ve dövüş bizim lehimizeyse en fazla bu uzaklıktan yardıma koşarız       // dostumuz dövüşteyse dövüşe girme menzili bu kadar genişler
 /* Rakip kahraman seçimi: görünenlerden en kolay/tehlikesiz hedef (yakın, canı az, kulenin altında değil, dostuma vuran, aynı hedefte ısrar).
@@ -1644,6 +1647,12 @@ function botCommandCore(b, dt){
         // Uzman/Zor: vurulurken ne dövüşüp ne kaçma (arada kalma): yakın üstünlükte karşılık ver, değilse geri çekil
         if(!fight && LP.noLimbo && (b.dmgBy[e.id] ?? -1e9) > S.time-LVP(b).limboT){
           if(ev.adv>=LVP(b).limboAdv && hpNow(b)>0.3) fight=true; else M.tradeBack=Math.max(M.tradeBack||0, S.time+0.8);
+        }
+        // Erken kaçış (hurtFlee, bot D4): son 1,5 sn'de kaybedilen can kalan canın büyük kısmıysa ve üstünlük yoksa, can eşiğini beklemeden geri çekil
+        if(LP.hurtFlee && !kw && !defend){
+          const hh=M.hpHist||(M.hpHist=[]); hh.push([S.time,b.hp]); while(hh.length && hh[0][0]<S.time-1.5) hh.shift();
+          const drop=hh.length ? hh[0][1]-b.hp : 0;
+          if(drop>b.hp*AI.hurtK && ev.adv<AI.hurtAdv){ fight=false; M.tradeBack=Math.max(M.tradeBack||0, S.time+1.5); }
         }
         if(fight){
           const sp = ranged(b) ? standPoint(b,e,reachTo(b,e)-20) : e;
