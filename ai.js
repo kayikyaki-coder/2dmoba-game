@@ -291,6 +291,8 @@ AI.syncR = 900;
 AI.jgTrack = 0;           // rakip ormancı takibi (bot D2)
 AI.jgMissT = 8;
 AI.jgAhead = 1500;
+AI.invade = 0;            // rakip ormancı ölüyken rakip ormanını kes (bot D3)
+AI.invadeT = 12;
 AI.helpRange = 450;
 AI.helpRun = 1900;        // dostumuz saldırı altındaysa ve dövüş bizim lehimizeyse en fazla bu uzaklıktan yardıma koşarız       // dostumuz dövüşteyse dövüşe girme menzili bu kadar genişler
 /* Rakip kahraman seçimi: görünenlerden en kolay/tehlikesiz hedef (yakın, canı az, kulenin altında değil, dostuma vuran, aynı hedefte ısrar).
@@ -1446,12 +1448,13 @@ function jungleMove(b, e, eVis, M, ev){
   }
   // 4) yeni kamp: canlı ve temizlenebilir, yakın; kendi tarafı ve eksik güçlendirme öncelikli; rakip yakınsa olmaz
   let best=null, bs=1e18;
+  const jgDead=!!LVP(b).invade && S.heroes.some(u=>u.team!==b.team && u.role==='jungle' && u.dead && u.respawn>AI.invadeT);
   for(const c of S.camps){
     if(c.big || !campLive(c)) continue;
     if(!campOK(b,c,0.7*hpF)) continue;
     if(foeNear(b,c.x,c.y,1000)) continue;
     let sc=dist(b,c);
-    if(c.side>=0 && c.side!==b.team) sc+= foesInLane(b) ? 0 : 700;   // iki rakip koridordaysa rakip ormanı da boş
+    if(c.side>=0 && c.side!==b.team) sc+= (foesInLane(b) || jgDead) ? (jgDead && c.buff ? -400 : 0) : 700;   // iki rakip koridordaysa rakip ormanı da boş; invade (bot D3): rakip ormancı uzun ölüyse rakip ormanı (önce güçlendirmesi) bizim
     if(c.buff && !(b.jb && b.jb[c.buff]>S.time)) sc-=400;
     if(sc<bs){ bs=sc; best=c; }
   }
