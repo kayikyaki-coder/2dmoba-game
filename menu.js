@@ -22,7 +22,10 @@ export const LEVELS = [
 const HERO_IDS = Object.keys(HERO_NAMES);
 const KEY = 'moba2d_menu_v1';
 
-export const pick = { mode:'1v1', hero:'archer', foe:'random', ally:'random', foe2:'random', level:'medium' };
+/* Takım kurma seçimleri. Bot yuvalarında yuva başına zorluk (lvAlly, lvFoe, lvFoe2; varsayılan Orta). */
+export const SLOTS = { hero:{ team:0, lv:null }, ally:{ team:0, lv:'lvAlly' }, foe:{ team:1, lv:'lvFoe' }, foe2:{ team:1, lv:'lvFoe2' } };
+export const pick = { mode:'1v1', hero:'archer', foe:'random', ally:'random', foe2:'random', lvAlly:'medium', lvFoe:'medium', lvFoe2:'medium' };
+const lvOk = v => LEVELS.some(l => l.id === v && l.active);
 try {
   const o = JSON.parse(localStorage.getItem(KEY) || 'null');
   if (o) {
@@ -31,12 +34,13 @@ try {
     if (o.foe === 'random' || HERO_NAMES[o.foe]) pick.foe = o.foe;
     if (o.ally === 'random' || HERO_NAMES[o.ally]) pick.ally = o.ally;
     if (o.foe2 === 'random' || HERO_NAMES[o.foe2]) pick.foe2 = o.foe2;
-    if (LEVELS.some(l => l.id === o.level && l.active)) pick.level = o.level;
+    for (const k of ['lvAlly', 'lvFoe', 'lvFoe2']) { if (lvOk(o[k])) pick[k] = o[k]; else if (lvOk(o.level)) pick[k] = o.level; }   // eski kayıt: tek zorluk
     for (const k of ['fog', 'waves', 'showHit']) if (typeof o[k] === 'boolean') settings[k] = o[k];
     if (o.aimMode === 'track' || o.aimMode === 'lock') settings.aimMode = o.aimMode;
   }
 } catch (e) { /* kayıt yoksa varsayılanlar */ }
-settings.botLevel = pick.level;
+function applyLevels() { settings.botLevels = { ally:pick.lvAlly, foe:pick.lvFoe, foe2:pick.lvFoe2 }; settings.botLevel = pick.lvFoe; }
+applyLevels();
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify({ ...pick, fog:settings.fog, waves:settings.waves, showHit:settings.showHit, aimMode:settings.aimMode })); } catch (e) { /* sorun değil */ }
 }
@@ -48,38 +52,20 @@ const $ = (tag, cls, html) => { const e = document.createElement(tag); if (cls) 
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const root = document.getElementById('menuRoot');
 
-/* ---- kahraman kartı ---- */
-/* Kart simgesi: oyundaki token ile aynı çizim (art.js drawToken), ekran yoğunluğuna göre keskin */
-function tokenCanvas(id) {
-  const c = document.createElement('canvas'), dpr = Math.min(2, window.devicePixelRatio || 1), n = 46;
-  c.className = 'hc-ic'; c.width = c.height = Math.round(n * dpr); c.style.width = c.style.height = n + 'px';
+/* ---- portreler ---- */
+/* Oyundaki token çizimi (art.js drawToken; portre görseli yüklüyse onu da kullanır) */
+function tokenCanvas(id, n) {
+  const c = document.createElement('canvas'), dpr = Math.min(2, window.devicePixelRatio || 1);
+  c.className = 'pt-tok'; c.width = c.height = Math.round(n * dpr); c.style.width = c.style.height = n + 'px';
   const g = c.getContext('2d'); g.scale(dpr, dpr); drawToken(g, id, n / 2, n / 2, n / 2 - 2, {});
   return c;
 }
-/* Kart portresi: yerel Stable Diffusion ile üretilmiş görsel (assets/portre); yüklenemezse oyundaki token çizimi */
-function portraitEl(id) {
-  const im = document.createElement('img'); im.className = 'hc-pt'; im.alt = ''; im.src = 'assets/portre/' + id + '.jpg';
-  im.onerror = () => im.replaceWith(tokenCanvas(id));
+/* Portre: Higgsfield görseli (assets/portre); yüklenemezse token çizimi */
+function portraitEl(id, cls, n) {
+  const im = document.createElement('img'); im.className = cls; im.alt = ''; im.src = 'assets/portre/' + id + '.jpg';
+  im.onerror = () => im.replaceWith(tokenCanvas(id, n || 46));
   return im;
 }
-function heroCard(id, kind) {
-  const inf = HERO_INFO[id], st = STATS[id] || {};
-  const b = $('button', 'hc'); b.dataset.id = id; b.style.setProperty('--hc', inf.color);
-  const v = k => st[k] ? Math.round(st[k].base) : '-';
-  b.innerHTML = '<div class="hc-top"><span class="hc-ic">' + esc(inf.letter) + '</span><div><div class="hc-nm">' + esc(HERO_NAMES[id]) + '</div><span class="hc-role">' + esc(inf.role) + '</span></div></div>'
-    + '<div class="hc-ds">' + esc(inf.desc) + '</div><div class="hc-st"><span>Can ' + v('hp') + '</span><span>Hasar ' + v('dmg') + '</span><span>Menzil ' + v('range') + '</span></div>';
-  b.querySelector('.hc-ic').replaceWith(portraitEl(id));
-  b.addEventListener('click', () => { pick[kind] = id; save(); sync(); });
-  return b;
-}
-function randomCard(kind) {
-  const b = $('button', 'hc rnd'); b.dataset.id = 'random'; b.style.setProperty('--hc', '#9aa1b0');
-  b.innerHTML = '<div class="hc-top"><span class="hc-ic">?</span><div><div class="hc-nm">Rastgele</div><span class="hc-role">Her seferinde farklı</span></div></div>'
-    + '<div class="hc-ds">Başlarken ' + (kind === 'ally' ? 'takım arkadaşın' : 'kahraman') + ' rastgele seçilir.</div>';
-  b.addEventListener('click', () => { pick[kind] = 'random'; save(); sync(); });
-  return b;
-}
-
 /* ---- ayarlar bloğu (ana menü ve duraklatma menüsünde ortak) ---- */
 export function settingsBlock() {
   const box = $('div', 'set');
@@ -138,17 +124,7 @@ function buildMenu() {
     b.addEventListener('click', () => { pick.mode = id; save(); sync(); });
     mg.append(b);
   }
-  m.append(mg, $('div', 'roster')); side.append(m);
-  // zorluk
-  const d = $('section', 'blk'); d.append($('h2', '', 'Bot zorluğu'));
-  const dg = $('div', 'lvls');
-  for (const L of LEVELS) {
-    const b = $('button', 'lvl' + (L.active ? '' : ' off')); b.dataset.lvl = L.id; b.disabled = !L.active;
-    b.innerHTML = '<b>' + esc(L.label) + '</b>' + (L.active ? '<small>' + esc(L.sub) + '</small>' : '<em>Yakında</em>');
-    b.addEventListener('click', () => { pick.level = L.id; settings.botLevel = L.id; save(); sync(); });
-    dg.append(b);
-  }
-  d.append(dg, $('div', 'note', 'Seçilen zorluk rakip botlara ve takım arkadaşına uygulanır.')); side.append(d);
+  m.append(mg); side.append(m);
   // otomatik alım
   const ab = $('section', 'blk'); ab.append($('h2', '', 'Otomatik alım'));
   const abb = $('button', 'abbtn'); abb.id = 'abBtn'; abb.addEventListener('click', () => openBuildEditor(pick.hero, () => sync()));
@@ -156,16 +132,12 @@ function buildMenu() {
   // ayarlar
   const a = $('section', 'blk'); a.append($('h2', '', 'Ayarlar'), settingsBlock()); side.append(a);
 
+  // takım kurma: solda takımın, sağda rakip; yuvaya tıklayınca kahraman seçimi açılır
   const main = $('main', 'mainc');
-  const h1 = $('section', 'blk'); h1.append($('h2', '', 'Kahramanın'));
-  const g1 = $('div', 'hgrid'); g1.id = 'gHero'; for (const id of HERO_IDS) g1.append(heroCard(id, 'hero')); h1.append(g1);
-  const grid = (title, gid, kind, cls) => {
-    const sec = $('section', 'blk ' + cls); sec.append($('h2', '', title));
-    const g = $('div', 'hgrid'); g.id = gid; g.append(randomCard(kind)); for (const id of HERO_IDS) g.append(heroCard(id, kind)); sec.append(g); return sec;
-  };
-  const hA = grid('Takım arkadaşın (bot)', 'gAlly', 'ally', 'only2');
-  const h2 = grid('Rakip', 'gFoe', 'foe', ''), h3 = grid('Rakip 2', 'gFoe2', 'foe2', 'only2');
-  main.append(h1, hA, h2, h3);
+  const lob = $('div', 'lobby');
+  const col = (team) => { const c = $('section', 'tcol t' + team); c.append($('h2', 'th', team === 0 ? 'Takımın' : 'Rakip takım')); const l = $('div', 'slots'); l.id = 'slots' + team; c.append(l); return c; };
+  lob.append(col(0), $('div', 'vs', 'VS'), col(1));
+  main.append(lob, $('div', 'note lnote', 'Yuvaya tıkla: kahraman seç. Bot yuvalarında zorluk yuva başına seçilir.'));
 
   const foot = $('div', 'foot'), go = $('button', 'go', 'Başla'), sum = $('span', 'sum'); sum.id = 'sum';
   go.id = 'goBtn'; go.addEventListener('click', startGame);
@@ -173,10 +145,64 @@ function buildMenu() {
   menuEl.append(side, main, foot);
   root.append(menuEl);
 }
-function foeId() { return pick.foe === 'random' ? HERO_IDS[Math.floor(Math.random() * HERO_IDS.length)] : pick.foe; }
+const slotKeys = () => MODES[pick.mode].perTeam > 1 ? [['hero', 'ally'], ['foe', 'foe2']] : [['hero'], ['foe']];
+const slotTitle = k => ({ hero:'Sen', ally:'Takım arkadaşı (bot)', foe:'Rakip (bot)', foe2:'Rakip 2 (bot)' })[k];
+/* Bir yuva kartı: büyük portre, ad, rol, kısa açıklama; botta zorluk düğmeleri */
+function slotCard(k) {
+  const v = pick[k], rnd = v === 'random', inf = rnd ? null : HERO_INFO[v];
+  const c = $('div', 'slotc' + (k === 'hero' ? ' me' : '') + (rnd ? ' rnd' : '')); c.dataset.slot = k;
+  if (inf) c.style.setProperty('--hc', inf.color);
+  const pb = $('button', 'sl-pick'); pb.title = 'Kahraman seç';
+  const pw = $('div', 'sl-pw');
+  if (rnd) pw.append($('span', 'sl-q', '?')); else pw.append(portraitEl(v, 'sl-pt', 96));
+  const st = rnd ? null : STATS[v], sv = key => st && st[key] ? Math.round(st[key].base) : '-';
+  const tx = $('div', 'sl-tx');
+  tx.innerHTML = '<div class="sl-who">' + esc(slotTitle(k)) + '</div><div class="sl-nm">' + esc(rnd ? 'Rastgele' : HERO_NAMES[v]) + '</div>'
+    + (rnd ? '<div class="sl-ds">Başlarken rastgele seçilir.</div>' : '<span class="sl-role">' + esc(inf.role) + '</span><div class="sl-ds">' + esc(inf.desc) + '</div><div class="sl-st"><span>Can ' + sv('hp') + '</span><span>Hasar ' + sv('dmg') + '</span><span>Menzil ' + sv('range') + '</span></div>')
+    + '<div class="sl-chg">Değiştir</div>';
+  pb.append(pw, tx); pb.addEventListener('click', () => openPicker(k));
+  c.append(pb);
+  const lk = SLOTS[k].lv;
+  if (lk) {
+    const lv = $('div', 'sl-lv');
+    for (const L of LEVELS) {
+      const b = $('button', 'sl-lb' + (pick[lk] === L.id ? ' on' : ''), esc(L.label)); b.title = L.sub; b.dataset.lvl = L.id;
+      b.addEventListener('click', () => { pick[lk] = L.id; applyLevels(); save(); sync(); });
+      lv.append(b);
+    }
+    c.append(lv);
+  }
+  return c;
+}
+/* Kahraman seçim ızgarası (yuva başına açılır) */
+let pickerEl = null;
+function closePicker() { if (pickerEl) { pickerEl.remove(); pickerEl = null; } }
+function openPicker(k) {
+  closePicker();
+  pickerEl = $('div', 'picker'); pickerEl.id = 'picker';
+  const box = $('div', 'pk-box');
+  const hd = $('div', 'pk-hd'); hd.append($('h2', '', esc(slotTitle(k)) + ' için kahraman seç'));
+  const x = $('button', 'pk-x', '×'); x.title = 'Kapat (Esc)'; x.addEventListener('click', closePicker); hd.append(x);
+  const grid = $('div', 'pk-grid');
+  const choose = id => { pick[k] = id; save(); closePicker(); sync(); };
+  if (k !== 'hero') {
+    const r = $('button', 'pk-c rnd' + (pick[k] === 'random' ? ' on' : '')); r.innerHTML = '<span class="pk-q">?</span><b>Rastgele</b><small>Her seferinde farklı</small>';
+    r.addEventListener('click', () => choose('random')); grid.append(r);
+  }
+  for (const id of HERO_IDS) {
+    const inf = HERO_INFO[id], b = $('button', 'pk-c' + (pick[k] === id ? ' on' : '')); b.style.setProperty('--hc', inf.color); b.title = inf.desc;
+    b.append(portraitEl(id, 'pk-pt', 88)); b.append($('b', '', esc(HERO_NAMES[id])), $('small', '', esc(inf.role)));
+    b.addEventListener('click', () => choose(id)); grid.append(b);
+  }
+  box.append(hd, grid); pickerEl.append(box);
+  pickerEl.addEventListener('click', e => { if (e.target === pickerEl) closePicker(); });
+  menuEl.append(pickerEl);
+}
+addEventListener('keydown', e => { if (e.code === 'Escape' && pickerEl) { e.preventDefault(); closePicker(); } });
 function rnd(v) { return v === 'random' ? HERO_IDS[Math.floor(Math.random() * HERO_IDS.length)] : v; }
 function startGame() {
-  settings.playerType = pick.hero; settings.botType = foeId(); settings.botLevel = pick.level;
+  closePicker(); applyLevels();
+  settings.playerType = pick.hero; settings.botType = rnd(pick.foe);
   settings.perTeam = MODES[pick.mode].perTeam;   // 2v2: takım arkadaşı ve ikinci rakip de seçilir (rastgeleler burada çözülür)
   settings.allyType = rnd(pick.ally); settings.foe2Type = rnd(pick.foe2); save();
   cb.start();
@@ -184,31 +210,18 @@ function startGame() {
 function sync() {
   if (!menuEl) return;
   menuEl.querySelectorAll('.mode').forEach(b => b.classList.toggle('on', b.dataset.mode === pick.mode));
-  menuEl.querySelectorAll('.lvl').forEach(b => b.classList.toggle('on', b.dataset.lvl === pick.level));
-  menuEl.querySelectorAll('#gHero .hc').forEach(b => b.classList.toggle('on', b.dataset.id === pick.hero));
-  menuEl.querySelectorAll('#gFoe .hc').forEach(b => b.classList.toggle('on', b.dataset.id === pick.foe));
-  menuEl.querySelectorAll('#gAlly .hc').forEach(b => b.classList.toggle('on', b.dataset.id === pick.ally));
-  menuEl.querySelectorAll('#gFoe2 .hc').forEach(b => b.classList.toggle('on', b.dataset.id === pick.foe2));
   const M = MODES[pick.mode];
   const abB = menuEl.querySelector('#abBtn'); if (abB) abB.innerHTML = '<b>' + esc(HERO_NAMES[pick.hero]) + ' eşya sırası</b><small>' + (autoBuyOn() ? 'Açık' : 'Kapalı') + ' · ' + (isCustom(pick.hero) ? 'kendi sıran' : 'önerilen sıra') + '</small>';
-  menuEl.querySelectorAll('.only2').forEach(e => { e.style.display = M.perTeam > 1 ? '' : 'none'; });
-  // takım yuvaları: takım başına perTeam yuva
+  const ks = slotKeys();
+  for (const t of [0, 1]) { const l = menuEl.querySelector('#slots' + t); l.innerHTML = ''; for (const k of ks[t]) l.append(slotCard(k)); }
   const nmOf = v => v === 'random' ? 'Rastgele' : HERO_NAMES[v];
-  const ro = menuEl.querySelector('.roster'); ro.innerHTML = '';
-  for (const team of [0, 1]) {
-    const row = $('div', 'rrow t' + team); row.append($('span', 'rt', team === 0 ? 'Takımın' : 'Rakip takım'));
-    for (let i = 0; i < M.perTeam; i++) {
-      const nm = team === 0 ? (i === 0 ? HERO_NAMES[pick.hero] : nmOf(pick.ally)) : (i === 0 ? nmOf(pick.foe) : nmOf(pick.foe2));
-      row.append($('span', 'slot' + (team === 0 && i === 0 ? ' me' : ''), esc(nm)));
-    }
-    ro.append(row);
-  }
+  const lvN = id => LEVELS.find(l => l.id === id).label;
   menuEl.querySelector('#sum').textContent = M.perTeam > 1
-    ? HERO_NAMES[pick.hero] + ' + ' + nmOf(pick.ally) + ' karşı ' + nmOf(pick.foe) + ' + ' + nmOf(pick.foe2) + '  ·  ' + M.label + '  ·  ' + LEVELS.find(l => l.id === pick.level).label
-    : HERO_NAMES[pick.hero] + ' karşı ' + nmOf(pick.foe) + '  ·  ' + M.label + '  ·  ' + LEVELS.find(l => l.id === pick.level).label;
+    ? HERO_NAMES[pick.hero] + ' + ' + nmOf(pick.ally) + ' (' + lvN(pick.lvAlly) + ') karşı ' + nmOf(pick.foe) + ' (' + lvN(pick.lvFoe) + ') + ' + nmOf(pick.foe2) + ' (' + lvN(pick.lvFoe2) + ')  ·  ' + M.label
+    : HERO_NAMES[pick.hero] + ' karşı ' + nmOf(pick.foe) + ' (' + lvN(pick.lvFoe) + ')  ·  ' + M.label;
 }
 export function showMenu() { if (!menuEl) buildMenu(); hidePause(); hideResult(); menuEl.style.display = 'flex'; menuEl.scrollTop = 0; const v = menuEl.querySelector('.mvid'); if (v) v.play().catch(() => {}); sync(); }
-export function hideMenu() { if (menuEl) { menuEl.style.display = 'none'; const v = menuEl.querySelector('.mvid'); if (v) v.pause(); } }
+export function hideMenu() { closePicker(); if (menuEl) { menuEl.style.display = 'none'; const v = menuEl.querySelector('.mvid'); if (v) v.pause(); } }
 
 /* ---- duraklatma ---- */
 let pauseEl = null;

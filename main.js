@@ -48,7 +48,13 @@ function newGame(){
   // 2v2: sen (ilk sıra) + dost bot, karşıda iki bot (menü seçimleri settings'te)
   if(settings.perTeam===2) o.types=[[settings.playerType, settings.allyType],[settings.botType, settings.foe2Type]];
   resetGame(o);
-  for(const h of S.heroes) if(h!==S.player) setBotLevel(h, settings.botLevel || 'medium');   // menüdeki zorluk: rakipler ve takım arkadaşı
+  // yuva başına bot zorluğu (menü takım kurma): dost bot lvAlly, rakipler takım içi sırayla foe / foe2
+  const L=settings.botLevels||{}, fb=settings.botLevel||'medium';
+  for(const h of S.heroes){
+    if(h===S.player) continue;
+    const i=S.heroes.filter(u=>u.team===h.team).indexOf(h);
+    setBotLevel(h, (h.team===S.player.team ? L.ally : (i===0 ? L.foe : L.foe2)) || fb);
+  }
   applyAutoBuy(S.player);   // otomatik alım: kayıtlı eşya sırası (autobuy.js)
 }
 

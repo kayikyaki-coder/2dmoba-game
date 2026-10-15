@@ -192,6 +192,44 @@
   .rtr{display:grid;grid-template-columns:150px 50px 80px 90px 1fr;gap:8px;padding:5px 8px;border-radius:6px;background:var(--panel2);align-items:center}
   .rtr.me{border:1px solid var(--accent)}
   .rtr .n{font-weight:600}.rtr .l,.rtr .g{color:var(--muted)}.rtr .it{color:var(--muted);font-size:11px;line-height:1.25}
+  /* takım kurma ekranı (15.10.2026): solda takımın, sağda rakip, yuva başına kahraman ve bot zorluğu */
+  .lobby{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:start;margin-top:6px}
+  .tcol .th{margin:0 0 10px;font-size:14px;letter-spacing:.06em;text-transform:uppercase}
+  .tcol.t0 .th{color:var(--t0,#27e2cd)}.tcol.t1 .th{color:var(--t1,#ff6a58);text-align:right}
+  .slots{display:flex;flex-direction:column;gap:14px}
+  .vs{align-self:center;font-size:34px;font-weight:800;color:var(--gold,#f2c14e);text-shadow:0 0 18px rgba(242,193,78,.45);padding:0 4px}
+  .slotc{--hc:#9aa1b0;--tc:var(--t0,#27e2cd);background:rgba(22,20,58,.88);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 8px 22px rgba(0,0,0,.35)}
+  .t1 .slotc{--tc:var(--t1,#ff6a58)}
+  .slotc.me{box-shadow:0 0 0 2px var(--tc) inset,0 8px 22px rgba(0,0,0,.35)}
+  .sl-pick{display:flex;gap:16px;align-items:center;width:100%;text-align:left;padding:14px 16px;background:none;border:0;border-left:5px solid var(--tc);cursor:pointer}
+  .sl-pick:hover{background:rgba(255,255,255,.05)}
+  .sl-pw{flex:none;width:118px;height:118px;border-radius:50%;border:5px solid var(--tc);box-shadow:0 0 0 2px #0b0a20,0 0 22px color-mix(in srgb,var(--tc) 45%,transparent);overflow:hidden;display:flex;align-items:center;justify-content:center;background:#151236}
+  .sl-pt{width:100%;height:100%;object-fit:cover;display:block}
+  .sl-q,.pk-q{font-size:52px;font-weight:800;color:#9aa1b0}
+  .sl-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+  .sl-who{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .sl-nm{font-size:22px;font-weight:800;line-height:1.1}
+  .sl-role{align-self:flex-start;font-size:11px;color:var(--hc);border:1px solid var(--hc);border-radius:8px;padding:0 6px}
+  .sl-ds{color:#c3c8d4;font-size:12px;line-height:1.35}
+  .sl-st{display:flex;gap:10px;font-size:11px;color:var(--muted)}
+  .sl-chg{font-size:11px;color:var(--accent);margin-top:2px}
+  .sl-lv{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 16px 14px 21px}
+  .sl-lb{padding:6px 4px;border-radius:7px;background:var(--panel3);border:1px solid var(--line);font-size:13px}
+  .sl-lb:hover{border-color:var(--accent)}
+  .sl-lb.on{background:#16394a;border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;font-weight:700}
+  .lnote{margin-top:12px}
+  .picker{position:fixed;inset:0;z-index:60;background:rgba(8,6,28,.78);display:flex;align-items:center;justify-content:center;padding:16px}
+  .pk-box{width:min(980px,100%);max-height:calc(100% - 20px);overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .pk-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.pk-hd h2{margin:0;font-size:17px}
+  .pk-x{font-size:24px;line-height:1;width:36px;height:36px;border-radius:8px;background:var(--panel2);border:1px solid var(--line)}
+  .pk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px}
+  .pk-c{--hc:#9aa1b0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border-radius:12px;background:var(--panel3);border:1px solid var(--line);transition:transform .08s}
+  .pk-c:hover{border-color:var(--hc);transform:translateY(-2px)}
+  .pk-c.on{border-color:var(--hc);box-shadow:0 0 0 2px var(--hc) inset;background:#1f2f5e}
+  .pk-pt,.pk-c .pk-q,.pk-c .pt-tok{width:88px;height:88px;border-radius:50%;border:3px solid var(--hc);object-fit:cover;display:flex;align-items:center;justify-content:center}
+  .pk-c b{font-size:13px;text-align:center}.pk-c small{font-size:11px;color:var(--hc)}
+  @media (max-width:1100px){ .lobby{grid-template-columns:1fr}.vs{justify-self:center}.tcol.t1 .th{text-align:left} }
+  @media (max-width:560px){ .sl-pw{width:76px;height:76px;border-width:4px}.sl-nm{font-size:18px}.sl-ds{display:none} }
   @media (max-height:900px){ .menu .side{position:static} }
   @media (max-width:900px){
     .menu{flex-direction:column;align-items:stretch;padding:16px 14px 90px}
