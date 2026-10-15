@@ -1194,10 +1194,8 @@ export function instantSkill(h, k, aim, cmd, tgt, opt){
       gladHit(h, tgt);
       fx({ type:'slash', owner:h, tgt, ang:Math.atan2(tgt.y-h.y,tgt.x-h.x), crit:true, life:0.25 });
     }
-  } else if(sk.type==='arena'){   // Gladyatör Arena: imleç yerinde (range'e kırpılır) alan; Gladyatör içindeyken güçlenir (stat/attackSpeed/moveMult)
-    let p=targetPoint(h, cmd, sk.range);
-    const dx=p.x-h.x, dy=p.y-h.y, l=Math.hypot(dx,dy);
-    if(l>sk.range) p={ x:h.x+dx/l*sk.range, y:h.y+dy/l*sk.range };
+  } else if(sk.type==='arena'){   // Gladyatör Arena: kendi konumunda alan (engel değil); Gladyatör içindeyken güçlenir (stat/attackSpeed/moveMult)
+    const p={ x:h.x, y:h.y };
     for(const z of S.zones) if(z.kind==='arena' && z.owner===h) z.dead=true;   // önceki arena kalkar
     S.zones.push({ x:p.x, y:p.y, r:sk.radius, t:sk.dur, total:sk.dur, owner:h, team:h.team, kind:'arena', ad:sk.adFlat[i], as:sk.as[i], ms:sk.ms[i] });
     h.ic.arenaUntil=S.time+sk.dur;

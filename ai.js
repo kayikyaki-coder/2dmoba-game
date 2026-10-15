@@ -515,6 +515,10 @@ function dodgeVec(b, e, eVis, M){
   }
   // Düşman alan saldırısının (meteor) içindeysek dışarı çık
   for(const z of S.zones||[]){
+    if(z.kind==='arena'){   // Gladyatör Arena zarar vermez: rakip kaçmaz; sahibi dışındaysa ve rakip yakındaysa merkeze çekilir
+      if(z.owner===b && !z.dead && eVis && hyp(e.x-z.x,e.y-z.y)<z.r+220){ const rx=z.x-b.x, ry=z.y-b.y, l=hyp(rx,ry)||1; if(l>z.r*0.7){ vx+=rx/l*1.5; vy+=ry/l*1.5; } }
+      continue;
+    }
     if(z.team===b.team) continue;
     let t0=M.seen.get(z);
     if(t0===undefined){ t0=S.time+RC[0]+rand()*(RC[1]-RC[0]); M.seen.set(z,t0); }
@@ -1285,8 +1289,8 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
       if(eVis && fight && d<reachTo(b,e)+30 && b.atk.state!=='windup') use=true;
       else if(quiet && tgt && tgt.kind!=='hero' && rec && dist(b,tgt)<reachTo(b,tgt)+10 && (tgt.kind==='struct' || hpNow(b)<0.75)) use=true;
     } else if(sk.type==='arena'){
-      // Gladyatör Arena: dövüş başlarken ikimizin arasına (rakibe doğru), sakinken kule kuşatmasında kendi üstümüze
-      if(eVis && fight && d<reachTo(b,e)+260){ use=true; const f=Math.min(0.6, sk.range/(d||1)); cmd.tx=b.x+(e.x-b.x)*f*0.5; cmd.ty=b.y+(e.y-b.y)*f*0.5; }
+      // Gladyatör Arena (kendi konumunda): dövüşte rakip alana girecek kadar yakınken, sakinken kule kuşatmasında
+      if(eVis && fight && d<sk.radius+40){ use=true; cmd.tx=b.x; cmd.ty=b.y; }
       else if(quiet && tgt && tgt.kind==='struct' && dist(b,tgt)<reachTo(b,tgt)+20){ use=true; cmd.tx=b.x; cmd.ty=b.y; }
     } else if(sk.type==='duel'){
       // Gladyatör Meydan Okuma: menzildeki rakip kahramana, dövüş üstünlüğünde ya da rakibin canı azken

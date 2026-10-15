@@ -517,9 +517,10 @@ export const HEROES = {
       //          slowDur sn azalan slow yavaşlatma (applySlow decay), Gladyatör healFlat + healPct * verilen ek hasar iyileşir
       r:{ name:'Ağır Darbe', max:7, type:'heavy', cd:[7,6.5,6,5.5,5.3,5,4.8],   /* denge F3: cd 8-6.5 idi */ window:5, dmg:[50,78,106,134,151,168,184], ad:0.6,   /* denge F1: dmg 40-115, ad 0.5 idi */
           slow:0.40, slowDur:2, healFlat:[20,30,40,50,56,62,68], healPct:0.3 },
-      // E: imleç yerinde (range'e kırpılır) radius yarıçaplı alan dur sn Gladyatör'ün arenası olur (S.zones kind:'arena');
-      //    o içindeyken +adFlat SG, +as saldırı hızı, +ms hareket hızı. Rakibe doğrudan etkisi yok.
-      e:{ name:'Arena', max:7, type:'arena', cd:[14,13,12,11,10.5,10,9.5],   /* denge F2: cd 16-13 idi */ range:600, radius:350, dur:5,
+      // E: Gladyatör'ün kendi konumunda (Trundle W gibi) radius yarıçaplı alan dur sn onun arenası olur (S.zones kind:'arena');
+      //    kimseyi engellemez; o içindeyken +adFlat SG, +as saldırı hızı, +ms hareket hızı. Rakibe doğrudan etkisi yok.
+      //    15.10.2026: imleç yerinde (range 600'e kırpılır) radius 350 idi.
+      e:{ name:'Arena', max:7, type:'arena', cd:[14,13,12,11,10.5,10,9.5],   /* denge F2: cd 16-13 idi */ radius:220, dur:5,
           adFlat:[8,14,20,26,30,33,37], as:[.15,.20,.25,.30,.33,.36,.39], ms:[.10,.12,.14,.16,.17,.18,.2] },
       // boşluk: range içindeki görünen rakip KAHRAMANA (imlece en yakın) atılır (hedefe yapışır, kök engeller, duvar/yapıda durur);
       //         değince dur sn: rakibin zırh ve BD'sinin steal oranını çalar, rakibe azami canının hpPct'i kadar büyü hasarını

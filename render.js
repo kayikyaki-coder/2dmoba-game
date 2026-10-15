@@ -620,11 +620,8 @@ function drawHoldRange(){
       const dd=Math.hypot(u.x-uiState.mx,u.y-uiState.my); if(dd<bd){ bd=dd; best=u; }
     }
     if(best){ holdCircle(best.x,best.y,best.r+10,null,'#ff7a4a'); holdLine(p, Math.atan2(best.y-p.y,best.x-p.x), dist(best,p)-best.r, p.r*2); }
-  } else if(sk.type==='arena'){   // Gladyatör Arena: menzil ve imleçteki alan (menzile kırpılır)
-    holdCircle(p.x,p.y,sk.range,'rgba(255,176,112,0.03)','rgba(255,176,112,0.7)',true);
-    let tx=uiState.mx, ty=uiState.my; const d=Math.hypot(tx-p.x,ty-p.y);
-    if(d>sk.range){ tx=p.x+(tx-p.x)/d*sk.range; ty=p.y+(ty-p.y)/d*sk.range; }
-    holdCircle(tx,ty,sk.radius,'rgba(255,176,112,0.10)','rgba(255,200,140,0.9)');
+  } else if(sk.type==='arena'){   // Gladyatör Arena: kendi çevresindeki alan
+    holdCircle(p.x,p.y,sk.radius,'rgba(255,176,112,0.10)','rgba(255,200,140,0.9)');
   } else if(sk.type==='heavy'){
     holdCircle(p.x,p.y,p.r+atkDef(p).range,'rgba(255,154,90,0.05)','rgba(255,154,90,0.8)',true);
   } else if(sk.type==='leapslam' || sk.type==='knockblow'){   // yakın biçim: menzil ve imlece en yakın görünen rakip (kahraman ya da minyon); inişte alan / itme yönü
@@ -1261,7 +1258,7 @@ const TYPE_DESC={
   roll:'Basılı tuttukça mesafe artar; bırakınca yuvarlanır, indiğin yerde rakipleri havaya atıp sersemletirsin.',
   shell:'Kabuğa çekilirsin: ağırlaşır, itilemez ve çekilemezsin, hasar azalır; düz vuruş menzili artar, vuruşların yavaşlatır.',
   heavy:'Düz vuruş menzilindeki, imlece en yakın rakibe anında güçlü bir vuruş: düz vuruş hasarı + ek hasar, rakibi azalan biçimde yavaşlatır ve seni iyileştirir. Menzilde rakip yoksa harcanmaz.',
-  arena:'İmlecin olduğu yeri kısa süre arenan yaparsın; içindeyken saldırı gücün, saldırı hızın ve hareket hızın artar.',
+  arena:'Bulunduğun yerde, çevrende kısa süre arena açarsın (kimseyi engellemez, girip çıkılabilir); içindeyken saldırı gücün, saldırı hızın ve hareket hızın artar.',
   duel:'Yakındaki rakip kahramana atılırsın; süre boyunca zırhının ve büyü direncinin bir kısmını çalar, canını yakar ve verdiğin hasarla iyileşirsin.',
   billiard:'Durdurulamaz top olursun: hızla ileri gider, duvarlardan seker, değdiğin rakipleri itip vurursun. İmleçle hafifçe yönlendirilir.'
 };
