@@ -1,0 +1,3 @@
+expert 131 {"3":{"jukeUp":1}} | A kazanma %50 [42-57] 79/159 | süre 15.3 dk | ölüm           A     8.5  B     8.7  | 10. dk fark (A-B) servet 6 XP -28 (136 maç)
+expert 132 {"3":{"jukeUp":1}} | A kazanma %51 [43-58] 81/160 | süre 14.6 dk | ölüm           A     8.3  B     7.9  | 10. dk fark (A-B) servet -63 XP 4 (128 maç)
+DONE
