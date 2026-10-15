@@ -2,7 +2,7 @@
    Kahramanlı rastgele 2v2 takım, kahramansız rastgele takıma karşı (Orta bot, sabit tohumlar, erken bitirme). Bir yeteneği/stati
    kapatan kopya dizinle (git worktree) çalıştırınca o parçanın kazanmaya katkısı görülür (ablasyon). */
 
-const dir=process.argv[2], n=+process.argv[3]||120, HERO=process.argv[4]||'roller';
+const dir=(await import('node:path')).resolve(process.argv[2]||'.'), n=+process.argv[3]||120, HERO=process.argv[4]||'roller';
 const { runDuoJobs } = await import(dir+'/tools/duo.js');
 const { HERO_NAMES } = await import(dir+'/names.js');
 const H=Object.keys(HERO_NAMES).filter(h=>h!==HERO);
