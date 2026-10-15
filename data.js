@@ -24,7 +24,7 @@ export const LEVEL_PER = 9/14;
 /* satır sırası: can, hasar, saldırı hızı, hareket hızı, menzil, boyut, kütle, hazırlık oranı, vuruşta yavaşlama, mermi hızı, mermi boyu, koni açısı */
 export const STATS = {
   archer: {
-    hp:{ base:450, per:25 },   // denge O1: 470 idi //   // zırh sistemi (11.10.2026): 400 (+25) idi
+    hp:{ base:480, per:25 },   // denge K1 (15.10.2026, kule+sis sonrası %39): 450 idi // denge O1: 470 idi //   // zırh sistemi (11.10.2026): 400 (+25) idi
     regen:{ base:3, per:0.6 },        // 5 saniyede yenilenen can, seviye başına: 0 idi
     armor:{ base:19, per:2.5 },   // denge F1 (11.10.2026, zırh sonrası): 22 (+3) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:22, per:0.8 },   // denge F2: 25 (+1) idi //   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -113,7 +113,7 @@ export const STATS = {
     projRadius:{ base:6, per:0 }
   },
   hook: {
-    hp:{ base:670, per:32 },   // denge C7: 690 idi // denge L1 (14.10.2026, seviye 15): 720 idi // denge A1 (13.10.2026): 770 idi // denge O2: 720 idi //   // denge O1: 680 idi //   // zırh sistemi (11.10.2026): 690 (+38) idi
+    hp:{ base:640, per:32 },   // denge K1 (15.10.2026, %63): 670 idi // denge C7: 690 idi // denge L1 (14.10.2026, seviye 15): 720 idi // denge A1 (13.10.2026): 770 idi // denge O2: 720 idi //   // denge O1: 680 idi //   // zırh sistemi (11.10.2026): 690 (+38) idi
     regen:{ base:6, per:1.4 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:38, per:4.5 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:32, per:1.5 },   // zırh sistemi (11.10.2026): 10 (+0) idi
