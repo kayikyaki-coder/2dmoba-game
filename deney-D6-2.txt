@@ -1,0 +1,3 @@
+medium 121 {"1":{"shotWait":1,"jukeUp":1}} | A kazanma %44 [36-51] 70/160 | süre 14.8 dk | ölüm           A    11.0  B    10.2  | 10. dk fark (A-B) servet -75 XP -74 (135 maç)
+medium 122 {"1":{"shotWait":1,"jukeUp":1}} | A kazanma %48 [41-56] 77/159 | süre 15.0 dk | ölüm           A    11.0  B    10.5  | 10. dk fark (A-B) servet -186 XP -208 (137 maç)
+DONE
