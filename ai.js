@@ -285,6 +285,12 @@ AI.foeMemory = 5;         // görünmeyen rakip kahraman son görüldüğü yerd
 AI.team = 1;              // 0: takım oyunu kapalı (her bot tek rakip/ilk rakip, dostu yok sayar; karşılaştırma için)
 AI.cohesion = 1;          // beklerken dostumuzdan en fazla cohesionGap kadar öne geçme (dalgayı birlikte bekle)
 AI.cohesionGap = 650;
+AI.syncFlee = 0;          // kaçış senkronu (bot D1): dost geri çekilirken üstünlük syncAdv altındaysa dövüşü bırak
+AI.syncAdv = 1.4;
+AI.syncR = 900;
+AI.jgTrack = 0;           // rakip ormancı takibi (bot D2)
+AI.jgMissT = 8;
+AI.jgAhead = 1500;
 AI.helpRange = 450;
 AI.helpRun = 1900;        // dostumuz saldırı altındaysa ve dövüş bizim lehimizeyse en fazla bu uzaklıktan yardıma koşarız       // dostumuz dövüşteyse dövüşe girme menzili bu kadar genişler
 /* Rakip kahraman seçimi: görünenlerden en kolay/tehlikesiz hedef (yakın, canı az, kulenin altında değil, dostuma vuran, aynı hedefte ısrar).
@@ -1611,6 +1617,10 @@ function botCommandCore(b, dt){
         if(kw){ fight=true; M.killUntil=S.time+1.5; }
         else if(!fight && S.time<(M.killUntil||0) && hpNow(b)>0.12 && ev.adv>=0.6) fight=true;   // öldürmeye girdiysek hemen bırakma
         if(defend) fight=true;
+        // Kaçış senkronu (syncFlee): yakındaki dostumuz geri çekiliyorsa (üsse dönüş ya da canı çok az) ve kesin öldürme yoksa tek başına dövüşte kalma
+        if(fight && LP.syncFlee && !kw && !defend && ev.adv<LP.syncAdv){
+          for(const a of S.heroes) if(a!==b && a.team===b.team && !a.dead && dist(a,b)<AI.syncR && ((a.ai && a.ai.v2 && a.ai.v2.recall) || hpNow(a)<0.2)){ fight=false; M.tradeBack=Math.max(M.tradeBack||0, S.time+1); break; }
+        }
         // dostumuz saldırı altında ve dövüş lehimizeyse uzaktan da yardıma koş
         if(!fight && ev.adv>=LP.engageAdv && d<LVP(b).helpRun && allyUnderAttack(b,e)) fight=true;
         if(!fight && LP.cmb) fight=hardFight(b,e,ev,d,engBase);   // Zor: kombo, öldürme fırsatı, kuleye dalan rakip
@@ -1645,6 +1655,17 @@ function botCommandCore(b, dt){
     if(fight){ tgt=e; mv=fightMove(b,e,M,ev); }
     else {
       mv=L.mv; tgt=L.tgt; allowDive=L.dive; M.hold=L.hold;
+      // Rakip ormancı takibi (jgTrack, bot D2): rakip ormancı uzun süredir görünmüyorsa, dostsuzken kendi kulemizden çok ilerde durma (pusuya karşı)
+      if(LP.jgTrack && b.role!=='jungle' && !kw){
+        for(const u of S.heroes) if(u.team!==b.team && u.role==='jungle'){
+          if(!u.dead && canSee(b.team,u)) M.jgSeen=S.time;
+          if(u.dead) M.jgSeen=S.time;
+          const ft=frontTower(b.team), ahead=(b.x-ft.x)*(b.team===0?1:-1);
+          if(S.time-(M.jgSeen||0)>AI.jgMissT && ahead>AI.jgAhead && alliesAround(b,b.x,b.y,900)===0 && !(L.tgt && L.tgt.kind==='struct')){
+            const gx=ft.x+(b.team===0?1:-1)*AI.jgAhead*0.7; mv={ x:gx-b.x, y:mv.y };
+          }
+        }
+      }
       // Dürtme: hazır uzak hasar yeteneğinin menziline gir, at, kısa süre geri çekil (alışveriş)
       const pk = eVis && mode!=='duel' && !b.chan && !(L.tgt && L.tgt.kind==='struct') ? pokePlan(b,e,d,ev,M) : null;
       if(pk){ M.poking=true; mv={ x:pk.x-b.x, y:pk.y-b.y }; }
