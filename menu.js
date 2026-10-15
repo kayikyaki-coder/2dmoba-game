@@ -61,8 +61,8 @@ function tokenCanvas(id, n) {
   return c;
 }
 /* Portre: Higgsfield görseli (assets/portre); yüklenemezse token çizimi */
-function portraitEl(id, cls, n) {
-  const im = document.createElement('img'); im.className = cls; im.alt = ''; im.src = 'assets/portre/' + id + '.jpg';
+function portraitEl(id, cls, n, big) {
+  const im = document.createElement('img'); im.className = cls; im.alt = ''; im.src = 'assets/portre/' + (big ? 'big/' : '') + id + '.jpg';   // big: 768 px (yuva kartları)
   im.onerror = () => im.replaceWith(tokenCanvas(id, n || 46));
   return im;
 }
@@ -154,7 +154,7 @@ function slotCard(k) {
   if (inf) c.style.setProperty('--hc', inf.color);
   const pb = $('button', 'sl-pick'); pb.title = 'Kahraman seç';
   const pw = $('div', 'sl-pw');
-  if (rnd) pw.append($('span', 'sl-q', '?')); else pw.append(portraitEl(v, 'sl-pt', 96));
+  if (rnd) pw.append($('span', 'sl-q', '?')); else pw.append(portraitEl(v, 'sl-pt', 160, true));
   const st = rnd ? null : STATS[v], sv = key => st && st[key] ? Math.round(st[key].base) : '-';
   const tx = $('div', 'sl-tx');
   tx.innerHTML = '<div class="sl-who">' + esc(slotTitle(k)) + '</div><div class="sl-nm">' + esc(rnd ? 'Rastgele' : HERO_NAMES[v]) + '</div>'
@@ -191,7 +191,7 @@ function openPicker(k) {
   }
   for (const id of HERO_IDS) {
     const inf = HERO_INFO[id], b = $('button', 'pk-c' + (pick[k] === id ? ' on' : '')); b.style.setProperty('--hc', inf.color); b.title = inf.desc;
-    b.append(portraitEl(id, 'pk-pt', 88)); b.append($('b', '', esc(HERO_NAMES[id])), $('small', '', esc(inf.role)));
+    b.append(portraitEl(id, 'pk-pt', 120)); b.append($('b', '', esc(HERO_NAMES[id])), $('small', '', esc(inf.role)));
     b.addEventListener('click', () => choose(id)); grid.append(b);
   }
   box.append(hd, grid); pickerEl.append(box);
@@ -213,6 +213,7 @@ function sync() {
   const M = MODES[pick.mode];
   const abB = menuEl.querySelector('#abBtn'); if (abB) abB.innerHTML = '<b>' + esc(HERO_NAMES[pick.hero]) + ' eşya sırası</b><small>' + (autoBuyOn() ? 'Açık' : 'Kapalı') + ' · ' + (isCustom(pick.hero) ? 'kendi sıran' : 'önerilen sıra') + '</small>';
   const ks = slotKeys();
+  const lb = menuEl.querySelector('.lobby'); if (lb) lb.classList.toggle('duo', M.perTeam > 1);
   for (const t of [0, 1]) { const l = menuEl.querySelector('#slots' + t); l.innerHTML = ''; for (const k of ks[t]) l.append(slotCard(k)); }
   const nmOf = v => v === 'random' ? 'Rastgele' : HERO_NAMES[v];
   const lvN = id => LEVELS.find(l => l.id === id).label;

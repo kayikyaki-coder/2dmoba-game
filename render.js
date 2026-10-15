@@ -117,6 +117,18 @@ function fireflySprite(){
   g.fillStyle=gr; g.fillRect(0,0,32,32); return _ff;
 }
 
+/* Higgsfield sprite'ları (15.10.2026, assets/sprite): bir kez yüklenir; yüklenmezse canvas çizimi. Okunurluk için altta takım rengi taban/halka kalır. */
+const SPR={};
+if(typeof Image!=='undefined') for(const n of ['minion_melee_t0','minion_melee_t1','minion_ranged_t0','minion_ranged_t1','tower_t0','tower_t1','basetower_t0','basetower_t1','nexus_t0','nexus_t1','wolf','golem','bird','spirit','ember','titan']){
+  const im=new Image(); im.onload=()=>{ SPR[n]=im; }; im.src='assets/sprite/'+n+'.png';
+}
+function sprite(n,x,y,h,flip){   // alt merkez (x,y), yükseklik h
+  const im=SPR[n]; if(!im) return false;
+  const w=h*im.naturalWidth/im.naturalHeight;
+  if(flip){ ctx.save(); ctx.translate(x,0); ctx.scale(-1,1); ctx.drawImage(im,-w/2,y-h,w,h); ctx.restore(); }
+  else ctx.drawImage(im,x-w/2,y-h,w,h);
+  return true;
+}
 const SHOP_IMG=(typeof Image!=='undefined')?Object.assign(new Image(),{src:'assets/shop.png'}):{};
 function drawShops(){
   const pl=S.player, t=S.time;
@@ -202,7 +214,14 @@ function drawStruct(s){
     ctx.restore(); return;
   }
   ctx.beginPath(); ctx.ellipse(s.x+5,s.y+9,r*1.05,r*0.85,0,0,TAU); ctx.fillStyle='rgba(4,2,16,0.34)'; ctx.fill();
-  if(s.sub==='nexus'){
+  const sprN=(s.sub==='nexus'?'nexus':s.sub==='base'?'basetower':'tower')+'_t'+s.team;
+  if(SPR[sprN]){   // sprite: takım rengi taban halkası + görsel (alt merkez yapının biraz altında)
+    ctx.beginPath(); ctx.arc(s.x,s.y,r*1.05,0,TAU); ctx.fillStyle=rgba(PAL.rockSide,0.85); ctx.fill(); ctx.lineWidth=4; ctx.strokeStyle=rgba(c,0.9); ctx.stroke();
+    ctx.beginPath(); ctx.arc(s.x,s.y,r*0.82,0,TAU); ctx.lineWidth=2; ctx.strokeStyle=rgba(c,0.55); ctx.setLineDash([7,7]); ctx.lineDashOffset=t*8; ctx.stroke(); ctx.setLineDash([]);
+    drawGlow(ctx,c,s.x,s.y-r*0.8,r*1.9,0.2+0.08*Math.sin(t*2.4+s.id));
+    const H=s.sub==='nexus'?r*3.0:s.sub==='base'?r*3.2:r*3.4;
+    sprite(sprN,s.x,s.y+r*0.75,H);
+  } else if(s.sub==='nexus'){
     ctx.beginPath(); ctx.arc(s.x,s.y,r*1.3,0,TAU); ctx.fillStyle=PAL.rockSide; ctx.fill(); ctx.lineWidth=5; ctx.strokeStyle=PAL.rockEdge; ctx.stroke();
     ctx.beginPath(); ctx.arc(s.x,s.y,r*1.08,0,TAU); ctx.lineWidth=3; ctx.strokeStyle=rgba(c,0.7); ctx.setLineDash([10,9]); ctx.lineDashOffset=-t*10; ctx.stroke(); ctx.setLineDash([]);
     drawGlow(ctx,c,s.x,s.y-r*0.35,r*2.7,0.34+0.12*Math.sin(t*2+s.team));
@@ -224,6 +243,7 @@ function drawStruct(s){
     drawGlow(ctx,c,s.x,s.y-r*0.45,r*1.9,0.28+0.1*Math.sin(t*2.4+s.id));
     drawCrystal(ctx,s.x,s.y+r*0.1,r*0.46,r*(base?1.2:1.05),c,cd,cl);
   }
+  const barUp=SPR[sprN]?(s.sub==='nexus'?r*1.4:r*2.0):0;
   if(s.flash>0){ ctx.beginPath(); ctx.arc(s.x,s.y,r*1.02,0,TAU); ctx.fillStyle=`rgba(255,255,255,${s.flash/0.12*0.45})`; ctx.fill(); }
   if(s.prot){
     ctx.save(); ctx.setLineDash([6,6]); ctx.beginPath(); ctx.arc(s.x,s.y,r+10,0,TAU);
@@ -235,7 +255,7 @@ function drawStruct(s){
     ctx.strokeStyle='rgba(255,106,88,0.4)'; ctx.lineWidth=2; ctx.stroke();
   }
   const bw=s.sub==='nexus'?130:90;
-  hpBar(s, s.x-bw/2, s.y-r-(s.sub==='nexus'?44:30), bw, c, 8, 0, 250);
+  hpBar(s, s.x-bw/2, s.y-r-barUp-(s.sub==='nexus'?44:30), bw, c, 8, 0, 250);
 }
 
 function drawMinion(m){
@@ -256,11 +276,13 @@ function drawMinion(m){
     ctx.beginPath(); ctx.arc(m.x,m.y,r*0.38,0,TAU); ctx.fillStyle=cl; ctx.fill();
     ctx.lineWidth=1.5; ctx.strokeStyle=PAL.ink; ctx.stroke();
   }
+  const mSpr=(melee?'minion_melee_t':'minion_ranged_t')+m.team;
+  if(SPR[mSpr]){ const fl=m.team===1; sprite(mSpr,m.x,m.y+r*0.55,r*(melee?2.5:2.6),fl); }
   if(m.st.slow){ body(); ctx.fillStyle='rgba(92,200,255,0.35)'; ctx.fill(); }
   if(m.flash>0){ body(); ctx.fillStyle=`rgba(255,255,255,${m.flash/0.12*0.7})`; ctx.fill(); }
   if(m.st.freeze>0){ body(); ctx.fillStyle='rgba(175,230,255,0.65)'; ctx.fill(); }
   const bw=m.def.kind==='cone'?40:34;
-  hpBar(m, m.x-bw/2, m.y-r-12, bw, c, 5);
+  hpBar(m, m.x-bw/2, m.y-r-(SPR[mSpr]?r*1.0:0)-12, bw, c, 5);
   if(settings.showHit){ ctx.beginPath(); ctx.arc(m.x,m.y,r,0,TAU); ctx.strokeStyle='#ff0'; ctx.lineWidth=1; ctx.stroke(); }
 }
 
@@ -1032,6 +1054,7 @@ function monCol(m){ return m.def.big ? PAL.gold : (MON_COL[m.def.buff] || PAL.mo
 function drawMonster(m){
   if(m.dead || !onScreen(m.x,m.y,m.r*3+40)) return;
   const c=monCol(m), t=S.time, r=m.r, ty=m.type;
+  const monN=m.def.big?'titan':m.def.buff==='regen'?'spirit':m.def.buff==='burn'?'ember':(ty==='pup'?'wolf':ty);
   ctx.beginPath(); ctx.ellipse(m.x+3,m.y+6,r*1.05,r*0.8,0,0,TAU); ctx.fillStyle='rgba(4,2,16,0.38)'; ctx.fill();
   if(m.def.big || m.def.buff) drawGlow(ctx,c,m.x,m.y,r*(m.def.big?3.2:2.4),0.22+0.08*Math.sin(t*2+m.id));
   const ang=m.atk.main && !m.atk.main.dead ? Math.atan2(m.atk.main.y-m.y, m.atk.main.x-m.x) : Math.sin(t*0.6+m.id)*0.6+Math.PI/2;
@@ -1043,11 +1066,18 @@ function drawMonster(m){
     else ctx.arc(0,0,r,0,TAU);
   };
   // kulak / kanat / taç (gövdenin arkasında)
+  if(!SPR[monN]){
   ctx.fillStyle=PAL.monsterDark; ctx.strokeStyle=PAL.ink; ctx.lineWidth=2;
   if(ty==='wolf' || ty==='pup'){ for(const s of [-1,1]){ const a=ang+s*0.75; ctx.beginPath(); ctx.moveTo(Math.cos(a-0.25)*r*0.8,Math.sin(a-0.25)*r*0.8); ctx.lineTo(Math.cos(a)*r*1.55,Math.sin(a)*r*1.55); ctx.lineTo(Math.cos(a+0.25)*r*0.8,Math.sin(a+0.25)*r*0.8); ctx.closePath(); ctx.fill(); ctx.stroke(); } }
   if(ty==='bird'){ const fl=Math.sin(t*9+m.id)*0.35; for(const s of [-1,1]){ const a=ang+s*(Math.PI/2+fl); ctx.beginPath(); ctx.ellipse(Math.cos(a)*r*1.2,Math.sin(a)*r*1.2,r*1.0,r*0.42,a,0,TAU); ctx.fillStyle=rgba(c,0.55); ctx.fill(); ctx.stroke(); } }
   if(m.def.big){ for(let i=0;i<7;i++){ const a=i/7*TAU+t*0.2; ctx.beginPath(); ctx.moveTo(Math.cos(a-0.16)*r*0.95,Math.sin(a-0.16)*r*0.95); ctx.lineTo(Math.cos(a)*r*1.32,Math.sin(a)*r*1.32); ctx.lineTo(Math.cos(a+0.16)*r*0.95,Math.sin(a+0.16)*r*0.95); ctx.closePath(); ctx.fillStyle=PAL.goldDark; ctx.fill(); ctx.stroke(); } }
   if(m.def.buff){ for(let i=0;i<5;i++){ const a=i/5*TAU-t*0.8; drawCrystal(ctx,Math.cos(a)*r*1.25,Math.sin(a)*r*1.25,4,9,c,PAL.monsterDark,'#fff'); } }
+  }
+  if(SPR[monN]){   // sprite: koyu taban + renkli halka, üstünde görsel; bakış yönüne göre aynalanır
+    ctx.beginPath(); ctx.arc(0,0,r,0,TAU); ctx.fillStyle=rgba(PAL.monsterDark,0.85); ctx.fill(); ctx.lineWidth=m.def.big?4:2.5; ctx.strokeStyle=c; ctx.stroke();
+    ctx.restore();
+    sprite(monN,m.x,m.y+r*0.6,r*(m.def.big?2.9:ty==='bird'?2.4:2.6),Math.cos(ang)<0);
+  } else {
   // gövde: koyu taban, renkli halka, iç disk, gözler
   body(); ctx.fillStyle=PAL.monsterDark; ctx.fill(); ctx.lineWidth=m.def.big?4:3; ctx.lineJoin='round'; ctx.strokeStyle=c; ctx.stroke();
   ctx.save(); body(); ctx.clip();
@@ -1058,15 +1088,17 @@ function drawMonster(m){
   const ex=Math.cos(ang), ey=Math.sin(ang), px=-ey, py=ex, er=Math.max(2,r*0.13);
   for(const s of [-1,1]){ ctx.beginPath(); ctx.arc(ex*r*0.45+px*s*r*0.3, ey*r*0.45+py*s*r*0.3, er, 0, TAU); ctx.fillStyle=m.aggro?'#fff3b0':PAL.monsterLight; ctx.fill(); }
   ctx.restore();
+  }
   const flashP=()=>{ ctx.save(); ctx.translate(m.x,m.y); body(); ctx.restore(); };
   if(m.st.slow){ flashP(); ctx.fillStyle='rgba(92,200,255,0.3)'; ctx.fill(); }
   if(m.flash>0){ flashP(); ctx.fillStyle=`rgba(255,255,255,${m.flash/0.12*0.6})`; ctx.fill(); }
   if(m.st.freeze>0){ flashP(); ctx.fillStyle='rgba(175,230,255,0.55)'; ctx.fill(); }
   const bw=m.def.big?120:m.def.buff?70:Math.max(34,r*2.4);
-  hpBar(m, m.x-bw/2, m.y-r-(m.def.big?26:16), bw, c, m.def.big?8:5);
+  const up=SPR[monN]?r*1.0:0;
+  hpBar(m, m.x-bw/2, m.y-r-up-(m.def.big?26:16), bw, c, m.def.big?8:5);
   if(m.def.big || m.def.buff){
     ctx.save(); ctx.font='bold 11px system-ui'; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.lineWidth=3; ctx.strokeStyle='rgba(6,4,22,0.85)'; ctx.lineJoin='round';
-    const ny=m.y-r-(m.def.big?30:20); ctx.strokeText(m.def.name,m.x,ny); ctx.fillStyle=c; ctx.fillText(m.def.name,m.x,ny); ctx.restore();
+    const ny=m.y-r-up-(m.def.big?30:20); ctx.strokeText(m.def.name,m.x,ny); ctx.fillStyle=c; ctx.fillText(m.def.name,m.x,ny); ctx.restore();
   }
 }
 /* Kamp yeri işareti (15.10.2026, sisten SONRA çizilir: sis altında da silik görünür). Durum takımın bilgisinden (sim.js campIntel):

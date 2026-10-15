@@ -209,7 +209,7 @@ function laneSamples(lane, step){
 export const bushLights=[];
 /* Higgsfield (GPT Image 2.5) dokuları: assets/tex. Yüklenince paintMap düşük alfayla desen olarak bindirir; yüklenmezse eski çizim aynen kalır. */
 const TEX={};
-export const texReady=(typeof Image==='undefined')?Promise.resolve():Promise.all(['ground','lane','rock','bush'].map(n=>new Promise(res=>{
+export const texReady=(typeof Image==='undefined')?Promise.resolve():Promise.all(['ground','lane','rock','bush','base'].map(n=>new Promise(res=>{
   const im=new Image(); im.onload=()=>{ TEX[n]=im; res(); }; im.onerror=()=>res(); im.src='assets/tex/'+n+'.jpg';
 })));
 function texFill(g,name,alpha,op,x,y,w,h){   // kırpılmış bölgeye desen bindir
@@ -247,6 +247,8 @@ export function paintMap(g, M){
     const gr=g.createRadialGradient(b.x,b.y,60,b.x,b.y,760); gr.addColorStop(0,rgba(col,0.34)); gr.addColorStop(0.5,rgba(col,0.12)); gr.addColorStop(1,rgba(col,0));
     g.fillStyle=gr; g.fillRect(b.x-760,b.y-760,1520,1520);
     g.beginPath(); g.arc(b.x,b.y,M.fountainR,0,TAU); g.fillStyle=rgba(PAL.rockSide,0.55); g.fill();
+    g.save(); g.clip(); texFill(g,'base',0.7,'source-over',b.x-M.fountainR,b.y-M.fountainR,M.fountainR*2,M.fountainR*2); g.restore();   // taş meydan dokusu (assets/tex/base.jpg)
+    g.beginPath(); g.arc(b.x,b.y,M.fountainR,0,TAU);
     g.lineWidth=6; g.strokeStyle=rgba(PAL.laneRim,0.9); g.stroke();
     g.beginPath(); g.arc(b.x,b.y,M.fountainR*0.62,0,TAU); g.lineWidth=3; g.strokeStyle=rgba(col,0.35); g.stroke();
     g.beginPath(); for(let i=0;i<32;i++){ const a=i/32*TAU; g.moveTo(b.x+Math.cos(a)*(M.fountainR-26),b.y+Math.sin(a)*(M.fountainR-26)); g.lineTo(b.x+Math.cos(a)*(M.fountainR-10),b.y+Math.sin(a)*(M.fountainR-10)); }
@@ -348,7 +350,7 @@ export function paintMap(g, M){
     shapeP(g,b,30); g.fillStyle=rgba(PAL.bushEdge,0.5); g.save(); g.translate(0,8); g.fill(); g.restore();
     shapeP(g,b,30); g.fillStyle=PAL.bush; g.fill();
     g.save(); shapeP(g,b,30); g.clip();
-    texFill(g,'bush',0.45,'source-over',bb.x,bb.y,bb.w,bb.h);
+    texFill(g,'bush',0.6,'source-over',bb.x,bb.y,bb.w,bb.h);
     const n=Math.round(area/700);
     const lc=[PAL.bushA,PAL.bushB,PAL.bushC];
     for(let i=0;i<n;i++){

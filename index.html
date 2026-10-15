@@ -236,6 +236,20 @@
     .menu .side{position:static;width:auto}
     .foot{padding:10px 14px}.foot .sum{display:none}.go{width:100%}
   }
+  /* büyük portreli yuva kartları (15.10.2026): portre kartı kaplar, yazılar altta koyu geçişin üstünde */
+  .sl-pick{position:relative;isolation:isolate;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;padding:0;height:330px;overflow:hidden}
+  .lobby.duo .sl-pick{height:250px}
+  .sl-pw{position:absolute;inset:0;z-index:-1;display:block;width:auto;height:auto;border-radius:0;border:0;box-shadow:none;background:radial-gradient(circle at 50% 35%,#2a2160,#120f30)}
+  .sl-pt,.sl-pw .pt-tok{width:100%!important;height:100%!important;object-fit:cover;object-position:50% 22%;transition:transform .25s}
+  .sl-pick:hover .sl-pt{transform:scale(1.04)}
+  .sl-pw .sl-q{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:120px;padding-bottom:70px;opacity:.6}
+  .sl-tx{flex:none;padding:44px 16px 12px;background:linear-gradient(rgba(10,8,30,0),rgba(10,8,30,.82) 38%,rgba(10,8,30,.96));text-shadow:0 1px 3px #000}
+  .sl-who{position:absolute;top:12px;left:12px;background:rgba(10,8,30,.72);padding:3px 8px;border-radius:6px;color:#e6e3ff}
+  .sl-nm{font-size:26px}
+  .slotc{border:2px solid color-mix(in srgb,var(--tc) 70%,transparent)}
+  .pk-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+  .pk-pt,.pk-c .pk-q,.pk-c .pt-tok{width:132px;height:132px;border-radius:14px}
+  @media (max-width:560px){ .sl-pick{height:240px}.lobby.duo .sl-pick{height:200px}.sl-who{display:none}.pk-grid{grid-template-columns:repeat(auto-fill,minmax(104px,1fr))}.pk-pt,.pk-c .pk-q,.pk-c .pt-tok{width:92px;height:92px} }
   /* Gece Vahası görsel dili: menü ve kartlar */
   .ov{background:radial-gradient(1100px 650px at 78% -8%,rgba(70,50,170,.55),rgba(0,0,0,0) 62%),radial-gradient(900px 600px at -5% 105%,rgba(20,110,120,.42),rgba(0,0,0,0) 58%),linear-gradient(rgba(16,14,40,.55),rgba(12,10,30,.85)),url(assets/menu_bg2.jpg) center/cover fixed,var(--bg)}   /* menü arka planı: Higgsfield GPT Image 2.5 (eski: assets/menu_bg.jpg, SD) */
   .pause,.result{background:linear-gradient(rgba(8,6,28,.62),rgba(8,6,28,.86)),url(assets/pause_bg.jpg) center/cover fixed,rgba(8,6,28,.84)}   /* Higgsfield GPT Image 2.5 */
