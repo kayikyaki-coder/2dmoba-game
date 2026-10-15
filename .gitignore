@@ -11,3 +11,4 @@ assets/sd/
 .~lock.*#
 assets/hf_raw/
 tools/teams2v2_result.json
+tools/tk_*.json
