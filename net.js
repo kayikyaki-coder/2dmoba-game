@@ -44,7 +44,7 @@ function onMessage(m){
     const d = m.d;
     if(d.k !== undefined || d.h !== undefined){ if(net.ls) net.ls.receive(m.from, d); }
     else if(d.ping !== undefined) netSend({ pong:d.ping }, m.from);
-    else if(d.pong !== undefined){ const r = performance.now() - d.pong; net.rtt = net.rtt ? net.rtt * 0.7 + r * 0.3 : r; if(!net.playing) render(); }
+    else if(d.pong !== undefined){ const r = performance.now() - d.pong; net.rtt = net.rtt ? net.rtt * 0.7 + r * 0.3 : r; const pe = document.getElementById('oping'); if(pe && net.slot >= 0) pe.textContent = peerText(); }
     else if(d.lobby){ lobby = d.lobby; render(); }
     else if(d.pick !== undefined && net.slot === 0){ lobby.heroes[m.from] = d.pick; broadcastLobby(); render(); }
     else if(d.start){ closeLobby(); hooks.start(d.start, net.slot); }
@@ -91,19 +91,26 @@ function buildEl(){
   if(el) return;
   const st = document.createElement('style'); st.textContent = CSS; document.head.append(st);
   el = document.createElement('div'); el.id = 'online'; document.body.append(el);
+  el.addEventListener('focusout', () => setTimeout(() => { if(renderLater) render(); }, 0));
   el.addEventListener('keydown', e => { e.stopPropagation(); if(e.code === 'Escape' && !net.ws) closeLobby(); });
 }
 const heroSel = (value, onChange, withRandom) => {
   const s = document.createElement('select');
   if(withRandom){ const o = document.createElement('option'); o.value = 'random'; o.textContent = 'Rastgele'; s.append(o); }
   for(const [id, n] of Object.entries(HERO_NAMES)){ const o = document.createElement('option'); o.value = id; o.textContent = n; s.append(o); }
-  s.value = value; s.onchange = () => onChange(s.value); return s;
+  s.value = value; s.onchange = () => { s.blur(); onChange(s.value); }; return s;
 };
 const row = (label, ...c) => { const r = document.createElement('div'); r.className = 'orow'; const l = document.createElement('label'); l.textContent = label; r.append(l, ...c); return r; };
 const btn = (text, fn, cls) => { const b = document.createElement('button'); b.textContent = text; if(cls) b.className = cls; b.onclick = fn; return b; };
 
+/* Açılır liste ya da kutu odaktayken lobi yeniden çizilmez (liste kapanıyordu); odak bitince çizilir */
+let renderLater = false;
+function typing(){ const a = document.activeElement; return !!(a && el && el.contains(a) && (a.tagName === 'SELECT' || a.tagName === 'INPUT')); }
+function peerText(){ const host = net.slot === 0, two = net.slots.length >= 2; return two ? (host ? 'Arkadaşın: bağlı' : 'Sen') + (net.rtt ? '  ·  ping ' + Math.round(net.rtt) + ' ms' : '') : 'Arkadaşın: bekleniyor...'; }
 function render(){
   if(!el || el.style.display === 'none') return;
+  if(typing()){ renderLater = true; return; }
+  renderLater = false;
   el.replaceChildren();
   const box = document.createElement('div'); box.className = 'obox'; el.append(box);
   const h = document.createElement('h2'); h.textContent = 'Online (arkadaşla)'; box.append(h);
@@ -122,7 +129,7 @@ function render(){
   const s = document.createElement('div'); s.className = 'osub';
   s.textContent = host ? 'Bu kodu arkadaşına gönder. Arkadaşın girince Başlat açılır.' : 'Oda sahibinin başlatmasını bekle. Kahramanını seçebilirsin.'; box.append(s);
   const p1 = document.createElement('div'); p1.className = 'opeer'; p1.textContent = host ? 'Sen (oda sahibi)' : 'Oda sahibi: bağlı'; box.append(p1);
-  const p2 = document.createElement('div'); p2.className = 'opeer'; p2.textContent = two ? (host ? 'Arkadaşın: bağlı' : 'Sen') + (net.rtt ? '  ·  ping ' + Math.round(net.rtt) + ' ms' : '') : 'Arkadaşın: bekleniyor...'; box.append(p2);
+  const p2 = document.createElement('div'); p2.className = 'opeer'; p2.id = 'oping'; p2.textContent = peerText(); box.append(p2);
   // mod
   const modes = document.createElement('div'); modes.className = 'omodes';
   for(const [id, M] of Object.entries(ONLINE_MODES)){
