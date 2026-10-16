@@ -430,7 +430,7 @@ export function damage(e, amt, src, opts){
   }
   if(src && src.kind==='hero' && src.bonus){
     if(opts.basic && SB.ls && !opts.noLs){ const hv=a*SB.ls*(SB.lsLow && src.hp<src.maxHp*SB.lsLow.hp ? SB.lsLow.mult : 1); heal(src, hv); if(SB.lsShare) shareHeal(src, hv*SB.lsShare); }   // Kan Bağı: yakın dosta pay   // can çalma (Sekme mermisinde yok); Kanlı Yay can azalınca katlar
-    if(opts.skill && SB.spellVamp && !opts.noLs && e.kind!=='struct') heal(src, a*SB.spellVamp*(e.kind==='hero' ? 1 : 0.33));   // Kanlı Pençe, Kan Kasesi (minyonda üçte biri)
+    if(opts.skill && SB.spellVamp && !opts.noLs && e.kind!=='struct') heal(src, a*SB.spellVamp*(e.kind==='hero' ? 1 : ITEM_RULES.vampMinion));   // Kanlı Pençe, Kan Kasesi (minyonda üçte biri)
     if(opts.skill && e.kind==='hero' && SB.skillSunder){ e.ic.sunderT=S.time+SB.skillSunder.dur; e.ic.sunderPct=SB.skillSunder.pct; }   // Zırh Paralayıcı
     if(opts.basic && opts.crit && SB.critSlow && e.kind!=='struct') applySlow(e, SB.critSlow.amt, SB.critSlow.dur);   // Kristal Hançer
     if(opts.skill && SB.skillAd && !opts.noProc && !opts.dot && e.kind!=='struct' && e.hp>0) damage(e, SB.skillAd*atkDmg(src), src, { type:opts.type||'phys', noProc:true, noSplash:true });   // Hüner Bıçağı
@@ -501,7 +501,7 @@ export function damage(e, amt, src, opts){
 function carryRed(e){ const c=e.bonus.carry, g=Math.min(c.gold, Math.max(0, e.gold-(e.ic.carryBase||0))); return c.red*g/c.gold; }
 /* Kan Bağı: can çalma ile kazanılan canın payı, 700 içindeki en yakın dost kahramana (kendisi hariç) */
 function shareHeal(src, x){
-  let best=null, bd=700;
+  let best=null, bd=ITEM_RULES.shareR;
   for(const h of S.heroes){ if(h===src || h.dead || h.team!==src.team) continue; const d=dist(h,src); if(d<=bd){ bd=d; best=h; } }
   if(best){ heal(best, x); markHelp(best, src); }
 }
@@ -596,6 +596,8 @@ export function respawnHero(h){
 }
 
 /* ---- eşyalar ---- */
+/* Eşya pasiflerinin koda gömülü sabitleri (mağaza açıklaması itemdesc.js de buradan okur) */
+export const ITEM_RULES = { curPctCap:60, vampMinion:0.33, shareR:700, minionAsR:600 };
 /* İyileştirme (Ruh Örtüsü artırır) */
 /* Kalkan ver (Koruyucu Muska kalkanları artırır). keep=true: eldeki daha büyük kalkanı bozma (eşya kalkanları) */
 export function giveShield(h, amt, dur, keep){
@@ -656,7 +658,7 @@ export function onBasicHit(src, e){
   if(!src || src.kind!=='hero' || !src.bonus || e.dead) return;
   const B=src.bonus, P={ noProc:true, noSplash:true };
   if(B.every3){ src.ic.k3=(src.ic.k3||0)+1; if(src.ic.k3>=3){ src.ic.k3=0; damage(e, B.every3, src, { type:'magic', ...P }); } }
-  if(B.onHitCurPct && !e.dead){ let x=e.hp*B.onHitCurPct; if(e.kind!=='hero') x=Math.min(x,60); damage(e, x, src, P); }
+  if(B.onHitCurPct && !e.dead){ let x=e.hp*B.onHitCurPct; if(e.kind!=='hero') x=Math.min(x,ITEM_RULES.curPctCap); damage(e, x, src, P); }
   if(B.onHitOwnHp && !e.dead) damage(e, src.maxHp*B.onHitOwnHp, src, P);
   if(B.champMaxHp && e.kind==='hero' && !e.dead && (src.ic.spearCd||0)<=S.time){ src.ic.spearCd=S.time+B.champMaxHp.cd; damage(e, e.maxHp*B.champMaxHp.pct, src, P); }
   if(B.spellblade && !e.dead && (src.ic.sbUntil||0)>=S.time && (src.ic.sbCd||0)<=S.time){
@@ -1823,7 +1825,7 @@ export function clampToWorld(h){
 /* Dalga Şarkısı: 600 içinde eşyayı taşıyan dost kahraman varsa minyonun saldırı süreleri kısalır (birden çok taşıyıcı birikmez) */
 function minionAsF(m){
   let best=0;
-  for(const h of S.heroes) if(!h.dead && h.team===m.team && h.bonus && h.bonus.minionAs>best && Math.hypot(h.x-m.x,h.y-m.y)<=600) best=h.bonus.minionAs;
+  for(const h of S.heroes) if(!h.dead && h.team===m.team && h.bonus && h.bonus.minionAs>best && Math.hypot(h.x-m.x,h.y-m.y)<=ITEM_RULES.minionAsR) best=h.bonus.minionAs;
   return best>0 ? 1/(1+best) : 1;
 }
 export function updateMinion(m, dt){

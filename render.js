@@ -5,6 +5,7 @@ import { drawToken, drawUnitToken, unitImg, drawGlow, drawCrystal, paintMap, bus
 texReady.then(()=>{ fieldCache=null; });   // dokular gelince zemini bir kez yeniden çiz
 const TEAM_COLORS=PAL.team, TEAM_DARK=PAL.teamDark, TAU=Math.PI*2;   // takım renkleri görsel dilden (data.js'teki mavi/kırmızı yalnız sim'e)
 import { ITEMS, PARTS, SLOTS } from './items.js';
+import { itemInfo } from './itemdesc.js';
 import { MAP_W, MAP_H, LANES, WALLS, BUSHES, BASES, rayDist, wallsNear, bushAt } from './map.js';
 import { HERO_NAMES } from './names.js';
 import { S, settings, stat, dist, atkDef, atkDmg, attackSpeed, timings, canLearn, passiveText, visiblePos, canSee, arenaOf, campIntel, seenItems, itemsValue } from './sim.js';
@@ -1290,7 +1291,6 @@ const PASS_DESC={
   gladiator:'Her düz vuruş isabeti saldırı hızını artıran bir yığın verir (4 sn, en fazla 5).',
   roller:'Düz giderken momentum biriktirip hızlanırsın; ani dönüş bozar. İsabet momentumu harcar: ek hasar, yüksekse rakibi iter.'
 };
-const HUD_STATS=[ ['dmg','SG'], ['asPct','Saldırı hızı'], ['crit','Kritik'], ['ls','Can çalma'], ['ap','YG'], ['ah','YH'], ['hp','Can'], ['armor','Zırh'], ['mr','Büyü direnci'], ['msPct','Hareket hızı'], ['lethal','Zırh delme'], ['regen','Yenileme'] ];
 
 function hudNum(v){ return String(Math.round(v*100)/100).replace('.',','); }
 function hudFmt(kind,v){
@@ -1345,17 +1345,19 @@ function hudSkillTip(p,k){
   if(k==='p'){ const pt=passiveText(p); if(pt) lines.unshift({ t:'Şu an: '+pt, c:'#9fd6ff' }); }
   return { title:sk.name, sub:subs.join(' · '), desc, lines };
 }
+/* Eşya tooltip'i: mağazayla aynı açıklama (itemdesc.js): statlar alt alta renkli, pasif adı kalın + tam cümle */
 function hudItemTip(id){
-  const it=ITEMS[id]||PARTS[id]; if(!it) return null;
-  const st=HUD_STATS.filter(([k])=>it.stats[k]).map(([k,n])=>'+'+(k==='asPct'||k==='crit'||k==='ls'||k==='msPct'?Math.round(it.stats[k]*100)+'%':it.stats[k])+' '+n).join(', ');
-  return { title:it.name, sub:ITEMS[id]?'Eşya':'Temel parça', desc:it.desc||'', lines:st?[{ t:st, c:'#9fd6ff' }]:[] };
+  const inf=itemInfo(id); if(!inf) return null;
+  const lines=inf.stats.map(l=>({ t:l.text, c:l.color }));
+  for(const p of inf.passives){ lines.push({ t:p.n, c:PAL.passive, b:true, gap:true }); lines.push({ t:p.t, c:'#e2e0f6' }); }
+  return { title:inf.name, sub:(inf.part?'Temel parça':'Eşya')+' · '+inf.cost+' altın', desc:'', lines };
 }
 function hudDrawTip(tip,lx,ly,zone,bounds){
   ctx.font='12px system-ui';
   const MAXW=270, descL=tip.desc?hudWrap(tip.desc,MAXW):[];
   const lines=[];
-  for(const l of tip.lines){ for(const w of hudWrap(l.t,MAXW)) lines.push({ t:w, c:l.c }); }
-  const lh=16, h=10+20+(tip.sub?15:0)+descL.length*lh+(descL.length&&lines.length?4:0)+lines.length*lh+8;
+  for(const l of tip.lines){ hudWrap(l.t,MAXW).forEach((w,i)=>lines.push({ t:w, c:l.c, b:l.b, gap:l.gap&&i===0 })); }
+  const lh=16, h=10+20+(tip.sub?15:0)+descL.length*lh+(descL.length&&lines.length?4:0)+lines.length*lh+lines.filter(l=>l.gap).length*5+8;
   let w=MAXW+20;
   let x=zone.x+zone.w/2-w/2, y=zone.y-h-8;
   x=Math.max(bounds.l+6,Math.min(bounds.r-w-6,x));
@@ -1369,7 +1371,7 @@ function hudDrawTip(tip,lx,ly,zone,bounds){
   ctx.font='12px system-ui';
   for(const d of descL){ hudText(d,x+10,yy,12,'#cfd5e3','left',false,'top'); yy+=lh; }
   if(descL.length&&lines.length) yy+=4;
-  for(const l of lines){ hudText(l.t,x+10,yy,12,l.c,'left',false,'top'); yy+=lh; }
+  for(const l of lines){ if(l.gap) yy+=5; hudText(l.t,x+10,yy,12,l.c,'left',!!l.b,'top'); yy+=lh; }
 }
 function hudLock(cx,cy,c){
   ctx.strokeStyle=c; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx,cy-3,4.5,Math.PI,0); ctx.stroke();

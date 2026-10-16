@@ -2,6 +2,8 @@
 import { TICK, MAX_LEVEL, XP_NEED } from './data.js';
 import { S, settings, resetGame, step, nextBuild, learnSkill, gainXP, buy, buySmart, sell, sellValue, itemCostFor, canShop, attackTarget, inAttackRange, canSee } from './sim.js';
 import { PARTS, ITEMS, SLOTS, RECOMMENDED } from './items.js';
+import { itemInfo, statLines } from './itemdesc.js';
+import { PAL } from './palette.js';
 import { applyAutoBuy, openBuildEditor, buildEditorOpen, setAutoBuy, autoBuyOn, getBuild } from './autobuy.js';
 import { botCommand, setBotLevel } from './ai.js';
 import { GAME_TITLE, HERO_NAMES } from './names.js';
@@ -169,15 +171,35 @@ canvas.addEventListener('contextmenu',e=>e.preventDefault());
    ========================================================= */
 const shopEl=document.getElementById('shop');
 let shopOpen=false, shopSel=null, shopQuery='', shopFilter=null, shopSig='', lastClick={ id:null, t:0 }, toastTimer=0;
-const STAT_LABELS=[ ['dmg','SG',0], ['asPct','Saldırı hızı',1], ['crit','Kritik',1], ['ls','Can çalma',1], ['ap','YG',0], ['ah','YH',0],
-  ['hp','Can',0], ['armor','Zırh',0], ['mr','Büyü direnci',0], ['msPct','Hareket hızı',1], ['lethal','Sabit zırh delme',0], ['regen','Can yenileme',0] ];
-const FILTERS=[ ['dmg','SG'], ['ap','YG'], ['hp','Can'], ['armor','Zırh'], ['mr','BD'], ['asPct','Saldırı hızı'], ['crit','Kritik'], ['ah','Yetenek hızı'] ];
+const FILTERS=[ ['dmg','Saldırı Gücü'], ['ap','Yetenek Gücü'], ['hp','Can'], ['armor','Zırh'], ['mr','Büyü Direnci'], ['asPct','Saldırı Hızı'], ['crit','Kritik Vuruş'], ['ah','Yetenek Hızı'], ['ls','Can Çalma'], ['lethal','Zırh Delme'], ['msPct','Hareket Hızı'] ];
 const CATS=['Nişancı','Dövüşçü','Suikastçı','Büyücü','Savaşçı büyücü','Tank','Destek'];   // kategori sırası; eşya kategorisi items.js'teki cat alanından gelir
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 const itemOf=id=>ITEMS[id]||PARTS[id];
-function statText(st){
-  return STAT_LABELS.filter(([k])=>st[k]).map(([k,n,pct])=>'+'+(pct?Math.round(st[k]*100)+'%':st[k])+' '+n).join(', ');
+/* Eşya açıklaması (itemdesc.js, LoL tarzı): statlar renkli, pasif adı kalın + tam cümle. Kart, ayrıntı paneli ve tooltip aynı kaynağı kullanır. */
+function statsInline(st){ return statLines(st).map(l=>'<span style="color:'+l.color+'">'+l.text+'</span>').join('<i class="sep"> · </i>'); }
+function statsBlock(st){ return '<div class="dstats">'+statLines(st).map(l=>'<div style="color:'+l.color+'"><b>'+l.val+'</b> '+esc(l.label)+'</div>').join('')+'</div>'; }
+function passivesBlock(id, uniq){
+  return itemInfo(id).passives.map(p=>'<div class="dpas"><b>'+esc(p.n)+':</b> '+esc(p.t)+(uniq&&p.u?'<div class="duniq">'+esc(p.u)+'</div>':'')+'</div>').join('');
 }
+function passiveShort(id){ const ps=itemInfo(id).passives; return ps.length ? ps.map(p=>'<b>'+esc(p.n)+':</b> '+esc(p.t)).join(' ') : ''; }
+function descFull(id){ const it=itemOf(id); return statsBlock(it.stats)+passivesBlock(id, true); }
+/* Üzerine gelince tooltip: tam açıklama */
+const tipEl=document.createElement('div'); tipEl.id='itemTip'; document.body.appendChild(tipEl);
+let tipId=null;
+function showTip(id, x, y){
+  if(id!==tipId){
+    tipId=id; const it=itemOf(id), big=!!ITEMS[id];
+    tipEl.innerHTML='<div class="tth"><span class="ttn">'+esc(it.name)+'</span><span class="ttc">'+it.cost+' altın</span></div><div class="tts">'+(big?'Eşya · '+esc(it.cat||''):'Temel parça · yuva kaplar')+'</div>'+descFull(id)
+      +(big?'<div class="ttp">Yapımı: '+it.parts.map(q=>esc(PARTS[q].name)).join(' + ')+'</div>':'');
+  }
+  tipEl.style.display='block';
+  const w=tipEl.offsetWidth, h=tipEl.offsetHeight;
+  let tx=x+18, ty=y+14;
+  if(tx+w>innerWidth-8) tx=x-w-14;
+  if(ty+h>innerHeight-8) ty=Math.max(8, innerHeight-h-8);
+  tipEl.style.left=Math.max(8,tx)+'px'; tipEl.style.top=ty+'px';
+}
+function hideTip(){ tipEl.style.display='none'; tipId=null; }
 /* Eşya görseli (Higgsfield GPT Image 2.5, assets/items/<id>.jpg); yüklenmezse img kalkar, kısaltma rozeti görünür */
 function icoImg(id){ return '<img class="ico" alt="" loading="lazy" src="assets/items/'+encodeURIComponent(id)+'.jpg" onerror="this.remove()">'; }
 function abbr(name){ const w=name.split(' '); return w.length>1?w.map(s=>s[0]).join('').slice(0,3):name.slice(0,3); }   // HUD ile aynı rozet
@@ -248,9 +270,10 @@ function itemCard(p, id, cls){
   const b=document.createElement('button');
   b.className='it '+cls+' s-'+st.k+(id===shopSel?' sel':''); b.dataset.id=id;
   let h='<div class="row"><span class="badge'+(big?'':' part')+'">'+esc(abbr(it.name))+icoImg(id)+'</span><span class="nm">'+esc(it.name)+'</span><span class="cost">'+(st.k==='own'?'':cost)+(cost!==it.cost&&st.k!=='own'?'<s>'+it.cost+'</s>':'')+'</span></div>'
-    +'<div class="st">'+statText(it.stats)+'</div>';
+    +'<div class="st">'+statsInline(it.stats)+'</div>';
+  if(cls!=='rec' && big){ const ps=itemInfo(id).passives; if(ps.length) h+='<div class="pn">'+ps.map(p=>esc(p.n)).join(' · ')+'</div>'; }
   if(cls==='rec' && big){
-    h+='<div class="ds">'+(it.desc?esc(it.desc):'&nbsp;')+'</div><div class="pts">';
+    h+='<div class="ds">'+(passiveShort(id)||'&nbsp;')+'</div><div class="pts">';
     const inv=[...p.items];
     for(const q of it.parts){ const i=inv.indexOf(q), own=i>=0; if(own) inv.splice(i,1); h+='<span class="pt'+(own?' own':'')+'">'+(own?'&#10003; ':'')+esc(PARTS[q].name)+'</span>'; }
     h+='</div>';
@@ -277,7 +300,7 @@ function inventoryStrip(p){
     const it=itemOf(id), big=!!ITEMS[id], b=document.createElement('button');
     b.className='it slot '+(big?'big':'part')+(id===shopSel?' sel':''); b.dataset.id=id; b.dataset.nobuy='1';
     b.innerHTML='<div class="row"><span class="badge'+(big?'':' part')+'">'+esc(abbr(it.name))+icoImg(id)+'</span><span class="nm">'+esc(it.name)+'</span></div>'
-      +'<div class="st">'+(statText(it.stats)||'&nbsp;')+'</div>'+(big?'':'<div class="stt">Temel parça, yuva kaplar</div>')
+      +'<div class="st">'+(statsInline(it.stats)||'&nbsp;')+'</div>'+(big?'':'<div class="stt">Temel parça, yuva kaplar</div>')
       +'<div class="sellrow"><span class="sellb" data-act="sell" data-idx="'+i+'" title="Sağ tık da satar">Sat +'+sellValue(id)+'</span></div>';
     f.appendChild(b);
   }
@@ -289,7 +312,7 @@ function detailPanel(p){
   const id=shopSel, it=itemOf(id), big=!!ITEMS[id], st=itemState(p,id), cost=itemCostFor(p,id), plan=planBuy(p,id);
   let h='<div class="dhead"><span class="badge lg'+(big?'':' part')+'">'+esc(abbr(it.name))+icoImg(id)+'</span><div><div class="nm lg">'+esc(it.name)+'</div><div class="stt s-'+st.k+'">'+(big?'':'Temel parça · ')+st.t+'</div></div></div>'
     +'<div class="dcost">'+(st.k==='own'?'Envanterinde':'Bedel: <b>'+cost+'</b>'+(cost!==it.cost?' <s>'+it.cost+'</s> (elindeki parçalar düşüldü)':''))+'</div>'
-    +'<div class="st">'+statText(it.stats)+'</div>'+(it.desc?'<div class="ds">'+esc(it.desc)+'</div>':'');
+    +'<div class="ddesc">'+descFull(id)+'</div>';
   if(big){
     h+='<div class="tree"><div class="troot">'+esc(it.name)+'</div><div class="tstem"></div><div class="tparts">';
     const inv=[...p.items];
@@ -333,7 +356,7 @@ function openShop(){
   if(!shopSel || !itemOf(shopSel)) shopSel=(RECOMMENDED[p.type]||[]).find(id=>!p.items.includes(id))||null;
   shopSig=''; updateShop();
 }
-function closeShop(){ shopOpen=false; shopEl.classList.remove('open'); const q=document.getElementById('sQuery'); if(q) q.blur(); }
+function closeShop(){ hideTip(); shopOpen=false; shopEl.classList.remove('open'); const q=document.getElementById('sQuery'); if(q) q.blur(); }
 function toggleShop(){ if(shopOpen) closeShop(); else openShop(); }
 
 (function buildShop(){
@@ -344,7 +367,18 @@ function toggleShop(){ if(shopOpen) closeShop(); else openShop(); }
     +'<h4>Tüm eşyalar</h4><div class="sfilter"><input id="sQuery" type="text" placeholder="Eşya ara" autocomplete="off" spellcheck="false"><div class="chips" id="sChips">'
     +FILTERS.map(([k,n])=>'<button class="chip" data-f="'+k+'">'+n+'</button>').join('')+'</div></div><div id="sAll"></div></div><div class="sright" id="sRight"></div></div>';
   const css=document.createElement('style');
-  css.textContent='#shop .sellrow{margin-top:4px}#shop .sellb{display:inline-block;padding:1px 8px;border-radius:9px;background:#4a2a2f;border:1px solid #8a4850;color:#ffb3b3;font-size:11px;font-weight:600;cursor:pointer}#shop .sellb:hover{background:#a33a44;color:#fff}';
+  css.textContent='#shop .sellrow{margin-top:4px}#shop .sellb{display:inline-block;padding:1px 8px;border-radius:9px;background:#4a2a2f;border:1px solid #8a4850;color:#ffb3b3;font-size:11px;font-weight:600;cursor:pointer}#shop .sellb:hover{background:#a33a44;color:#fff}'
+    // eşya açıklamaları (itemdesc.js)
+    +'#shop .st{font-size:12.5px;line-height:1.35}#shop .st>span{white-space:nowrap}#shop .st .sep{color:#5d628f;font-style:normal}'
+    +'#shop .pn{font-size:11.5px;color:'+PAL.passive+';margin-top:3px;font-weight:600}'
+    +'#shop .it.rec .ds{color:#cfd0ea;font-size:12px;line-height:1.35;-webkit-line-clamp:4;min-height:64px}#shop .it.rec .ds b{color:'+PAL.passive+'}'
+    +'#shop .ddesc{margin-top:8px}'
+    +'.dstats{display:flex;flex-direction:column;gap:2px;font-size:14px;margin:4px 0 8px}.dstats b{font-weight:700;display:inline-block;min-width:44px}'
+    +'.dpas{font-size:13px;line-height:1.45;color:#e2e0f6;margin-top:7px;padding-top:7px;border-top:1px solid rgba(255,255,255,.08)}.dpas>b{color:'+PAL.passive+'}'
+    +'.duniq{font-size:11px;color:#9b9ac4;margin-top:3px;font-style:italic}'
+    +'#itemTip{position:fixed;z-index:20;display:none;pointer-events:none;width:310px;padding:10px 12px;background:rgba(10,10,28,.97);border:1px solid #5b5fa0;border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.6);color:#ece8ff;font:13px system-ui,sans-serif}'
+    +'#itemTip .tth{display:flex;justify-content:space-between;gap:8px;align-items:baseline}#itemTip .ttn{font-weight:700;font-size:15px}#itemTip .ttc{color:'+PAL.gold+';font-weight:700}'
+    +'#itemTip .tts{color:#9b9ac4;font-size:11px;margin-bottom:4px}#itemTip .ttp{color:#9b9ac4;font-size:11px;margin-top:8px}';
   document.head.appendChild(css);
   const au=document.getElementById('sAuto');
   au.addEventListener('change',()=>{ if(netPlaying){ setAutoBuy(au.checked); act('auto',au.checked,getBuild(S.player.type)); return; } setAutoBuy(au.checked); if(S.player) S.player.autoBuy=au.checked; shopSig=''; updateShop(); });
@@ -378,6 +412,8 @@ shopEl.addEventListener('mousedown',e=>{
   lastClick={ id, t:now }; shopSel=id; updateShop();
 });
 shopEl.addEventListener('contextmenu',e=>e.preventDefault());
+shopEl.addEventListener('mousemove',e=>{ const b=e.target.closest && e.target.closest('[data-id]'); if(b && shopEl.contains(b) && itemOf(b.dataset.id)) showTip(b.dataset.id, e.clientX, e.clientY); else hideTip(); });
+shopEl.addEventListener('mouseleave',hideTip);
 setInterval(updateShop,250);
 addEventListener('resize',layoutShop);
 
