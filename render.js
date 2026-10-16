@@ -8,6 +8,7 @@ import { ITEMS, PARTS, SLOTS } from './items.js';
 import { itemInfo } from './itemdesc.js';
 import { MAP_W, MAP_H, LANES, WALLS, BUSHES, BASES, rayDist, wallsNear, bushAt } from './map.js';
 import { HERO_NAMES } from './names.js';
+import { juiceInit, juiceFrame, juiceUnder, juiceOver, juiceScreen, juiceToken, juiceCamLead, juiceShake } from './juice.js';
 import { S, settings, stat, dist, atkDef, atkDmg, attackSpeed, timings, canLearn, passiveText, visiblePos, canSee, arenaOf, campIntel, seenItems, itemsValue } from './sim.js';
 
 export const cam={ x:0, y:0 };
@@ -22,6 +23,7 @@ export function shopSpot(team){
 export const view={ s:1, oy:0, dpr:1, W:800, H:600, availH:500, visW:1000, visH:600, zoom:1 };
 export const canvas=document.getElementById('c'), ctx=canvas.getContext('2d');
 const fogCanvas=document.createElement('canvas'), fctx=fogCanvas.getContext('2d');
+juiceInit({ cam, view });   // oyun hissi efektleri (juice.js): kamera ve görünüm bilgisi
 
 export function resize(){
   const uiH=document.getElementById('ui').offsetHeight, W=innerWidth, H=innerHeight-uiH;
@@ -43,7 +45,7 @@ export function resize(){
 /* Kamera: oyuncuyu ortada tutar, harita sınırında durur (görüş haritadan büyükse haritayı ortalar) */
 function camTarget(pos, vis, size){ return vis>=size ? (size-vis)/2 : Math.max(0, Math.min(size-vis, pos-vis/2)); }
 export function updateCamera(){
-  const p=S.player, px=p.dead?p.spawnX:p.x, py=p.dead?p.spawnY:p.y;
+  const p=S.player, L=juiceCamLead(), px=(p.dead?p.spawnX:p.x)+L.x, py=(p.dead?p.spawnY:p.y)+L.y;   // L: kendi atılışımızda kamera öne geçer (juice.js)
   if(!isFinite(cam.x)) cam.x=0;
   if(!isFinite(cam.y)) cam.y=0;
   // Alttaki HUD paneli haritanın altını kapatmasın: kamera haritanın altından panel yüksekliği kadar aşağı inebilir, oyuncu panelin üstündeki alanda ortalanır
@@ -88,8 +90,8 @@ function buildFieldCache(){
 }
 function drawField(){
   if(!fieldCache) buildFieldCache();
-  const x0=Math.max(0,Math.floor(cam.x)-8), y0=Math.max(0,Math.floor(cam.y)-8);
-  const x1=Math.min(MAP_W,Math.ceil(cam.x+view.visW)+8), y1=Math.min(MAP_H,Math.ceil(cam.y+view.visH)+8);
+  const x0=Math.max(0,Math.floor(cam.x)-32), y0=Math.max(0,Math.floor(cam.y)-32);   // pay 32: ekran tekmesinde kenar boş görünmesin
+  const x1=Math.min(MAP_W,Math.ceil(cam.x+view.visW)+32), y1=Math.min(MAP_H,Math.ceil(cam.y+view.visH)+32);
   if(x1>x0 && y1>y0) ctx.drawImage(fieldCache,x0,y0,x1-x0,y1-y0,x0,y0,x1-x0,y1-y0);
   const t=S.time;
   // çeşmeler: nefes alan ışık ve dönen kesikli halka
@@ -295,37 +297,48 @@ function drawTelegraph(h){
     ctx.beginPath(); ctx.moveTo(h.x,h.y); ctx.lineTo(T.x,T.y); ctx.stroke();
     ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(T.x,T.y,T.r+9,0,Math.PI*2); ctx.stroke(); ctx.restore();
   }
-  // LoL gibi: rakibin hazırlıkları (düz vuruş, yetenek önizlemeleri) çizilmez. İstisnalar görünür kalır:
-  // Uzun Işın hazırlığı (burada), Kilitli Yaylım çizgisi (yukarıda), Meteor/Şok Bombası/Kök Sal alanları, Kan Laneti işareti (başka yerde)
+  // Düz vuruş hazırlıkları rakipte çizilmez (LoL gibi). Yetenek hazırlıkları (16.10.2026) rakibe de görünür: kendi takımımızda eski beyaz
+  // önizleme, rakipte takım renginde dış hat + dolan iç alan (kaçılabilsin). Bot kaçınması (ai.js dodgeVec) bundan etkilenmez.
   const mine = h.team===S.player.team;
   if(h.cast){
     const c=h.cast, sk=h.def.skills[c.k], p=1-Math.max(0,c.t)/c.total;
-    if(!mine && sk.type!=='beam') return;
+    const tc=PAL.team[h.team], blink=0.75+0.25*Math.sin(S.time*TAU*8);
+    const fillA=a=>mine?`rgba(255,255,255,${a})`:rgba(tc,a*0.9), lineC=mine?'rgba(255,255,255,0.5)':rgba(tc,0.95*blink), lw=mine?2:3;
     ctx.save();
+    if(!mine) ctx.setLineDash([12,7]);
     if(sk.type==='volley'){
       const reach=h.r+sk.range, half=sk.spread/2+0.04;
       wedge(h.x,h.y,reach,c.aim,half);
-      ctx.fillStyle=`rgba(255,255,255,${0.08+0.12*p})`; ctx.fill();
-      ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle=fillA(0.08+0.12*p); ctx.fill();
+      ctx.strokeStyle=lineC; ctx.lineWidth=lw; ctx.stroke();
     } else if(sk.type==='slam' || sk.type==='breath'){
       const reach=h.r+sk.range, half=sk.angle*Math.PI/360;
       wedge(h.x,h.y,reach,c.aim,half);
-      ctx.fillStyle=`rgba(255,255,255,${0.08+0.12*p})`; ctx.fill();
-      ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle=fillA(0.08+0.12*p); ctx.fill();
+      ctx.strokeStyle=lineC; ctx.lineWidth=lw; ctx.stroke();
+      ctx.setLineDash([]);
       wedge(h.x,h.y,h.r+(reach-h.r)*p,c.aim,half);
-      ctx.fillStyle=`rgba(255,235,200,${0.15+0.25*p})`; ctx.fill();
+      ctx.fillStyle=mine?`rgba(255,235,200,${0.15+0.25*p})`:rgba(tc,0.18+0.3*p); ctx.fill();
     } else if(sk.type==='beam'){   // Uzun Işın: kahramanın merkezinden range uzunlukta şerit önizlemesi (rakip de görür), hazırlıkla dolar
-      const cx=Math.cos(c.aim), cy=Math.sin(c.aim);
+      ctx.setLineDash([]);
       ctx.translate(h.x,h.y); ctx.rotate(c.aim);
       ctx.fillStyle=`rgba(160,120,255,${0.10+0.14*p})`; ctx.fillRect(0,-sk.radius,sk.range,sk.radius*2);
-      ctx.strokeStyle=`rgba(200,170,255,${0.45+0.4*p})`; ctx.lineWidth=2; ctx.strokeRect(0,-sk.radius,sk.range,sk.radius*2);
+      ctx.strokeStyle=mine?`rgba(200,170,255,${0.45+0.4*p})`:rgba(tc,0.6+0.35*p); ctx.lineWidth=mine?2:3; ctx.strokeRect(0,-sk.radius,sk.range,sk.radius*2);
       ctx.fillStyle=`rgba(230,215,255,${0.15+0.3*p})`; ctx.fillRect(0,-sk.radius*p,sk.range,sk.radius*2*p);
     } else if(sk.type==='bigarrow' || sk.type==='fireball' || sk.type==='boomerang' || sk.type==='hook' || sk.type==='stunorb' || sk.type==='tether' || sk.type==='spiritburst' || sk.type==='groworb'){
       const cx=Math.cos(c.aim), cy=Math.sin(c.aim), sx=h.x+cx*h.r, sy=h.y+cy*h.r;
-      ctx.lineCap='butt'; ctx.strokeStyle=`rgba(160,225,255,${0.15+0.2*p})`; ctx.lineWidth=sk.radius*2;
-      ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(sx+cx*sk.range,sy+cy*sk.range); ctx.stroke();
-      ctx.strokeStyle=`rgba(200,240,255,${0.4+0.5*p})`; ctx.lineWidth=2;
-      ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(sx+cx*sk.range*p,sy+cy*sk.range*p); ctx.stroke();
+      const len=Math.min(sk.range, sk.type==='bigarrow' ? 1400 : sk.range), w=Math.max(sk.radius||10, 8);   // Kalın Ok harita boyu: uyarı 1400'de kesilir
+      if(mine){
+        ctx.lineCap='butt'; ctx.strokeStyle=`rgba(160,225,255,${0.15+0.2*p})`; ctx.lineWidth=w*2;
+        ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(sx+cx*len,sy+cy*len); ctx.stroke();
+      } else {   // rakip: mermi yolunun dış hattı (iki kenar + uç) ve hafif dolgu
+        ctx.save(); ctx.translate(sx,sy); ctx.rotate(c.aim);
+        ctx.fillStyle=rgba(tc,0.07+0.13*p); ctx.fillRect(0,-w,len,w*2);
+        ctx.strokeStyle=lineC; ctx.lineWidth=lw; ctx.strokeRect(0,-w,len,w*2);
+        ctx.restore(); ctx.setLineDash([]);
+      }
+      ctx.strokeStyle=mine?`rgba(200,240,255,${0.4+0.5*p})`:rgba(tc,0.5+0.5*p); ctx.lineWidth=mine?2:3;
+      ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(sx+cx*len*p,sy+cy*len*p); ctx.stroke();
     }
     ctx.restore();
     if(at.type==='projectile') drawBow(h,c.aim,p);
@@ -377,7 +390,7 @@ function drawHero(h){
   }
   ctx.beginPath(); ctx.ellipse(h.x+3,h.y+6,h.r,h.r*0.88,0,0,TAU); ctx.fillStyle='rgba(4,2,16,0.34)'; ctx.fill();
   if(st.giant){ ctx.beginPath(); ctx.arc(h.x,h.y,h.r+7,0,TAU); ctx.strokeStyle='rgba(255,207,90,0.85)'; ctx.lineWidth=4; ctx.stroke(); }
-  drawToken(ctx,h.type,h.x,h.y,h.r,{ team:h.team, aim:h.aim, flash:h.flash>0?h.flash/0.12:0 });
+  juiceToken(ctx,h,()=>drawToken(ctx,h.type,h.x,h.y,h.r,{ team:h.team, aim:h.aim, flash:h.flash>0?h.flash/0.12:0 }));   // atılışta sıkış-uza (juice.js)
   if(st.slow){ ctx.beginPath(); ctx.arc(h.x,h.y,h.r,0,TAU); ctx.fillStyle='rgba(92,200,255,0.3)'; ctx.fill(); }
   if(st.shell){   // Gülle Kabuk: kalın altıgen zırh plakaları
     const fade=Math.min(1,st.shell.t/0.3);
@@ -1682,7 +1695,7 @@ function drawFog(){
   for(const g of S.sights) if(g.team===team) hole(g,g.r);   // Kök Sal atış yeri geçici görüş
   fctx.globalCompositeOperation='source-over';
   ctx.setTransform(1,0,0,1,0,0);
-  ctx.drawImage(fogCanvas,0,0);
+  ctx.drawImage(fogCanvas,shkX*view.dpr,shkY*view.dpr);   // ekran sarsıntısıyla birlikte kayar
 }
 
 /* Vuruş geri tepmesi: isabet efektindeki hedef kısa süre vuruş yönünde kayar (yalnız çizim) */
@@ -1693,12 +1706,16 @@ function recoilDraw(u, fn){
   const ox=Math.cos(r.a)*r.d, oy=Math.sin(r.a)*r.d;
   u.x+=ox; u.y+=oy; try{ fn(); } finally { u.x-=ox; u.y-=oy; }
 }
+let shkX=0, shkY=0;
 export function render(){
+  juiceFrame();
   recoil.clear();
   for(const f of S.fx) if(f.type==='impact' && f.tgt && !f.tgt.dead){ const k=f.t/f.life; recoil.set(f.tgt,{ a:f.ang, d:(f.crit?7:4)*Math.sin(Math.PI*Math.min(1,(1-k)*1.6)) }); }
   // kendi isabetimizde çok hafif ekran sarsıntısı (S.shake sim'de damage() koyar, burada sönümlenir)
   let shx=0, shy=0;
   if(S.shake>0.05){ shx=(Math.random()-0.5)*2*S.shake; shy=(Math.random()-0.5)*2*S.shake; S.shake*=0.82; } else S.shake=0;
+  { const J=juiceShake(); shx+=J.x; shy+=J.y; }   // patlama tekmesi (juice.js)
+  shkX=shx; shkY=shy;
   ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle=PAL.void; ctx.fillRect(0,0,canvas.width,canvas.height);
   ctx.setTransform(view.dpr*view.s,0,0,view.dpr*view.s,-view.dpr*cam.x*view.s+shx*view.dpr,view.dpr*(view.oy-cam.y*view.s)+shy*view.dpr);
   drawField();
@@ -1710,12 +1727,15 @@ export function render(){
   S.minions.forEach(m=>{ if(unitSeen(m)) inBushAlpha(m, ()=>recoilDraw(m, ()=>drawMinion(m))); });
   S.monsters.forEach(m=>{ if(unitSeen(m)) inBushAlpha(m, ()=>recoilDraw(m, ()=>drawMonster(m))); });
   drawBackMarks();
+  juiceUnder(ctx);
   drawProjectiles();
   S.heroes.forEach(h=>{ if(h.dead ? h.team===S.player.team : unitSeen(h)) inBushAlpha(h, ()=>recoilDraw(h, ()=>drawHero(h))); });
   trackGold();
   drawFx();
+  juiceOver(ctx);
   drawGoldPops();
   drawFog();
+  juiceScreen(ctx, canvas.width, canvas.height);   // 1 karelik siyah-beyaz darbe karesi (büyük patlamalar)
   ctx.setTransform(view.dpr*view.s,0,0,view.dpr*view.s,-view.dpr*cam.x*view.s,view.dpr*(view.oy-cam.y*view.s));   // sis ekran koordinatına geçti, dünyaya dön
   drawCampMarks();
   drawAttackRange();
