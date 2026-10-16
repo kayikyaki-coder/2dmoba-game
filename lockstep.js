@@ -37,6 +37,7 @@ function applyAct(h, a){
     if(a[0]==='learn' && (a[1]==='r'||a[1]==='e'||a[1]==='s')) learnSkill(h, a[1]);
     else if(a[0]==='buy' && typeof a[1]==='string' && (ITEMS[a[1]]||PARTS[a[1]])) buySmart(h, a[1]);
     else if(a[0]==='sell' && Number.isInteger(a[1])) sell(h, a[1]);
+    else if(a[0]==='auto' && Array.isArray(a[2]) && a[2].length<=8 && a[2].every(x=>typeof x==='string' && (x==='DEF' || ITEMS[x] || PARTS[x]))){ h.autoBuy=!!a[1]; h.build=[...a[2]]; }   // otomatik alım: açık/kapalı + eşya sırası
   }catch(e){ /* geçersiz eylem: iki tarafta da aynı şekilde yok sayılır */ }
 }
 

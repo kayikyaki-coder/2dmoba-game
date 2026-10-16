@@ -14,7 +14,7 @@ const role = arg('role', null);
 /* ---------------- istemci süreci ---------------- */
 async function client() {
   const { S, canShop, attackTarget, simHash } = await import('../sim.js');
-  const { ITEMS } = await import('../items.js');
+  const { ITEMS, BUILDS } = await import('../items.js');
   const { Lockstep, beginMatch, makeConfig, encodeCmd } = await import('../lockstep.js');
   const url = arg('url'), host = role === 'host';
   const mulberry = a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
@@ -26,7 +26,7 @@ async function client() {
   const sendTo = (to, d) => ws.send(JSON.stringify({ t: 'relay', d, to }));
 
   /* kalıcı rastgele girdi: düşman üssüne yürü, menzildeyse vur, ara sıra yetenek/alım */
-  const acts = [];
+  let autoSent = false;
   function localCmd() {
     const p = S.player, dir = p.team === 0 ? 1 : -1;
     let mx = rnd() < 0.7 ? dir : (rnd() < 0.5 ? -dir : 0), my = rnd() < 0.5 ? 0 : (rnd() < 0.5 ? 1 : -1);
@@ -35,6 +35,7 @@ async function client() {
     const c = { mx, my, aim, attack: !!tgt, target: tgt, rmb: rnd() < 0.03, e: rnd() < 0.03, space: rnd() < 0.01, recall: rnd() < 0.002, item: rnd() < 0.002,
       tx: p.x + Math.cos(aim) * 300, ty: p.y + Math.sin(aim) * 300 };
     const a = [];
+    if (!autoSent) { autoSent = true; a.push(['auto', true, [...BUILDS[p.type].default]]); }   // otomatik alım komutu (tik 0)
     if (p.points > 0 && rnd() < 0.3) a.push(['learn', ['r', 'e', 's'][Math.floor(rnd() * 3)]]);
     if (canShop(p) && rnd() < 0.05) a.push(['buy', itemIds[Math.floor(rnd() * itemIds.length)]]);
     if (canShop(p) && p.items.length >= 5 && rnd() < 0.02) a.push(['sell', 0]);
@@ -48,7 +49,7 @@ async function client() {
       let n = 0;
       while (ls.tick < TICKS && n < 300 && ls.canAdvance()) { ls.advance(localCmd); n++; }
       if (ls.tick >= TICKS || S.over) {
-        console.log('RESULT ' + JSON.stringify({ slot, tick: ls.tick, hash: simHash(), time: +S.time.toFixed(2), over: S.over ? S.over.winner : null, desync: ls.desync, stalls: ls.stalls, kills: S.heroes.map(h => h.kills) }));
+        console.log('RESULT ' + JSON.stringify({ slot, tick: ls.tick, hash: simHash(), time: +S.time.toFixed(2), over: S.over ? S.over.winner : null, desync: ls.desync, stalls: ls.stalls, kills: S.heroes.map(h => h.kills), auto: S.heroes.map(h => h.autoBuy ? 1 : 0).join(''), items: S.heroes.map(h => h.items.length).join(',') }));
         setTimeout(() => process.exit(0), 300); return;
       }
       setTimeout(loop, n ? 0 : 1);

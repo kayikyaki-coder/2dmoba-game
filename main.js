@@ -2,7 +2,7 @@
 import { TICK, MAX_LEVEL, XP_NEED } from './data.js';
 import { S, settings, resetGame, step, nextBuild, learnSkill, gainXP, buy, buySmart, sell, sellValue, itemCostFor, canShop, attackTarget, inAttackRange, canSee } from './sim.js';
 import { PARTS, ITEMS, SLOTS, RECOMMENDED } from './items.js';
-import { applyAutoBuy, openBuildEditor, buildEditorOpen, setAutoBuy } from './autobuy.js';
+import { applyAutoBuy, openBuildEditor, buildEditorOpen, setAutoBuy, autoBuyOn, getBuild } from './autobuy.js';
 import { botCommand, setBotLevel } from './ai.js';
 import { GAME_TITLE, HERO_NAMES } from './names.js';
 import { bindMenu, showMenu, hideMenu, showPause, hidePause, showResult, hideResult } from './menu.js';
@@ -19,8 +19,8 @@ const keys={}; const mouse={ sx:0, sy:0, down:false };
 /* Online (lockstep.js): mağaza ve yetenek puanı eylemleri komut kanalından geçer, böylece iki tarayıcıda aynı tikte uygulanır */
 let netPlaying=false, lastAdv=0;
 const pendingActs=[];
-function act(name, arg){
-  if(netPlaying){ pendingActs.push([name,arg]); return; }
+function act(name, arg, arg2){
+  if(netPlaying){ pendingActs.push(name==='auto' ? [name,arg,arg2] : [name,arg]); return; }
   if(name==='learn') learnSkill(S.player,arg); else if(name==='buy') buySmart(S.player,arg); else if(name==='sell') sell(S.player,arg);
 }
 const localNetCmd=()=>encodeCmd(playerCommand(), pendingActs.splice(0));
@@ -347,8 +347,8 @@ function toggleShop(){ if(shopOpen) closeShop(); else openShop(); }
   css.textContent='#shop .sellrow{margin-top:4px}#shop .sellb{display:inline-block;padding:1px 8px;border-radius:9px;background:#4a2a2f;border:1px solid #8a4850;color:#ffb3b3;font-size:11px;font-weight:600;cursor:pointer}#shop .sellb:hover{background:#a33a44;color:#fff}';
   document.head.appendChild(css);
   const au=document.getElementById('sAuto');
-  au.addEventListener('change',()=>{ if(netPlaying){ au.checked=false; toast('Online maçta otomatik alım kapalı', false); return; } setAutoBuy(au.checked); if(S.player) S.player.autoBuy=au.checked; shopSig=''; updateShop(); });
-  document.getElementById('sAbEdit').addEventListener('click',()=>netPlaying ? toast('Online maçta otomatik alım kapalı', false) : openBuildEditor(S.player.type,(hero,list,on)=>{ if(S.player && S.player.type===hero){ S.player.build=[...list]; S.player.autoBuy=on; } shopSig=''; updateShop(true); }));
+  au.addEventListener('change',()=>{ if(netPlaying){ setAutoBuy(au.checked); act('auto',au.checked,getBuild(S.player.type)); return; } setAutoBuy(au.checked); if(S.player) S.player.autoBuy=au.checked; shopSig=''; updateShop(); });
+  document.getElementById('sAbEdit').addEventListener('click',()=>openBuildEditor(S.player.type,(hero,list,on)=>{ if(netPlaying){ if(S.player.type===hero) act('auto',on,list); return; } if(S.player && S.player.type===hero){ S.player.build=[...list]; S.player.autoBuy=on; } shopSig=''; updateShop(true); }));
   const q=document.getElementById('sQuery');
   q.addEventListener('input',()=>{ shopQuery=q.value.trim().toLocaleLowerCase('tr'); updateShop(); });
 })();
@@ -392,6 +392,7 @@ function onlineStart(cfg, slot){
   clearInput(); closeShop(); toggleHelp(false); hideMenu(); hidePause(); hideResult(); pendingActs.length=0;
   netPlaying=true; net.playing=true;
   net.ls=beginMatch(cfg, slot, netSend, d=>console.warn('senkron bozuldu', d));
+  pendingActs.push(['auto', autoBuyOn(), getBuild(S.player.type)]);   // kayıtlı otomatik alım sırası ilk komutla iki tarafa da gider
   acc=0; last=performance.now(); lastAdv=last; scene='play';
 }
 function onlineLeave(reason){ netPlaying=false; toMenu(); netInfo(reason, true); setTimeout(()=>netInfo(''), 5000); }
