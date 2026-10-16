@@ -113,7 +113,7 @@ export const STATS = {
     projRadius:{ base:6, per:0 }
   },
   hook: {
-    hp:{ base:640, per:32 },   // denge K1 (15.10.2026, %63): 670 idi // denge C7: 690 idi // denge L1 (14.10.2026, seviye 15): 720 idi // denge A1 (13.10.2026): 770 idi // denge O2: 720 idi //   // denge O1: 680 idi //   // zırh sistemi (11.10.2026): 690 (+38) idi
+    hp:{ base:620, per:32 },   // denge T2: 640 idi // denge K1 (15.10.2026, %63): 670 idi // denge C7: 690 idi // denge L1 (14.10.2026, seviye 15): 720 idi // denge A1 (13.10.2026): 770 idi // denge O2: 720 idi //   // denge O1: 680 idi //   // zırh sistemi (11.10.2026): 690 (+38) idi
     regen:{ base:6, per:1.4 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:38, per:4.5 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:32, per:1.5 },   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -199,7 +199,7 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   artillery: {
-    hp:{ base:790, per:22 },   // denge C5: 765 idi // denge J3: 740 idi // denge O3: 710 idi //   // denge O1: 680 idi //   // zırh sistemi (11.10.2026): 580 (+22) idi
+    hp:{ base:760, per:22 },   // denge T2: 790 idi // denge C5: 765 idi // denge J3: 740 idi // denge O3: 710 idi //   // denge O1: 680 idi //   // zırh sistemi (11.10.2026): 580 (+22) idi
     regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -253,13 +253,13 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   dual: {   // uzak biçim temel alınır; yakın biçimin farkları HEROES.dual.melee.stats içinde
-    hp:{ base:540, per:26 },   // denge C5: 520 idi // zırh sistemi (11.10.2026): 480 (+30) idi
+    hp:{ base:520, per:26 },   // denge T2: 540 idi // denge C5: 520 idi // zırh sistemi (11.10.2026): 480 (+30) idi
     regen:{ base:3, per:0.8 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:26, per:3.5 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:28, per:1.3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:43, per:3.2 },   // zırh sistemi (11.10.2026): 45 (+3.2) idi
+    dmg:{ base:41, per:3.2 },   // denge T2: 43 idi // zırh sistemi (11.10.2026): 45 (+3.2) idi
     as:{ base:0.95, per:0.04 },
     spd:{ base:205, per:3 },
     range:{ base:330, per:0 },
@@ -358,7 +358,7 @@ export const HEROES = {
       p:{ name:'Demir Gövde', missPct:0.015, combatT:4, combatMult:2 },   // denge: missPct 0.03 idi (0.015 oldu); saniyede eksik canın %1,5'i, savaşta (son 4 sn kahramanla hasar alışverişi) 2 katı
       // sağ tık: cast sn hazırlık, ince bir kanca fırlar (duvarın üstünden geçer); ilk değdiği rakip birimi (kahraman ya da minyon, kule değil)
       //          yakalar: büyü hasarı (dmg + ap * YG), kahramansa freeze sn sersemler, pull sn içinde Zincirli'nin önüne çeker (gap: ek boşluk).
-      r:{ name:'Kanca', max:7, type:'hook', cd:[19,17,15,13,12,11,10],   /* denge C10: cd 18-9 idi */ cast:0.25, castSlow:0.5, range:600, speed:690, radius:30,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; menzil 700, hız 1600, yarıçap 20 idi
+      r:{ name:'Kanca', max:7, type:'hook', cd:[19.5,17.5,15.5,13.5,12.5,11.5,10.5],   /* denge T2: cd 19-10 idi */   /* denge C10: cd 18-9 idi */ cast:0.25, castSlow:0.5, range:600, speed:690, radius:30,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; menzil 700, hız 1600, yarıçap 20 idi
          
           dmg:[70,110,150,190,214,238,262], ap:0.70, freeze:0.5, pull:0.4, gap:6 },
       // E: önünde range menzilli, angle derecelik koni (kenardan ölçülür); fiziksel hasar = dmg + ad * ek SG + hpPct * ek can;
@@ -422,7 +422,7 @@ export const HEROES = {
       p:{ name:'Odak', timerMax:15, timerMin:10, cut:0.70 },
       // sağ tık: cast sn hazırlık (hazırlıkta castSlow yavaş), bitince imleç yönünde range uzunlukta, 2 x radius genişlikte şerit, anında;
       //          şeritteki bütün rakip birimlere (kule hariç) büyü hasarı dmg + ap * YG. Hazırlık sırasında şerit önizlemesi herkese görünür.
-      r:{ name:'Uzun Işın', max:7, type:'beam', cd:[9.5,8.5,7.5,6.5,6,5.5,5],   /* denge C2: cd 10-5.5 idi */   /* denge F2: cd 9-6 idi */ cast:0.4, castSlow:0.4, range:750, radius:35,
+      r:{ name:'Uzun Işın', max:7, type:'beam', cd:[9.5,8.5,7.5,6.5,6,5.5,5],   /* denge C2: cd 10-5.5 idi */   /* denge F2: cd 9-6 idi */ cast:0.6,   /* denge T2: cast 0.4 idi */ castSlow:0.4, range:750, radius:35,
           dmg:[79,118,158,197,222,245,269], ap:0.75 },   /* denge C10: 75-256 idi */   // denge C1: ap 0.70 idi   // denge: 70,110,150,190, sonra 80,120,160,200 idi (2v2 tur 3: %65)
       // E: cast sn hazırlık, düz giden mermi; ilk değdiği rakip birimde (minyon dahil, kule değil) durur. Büyü hasarı dmg + ap * YG;
       //    sersemletme gidilen mesafeyle stunMin'den (0 mesafe) stunMax'a (range) doğrusal. Minyon da sersemler.
