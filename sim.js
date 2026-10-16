@@ -120,6 +120,18 @@ export function buildStructs(){
    2v2 ve daha fazlası: types/levels iç içe dizi olabilir (types:[[a1,a2],[b1,b2]], levels:[[l,l],[l,l]]; ya da düz sayı: takımın hepsine).
    S.heroes sırası: önce takım 0 üyeleri, sonra takım 1 (1v1'de [h0,h1], eskisi gibi). human bu listedeki sıradır (1v1'de takım numarasıyla aynı).
    builds: [takım0 yapısı, takım1 yapısı] (ad). */
+/* Senkron kontrolü (online): durumun kısa özeti; iki tarayıcıda aynı tikte aynı çıkmalı */
+export function simHash(){
+  let a=0x811c9dc5|0;
+  const mix=v=>{ v=Math.round(v*64)|0; a=Math.imul(a^v,16777619)^(a>>>13); };
+  mix(S.time); mix(S.minions.length); mix(S.monsters.length); mix(S.projs.length); mix(S.score[0]); mix(S.score[1]);
+  for(const h of S.heroes){ mix(h.x); mix(h.y); mix(h.hp); mix(h.gold); mix(h.xp); mix(h.level); mix(h.kills); }
+  for(const m of S.minions){ mix(m.x); mix(m.hp); }
+  for(const t of S.structs) mix(t.hp);
+  mix(rng()*1e6);   // rng durumu (yan etki: yalnız doğrulama anında bir sayı tüketir; iki taraf aynı tikte aynı çağırır)
+  return a>>>0;
+}
+
 export function resetGame(opts){
   opts = opts||{};
   nextId = 1;
@@ -135,6 +147,8 @@ export function resetGame(opts){
   const types = opts.types || [settings.playerType, other];
   const levels = opts.levels || [settings.startLevel, settings.startLevel];
   const human = opts.human===undefined ? 0 : opts.human;
+  // online: birden çok insan (opts.humans = kahraman sıraları); human yerel oyuncunun sırası (S.player). Bot rolü ve otomatik seviye puanı insanlar için kapalı
+  const humanSet = new Set(opts.humans || (human===null ? [] : [human]));
   const n0=structPos(0,3), n1=structPos(1,3);
   const bn = opts.builds || [];
   let hi=0; const lvs=[];
@@ -145,7 +159,7 @@ export function resetGame(opts){
       const lv = Array.isArray(levels[team]) ? levels[team][j] : levels[team];
       // takım içinde yan yana (koridora dik): 1 kişiyse tam nexus hizasında (eski doğuş noktası)
       const oy = n>1 ? (j-(n-1)/2)*SPAWN_GAP : 0;
-      const h = makeHero(type, team, team===0 ? nn.x+SPAWN_OFF : nn.x-SPAWN_OFF, nn.y+oy, human===hi);
+      const h = makeHero(type, team, team===0 ? nn.x+SPAWN_OFF : nn.x-SPAWN_OFF, nn.y+oy, humanSet.has(hi));
       h.ai = { strafe:1, strafeT:0, noise:0, retreat:false };
       const B=BUILDS[h.type]||{}; h.build = [...(B[bn[h.team]] || B.default || [])]; computeBonus(h);   // kopya: DEF yuvaları alım anında çözülüp yerine yazılır
       lvs.push(lv); S.heroes.push(h); hi++;

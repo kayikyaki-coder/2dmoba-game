@@ -6,6 +6,8 @@ import { applyAutoBuy, openBuildEditor, buildEditorOpen, setAutoBuy } from './au
 import { botCommand, setBotLevel } from './ai.js';
 import { GAME_TITLE, HERO_NAMES } from './names.js';
 import { bindMenu, showMenu, hideMenu, showPause, hidePause, showResult, hideResult } from './menu.js';
+import { net, initNet, netSend, openOnline, leaveRoom, backToLobby, netInfo } from './net.js';
+import { beginMatch, encodeCmd } from './lockstep.js';
 import { view, cam, hudBtns, canvas, resize, updateCamera, render, uiState, shopSpot } from './render.js';
 
 let helpOpen=false;
@@ -13,6 +15,15 @@ let scene='menu', overAt=0;   // menu | play | pause | result
 /* Yanlışlıkla Ctrl+W / sekme kapatma: oyun sürerken tarayıcı çıkmadan önce onay sorar */
 addEventListener('beforeunload', e=>{ if(scene==='play'||scene==='pause'){ e.preventDefault(); e.returnValue=''; } });
 const keys={}; const mouse={ sx:0, sy:0, down:false };
+
+/* Online (lockstep.js): mağaza ve yetenek puanı eylemleri komut kanalından geçer, böylece iki tarayıcıda aynı tikte uygulanır */
+let netPlaying=false, lastAdv=0;
+const pendingActs=[];
+function act(name, arg){
+  if(netPlaying){ pendingActs.push([name,arg]); return; }
+  if(name==='learn') learnSkill(S.player,arg); else if(name==='buy') buySmart(S.player,arg); else if(name==='sell') sell(S.player,arg);
+}
+const localNetCmd=()=>encodeCmd(playerCommand(), pendingActs.splice(0));
 
 function mouseWorld(){ return { x: mouse.sx/view.s + cam.x, y: (mouse.sy-view.oy)/view.s + cam.y }; }
 
@@ -58,6 +69,13 @@ function newGame(){
   applyAutoBuy(S.player);   // otomatik alım: kayıtlı eşya sırası (autobuy.js)
 }
 
+function netStatus(now){
+  const ls=net.ls; if(!ls){ netInfo(''); return; }
+  if(ls.desync){ netInfo('SENKRON BOZULDU (tik '+ls.desync.tick+'): iki oyun ayrıştı, maçı yeniden kurun', true); return; }
+  const stalled=now-lastAdv>400 && !S.over;
+  netInfo((stalled?'Arkadaş bekleniyor... ':'')+'ping '+Math.round(net.rtt)+' ms · tampon '+ls.delay+' tik', stalled);
+}
+
 function getCmd(h, dt){ return h===S.player ? playerCommand() : botCommand(h, dt); }
 
 /* =========================================================
@@ -66,7 +84,14 @@ function getCmd(h, dt){ return h===S.player ? playerCommand() : botCommand(h, dt
 let last=performance.now(), acc=0;
 function loop(now){
   const dtr=Math.min(0.25,(now-last)/1000); last=now;
-  if(scene==='play'||scene==='result'){ acc+=dtr; while(acc>=TICK){ step(TICK, getCmd); acc-=TICK; } } else acc=0;
+  if(netPlaying){
+    if(net.ls && (scene==='play'||scene==='pause')){
+      acc=Math.min(acc+dtr,0.5); let n=0;
+      while(acc>=TICK && n<12 && !S.over && net.ls.canAdvance()){ net.ls.advance(localNetCmd); acc-=TICK; n++; lastAdv=now; }
+      if(S.over) acc=0;
+      netStatus(now);
+    } else acc=0;
+  } else if(scene==='play'||scene==='result'){ acc+=dtr; while(acc>=TICK){ step(TICK, getCmd); acc-=TICK; } } else acc=0;
   if(scene==='play' && S.over){ scene='result'; overAt=now; }
   if(scene==='result' && overAt && now-overAt>1400){ overAt=0; showResult(); }
   updateCamera();
@@ -88,7 +113,7 @@ addEventListener('keydown',e=>{
   if(e.code==='Tab') uiState.showScore=true;   // basılı tut: skor tablosu
   if(!e.repeat){
     if(e.code==='KeyE'){
-      if(e.ctrlKey){ e.preventDefault(); learnSkill(S.player,'e'); }
+      if(e.ctrlKey){ e.preventDefault(); act('learn','e'); }
       else uiState.hold='e';   // basılı tut: menzili göster, bırakınca at
     }
     if(e.code==='KeyB') keys.pressB=true;
@@ -96,7 +121,7 @@ addEventListener('keydown',e=>{
     if(e.code==='Digit1'||e.code==='Numpad1') keys.press1=true;
     if(e.code==='KeyP') toggleShop();
     if(e.code==='KeyH') toggleHelp();
-    if(e.code==='Space'){ if(e.ctrlKey) learnSkill(S.player,'s'); else uiState.hold='s'; }
+    if(e.code==='Space'){ if(e.ctrlKey) act('learn','s'); else uiState.hold='s'; }
   }
   keys[e.code]=true;
 });
@@ -124,14 +149,14 @@ canvas.addEventListener('mousedown',e=>{
   const r=canvas.getBoundingClientRect(); mouse.sx=e.clientX-r.left; mouse.sy=e.clientY-r.top;
   if(e.button===0){
     const hit=hudBtns.find(b=>mouse.sx>=b.x && mouse.sx<=b.x+b.w && mouse.sy>=b.y && mouse.sy<=b.y+b.h);
-    if(hit){ learnSkill(S.player,hit.k); return; }
+    if(hit){ act('learn',hit.k); return; }
     if(uiState.hold){ uiState.hold=null; return; }   // yetenek basılıyken sol tık: iptal
     { const sp=shopSpot(S.player.team), mw=mouseWorld();   // kendi dükkânına tıkla: mağaza açılır, düz vuruş başlamaz
       if(sp && Math.hypot(mw.x-sp.x,mw.y-sp.y)<=sp.r+10){ openShop(); return; } }
     mouse.down=true;
     mouse.lock=enemyUnder(mouseWorld());   // rakibin üstüne tıklandıysa onu seç
   }
-  if(e.button===2){ if(e.ctrlKey) learnSkill(S.player,'r'); else { uiState.hold='r'; uiState.holdT=performance.now(); } }
+  if(e.button===2){ if(e.ctrlKey) act('learn','r'); else { uiState.hold='r'; uiState.holdT=performance.now(); } }
 });
 addEventListener('mouseup',e=>{
   if(e.button===0){ mouse.down=false; mouse.lock=null; }
@@ -191,6 +216,7 @@ function planBuy(p, id){
 /* Eşya sat (sadece üste, tam bedelin %70'i iade) ve sonucu bildir */
 function doSell(idx){
   const p=S.player, id=p.items[idx]; if(!id) return;
+  if(netPlaying){ act('sell',idx); toast(itemOf(id).name+' satış isteği gönderildi (sadece üste)', true); return; }
   const nm=itemOf(id).name, r=sell(p,idx);
   if(r<0) toast('Eşya sadece üste satılır, önce üsse dön (B)', false); else toast(nm+' satıldı, +'+r+' altın', true);
   shopSig=''; updateShop();
@@ -198,6 +224,7 @@ function doSell(idx){
 /* Satın al ve sonucu bildir */
 function doBuy(id){
   const p=S.player, before=[...p.items], plan=planBuy(p,id);
+  if(netPlaying){ if(plan.n){ act('buy',id); toast(plan.text, true); } else toast(plan.text, false); return; }
   buySmart(p,id);
   const rest=[...before], added=[];
   for(const q of p.items){ const i=rest.indexOf(q); if(i>=0) rest.splice(i,1); else added.push(q); }
@@ -320,8 +347,8 @@ function toggleShop(){ if(shopOpen) closeShop(); else openShop(); }
   css.textContent='#shop .sellrow{margin-top:4px}#shop .sellb{display:inline-block;padding:1px 8px;border-radius:9px;background:#4a2a2f;border:1px solid #8a4850;color:#ffb3b3;font-size:11px;font-weight:600;cursor:pointer}#shop .sellb:hover{background:#a33a44;color:#fff}';
   document.head.appendChild(css);
   const au=document.getElementById('sAuto');
-  au.addEventListener('change',()=>{ setAutoBuy(au.checked); if(S.player) S.player.autoBuy=au.checked; shopSig=''; updateShop(); });
-  document.getElementById('sAbEdit').addEventListener('click',()=>openBuildEditor(S.player.type,(hero,list,on)=>{ if(S.player && S.player.type===hero){ S.player.build=[...list]; S.player.autoBuy=on; } shopSig=''; updateShop(true); }));
+  au.addEventListener('change',()=>{ if(netPlaying){ au.checked=false; toast('Online maçta otomatik alım kapalı', false); return; } setAutoBuy(au.checked); if(S.player) S.player.autoBuy=au.checked; shopSig=''; updateShop(); });
+  document.getElementById('sAbEdit').addEventListener('click',()=>netPlaying ? toast('Online maçta otomatik alım kapalı', false) : openBuildEditor(S.player.type,(hero,list,on)=>{ if(S.player && S.player.type===hero){ S.player.build=[...list]; S.player.autoBuy=on; } shopSig=''; updateShop(true); }));
   const q=document.getElementById('sQuery');
   q.addEventListener('input',()=>{ shopQuery=q.value.trim().toLocaleLowerCase('tr'); updateShop(); });
 })();
@@ -356,12 +383,26 @@ addEventListener('resize',layoutShop);
 
 /* Sahne geçişleri: menu.js geri çağrıları */
 function clearInput(){ for(const k in keys) keys[k]=false; mouse.down=false; mouse.lock=null; uiState.hold=null; uiState.showRange=false; }
-function startGame(){ clearInput(); closeShop(); toggleHelp(false); hideMenu(); hidePause(); hideResult(); newGame(); acc=0; last=performance.now(); scene='play'; }
+function startGame(){ netPlaying=false; netInfo(''); clearInput(); closeShop(); toggleHelp(false); hideMenu(); hidePause(); hideResult(); newGame(); acc=0; last=performance.now(); scene='play'; }
 function pauseGame(){ clearInput(); closeShop(); scene='pause'; showPause(); }
 function resumeGame(){ hidePause(); clearInput(); acc=0; last=performance.now(); scene='play'; }
-function toMenu(){ clearInput(); closeShop(); toggleHelp(false); hidePause(); hideResult(); scene='menu'; showMenu(); }
-bindMenu({ start:startGame, resume:resumeGame, restart:startGame, toMenu,
-  levelUp:()=>{ const p=S.player; if(p.level<MAX_LEVEL) gainXP(p, XP_NEED(p.level)-p.xp); } });
+function toMenu(){ if(netPlaying){ netPlaying=false; leaveRoom(); } netInfo(''); clearInput(); closeShop(); toggleHelp(false); hidePause(); hideResult(); scene='menu'; showMenu(); }
+/* Online maç: 'start' mesajı iki tarayıcıda da gelir (lobi: net.js). Bağlantı koparsa menüye dönülür. */
+function onlineStart(cfg, slot){
+  clearInput(); closeShop(); toggleHelp(false); hideMenu(); hidePause(); hideResult(); pendingActs.length=0;
+  netPlaying=true; net.playing=true;
+  net.ls=beginMatch(cfg, slot, netSend, d=>console.warn('senkron bozuldu', d));
+  acc=0; last=performance.now(); lastAdv=last; scene='play';
+}
+function onlineLeave(reason){ netPlaying=false; toMenu(); netInfo(reason, true); setTimeout(()=>netInfo(''), 5000); }
+initNet({ start:onlineStart, leave:onlineLeave });
+function restartGame(){
+  if(!netPlaying){ startGame(); return; }
+  if(!S.over) return;   // online maçta yarıda yeniden başlatma yok; bitince lobiye dönülür
+  netPlaying=false; netInfo(''); clearInput(); closeShop(); hidePause(); hideResult(); scene='menu'; showMenu(); backToLobby();
+}
+bindMenu({ start:startGame, resume:resumeGame, restart:restartGame, toMenu, online:openOnline,
+  levelUp:()=>{ if(netPlaying) return; const p=S.player; if(p.level<MAX_LEVEL) gainXP(p, XP_NEED(p.level)-p.xp); } });
 document.getElementById('gameTitle').textContent=GAME_TITLE;
 document.title=GAME_TITLE;
 document.getElementById('menuBtn').addEventListener('click',e=>{ e.target.blur(); if(scene==='play') pauseGame(); else if(scene==='pause') resumeGame(); });
