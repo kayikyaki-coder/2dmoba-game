@@ -637,6 +637,9 @@ export const towerMinionHit = m => m.maxHp/(TOWER.minionHits[m.type]||3)+0.01;
    Canavarlar yalnız kendilerine vuran kahramana karşılık verir; kampından leash'ten fazla uzaklaşınca döner ve canı dolar.
    Yeniden doğuş: respawn sn (öldürülünce). first: ilk doğuş saniyesi. Zamanla güçlenme SCALE (minyon gibi).
    buff: kampı öldürene süreli güç (BUFFS), big: öldüren takıma takım gücü (BIG_BUFF). */
+// ormancı seçimi (16.10.2026, Uzman teşhisi): bu menzilli büyücüler ormancı seçilmez (Gölge maçların yarısında ormancı oluyordu; ormanda %33).
+// Takımda başka bot yoksa yine ormana gider.
+export const JUNGLE_AVOID = ['shadow','spirit','artillery','mage'];
 export const JUNGLE = {
   // denge tur 2 (11.10.2026): canavar altın ve XP'si %15 arttı (ormancı kahramanlar %33-47'de kalıyordu)
   leash:520, aggroT:6, returnHeal:0.25,

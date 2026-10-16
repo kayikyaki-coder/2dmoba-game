@@ -1,5 +1,5 @@
 /* Simülasyon: tarayıcıya bağımlı değil (document, window, canvas yok). */
-import { TICK, ULT_LEVELS, RANK_CAP, LEVEL_PER, WORLD, LANE_Y, TEAM_COLORS, TEAM_DARK, MAX_LEVEL, STATS, HEROES, FORMS, TOWER, towerChampHit, towerMinionHit, BASE_TOWER_HP, NEXUS, LAYOUT, FOUNTAIN, MINIONS, WAVE_ORDER, WAVE_FIRST, WAVE_INTERVAL, WAVE_GAP, OFF_TARGET_DMG, MINION_CALL, MINION_CALL_R, MINION_LEASH, respawnTime, RECALL, MINION_SCALE, GOLD, minionGold, XP_NEED, HERO_KILL_XP, STRUCT_XP, XP_RADIUS, VISION, JUNGLE, BUFFS, BIG_BUFF, CATCHUP_XP, CATCHUP_GOLD, JUNGLE_MASTERY } from './data.js';
+import { TICK, ULT_LEVELS, RANK_CAP, LEVEL_PER, WORLD, LANE_Y, TEAM_COLORS, TEAM_DARK, MAX_LEVEL, STATS, HEROES, FORMS, TOWER, towerChampHit, towerMinionHit, BASE_TOWER_HP, NEXUS, LAYOUT, FOUNTAIN, MINIONS, WAVE_ORDER, WAVE_FIRST, WAVE_INTERVAL, WAVE_GAP, OFF_TARGET_DMG, MINION_CALL, MINION_CALL_R, MINION_LEASH, respawnTime, RECALL, MINION_SCALE, GOLD, minionGold, XP_NEED, HERO_KILL_XP, STRUCT_XP, XP_RADIUS, VISION, JUNGLE, BUFFS, BIG_BUFF, CATCHUP_XP, CATCHUP_GOLD, JUNGLE_MASTERY, JUNGLE_AVOID } from './data.js';
 import { ITEMS, PARTS, SLOTS, START_GOLD, CRIT_MULT, BUILDS, DEF, DEF_CLASS, DEF_POOLS, DMG_PHYS } from './items.js';
 import { MAP_W, structPos, SPAWN_OFF, pushOutWalls, pushOutWallsInto, PUSH, wallsFar, inWall, sightBlocked, bushAt, BUSHES, lanePoint, laneProject, laneLength, laneDir } from './map.js';
 
@@ -158,7 +158,7 @@ export function resetGame(opts){
     if(opts.noJungle===team) continue;
     const T=S.heroes.filter(h=>h.team===team && !h.human);
     if(S.heroes.filter(h=>h.team===team).length<2 || !T.length) continue;
-    const jv=h=>(HEROES[h.type].attack.type!=='projectile' ? 1000 : 0)+STATS[h.type].dmg.base*STATS[h.type].as.base;   // yakın dövüşçü, sonra düz vuruş gücü yüksek olan
+    const jv=h=>(HEROES[h.type].attack.type!=='projectile' ? 1000 : 0)-(JUNGLE_AVOID.includes(h.type) ? 2000 : 0)+STATS[h.type].dmg.base*STATS[h.type].as.base;   // yakın dövüşçü, sonra düz vuruş gücü yüksek olan; JUNGLE_AVOID büyücüleri en son
     let J=T[T.length-1]; for(const h of T) if(jv(h)>jv(J)) J=h;
     J.role='jungle';
   }
