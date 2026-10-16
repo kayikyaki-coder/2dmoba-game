@@ -164,13 +164,13 @@ export const STATS = {
     angle:{ base:90, per:0 }
   },
   flame: {
-    hp:{ base:730, per:24 },   // denge O2: 680 idi //   // denge O1: 640 idi //   // zırh sistemi (11.10.2026): 680 (+30) idi
+    hp:{ base:700, per:21 },   // denge T1 (16.10.2026, Uzman %74): 730 (+24) idi // denge O2: 680 idi //   // denge O1: 640 idi //   // zırh sistemi (11.10.2026): 680 (+30) idi
     regen:{ base:8, per:0.9 },        // denge: 4 idi, seviye başına: 0 idi
-    armor:{ base:32, per:4 },   // zırh sistemi (11.10.2026): 10 (+0) idi
-    mr:{ base:33, per:1.7 },   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
+    armor:{ base:30, per:3.33 },   // denge T1: 32 (+4) idi // zırh sistemi (11.10.2026): 10 (+0) idi
+    mr:{ base:30, per:1.67 },   // denge T1: 33 (+1.7) idi //   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:57, per:2.5 },   // denge O2: 53 idi //   // denge O1: 50 idi //   // zırh sistemi (11.10.2026): 56 (+2.5) idi
+    dmg:{ base:55, per:2.5 },   // denge T1: 57 idi // denge O2: 53 idi //   // denge O1: 50 idi //   // zırh sistemi (11.10.2026): 56 (+2.5) idi
     as:{ base:0.85, per:0.03 },
     spd:{ base:205, per:3 },
     range:{ base:120, per:0 },
@@ -379,16 +379,16 @@ export const HEROES = {
       //        hasar seviyeyle sparkMin'den sparkMax'a doğrusal + ap * YG; rakip birimlere (kule hariç)
       p:{ name:'Kıvılcım', sparkMin:20, sparkMax:80, sparkR:100, window:3, ap:0.40 },
       // sağ tık: önde range menzilli, angle derecelik koni (kenardan ölçülür); büyü hasarı = dmg + ap * YG; minyonlara değer, kuleye değmez
-      r:{ name:'Alev Üfleme', max:7, type:'breath', cd:[7,6.5,6,5.5,5.3,5,4.8], cast:0.25, castSlow:0.5, range:600, angle:20,
-          dmg:[68,106,144,182,205,227,251], ap:0.75 },   /* denge C12: 72-264 idi */   // denge C7: ap 0.80 idi   // denge C1: 76-278 idi   // denge F1 (11.10.2026, zırh sonrası): Alev Üfleme dmg 70-190 idi; Yuvarlan dmg 60-150, hpPct 0.04 idi
+      r:{ name:'Alev Üfleme', max:7, type:'breath', cd:[7,6.5,6,5.5,5.3,5,4.8], cast:0.25, castSlow:0.5, range:500, angle:22,
+          dmg:[68,106,144,182,205,227,251], ap:0.70 },   /* denge T1: range 600, angle 20, ap 0.75 idi */   /* denge C12: 72-264 idi */   // denge C7: ap 0.80 idi   // denge C1: 76-278 idi   // denge F1 (11.10.2026, zırh sonrası): Alev Üfleme dmg 70-190 idi; Yuvarlan dmg 60-150, hpPct 0.04 idi
       // E: imlece doğru dist birim sıçrar (birimlerin üstünden geçer, duvarda durur). Başladığı yerden sıçrama yönünde, GERÇEK gidilen
       //    mesafenin mult katı uzunlukta, width genişliğinde ateş şeridi (sıçrama bitince oluşur): rakiplere bir kez büyü hasarı + slow yavaşlatma
       e:{ name:'Alevli Sıçrayış', max:7, type:'flameleap', cd:[13,12,11,10,9.5,9,8.5], dist:300, speed:1100, width:120, mult:2,
-          dmg:[60,90,120,150,168,186,204], ap:0.70, slow:0.25, slowDur:1 },
+          dmg:[60,90,120,150,168,186,204], ap:0.65, slow:0.25, slowDur:1 },   /* denge T1: ap 0.70 idi */
       // boşluk: anında; dur sn kahramanla hareket eden radius yarıçaplı halka: içindekilere saniyede dps + ap * YG büyü hasarı ve
       //         slow yavaşlatma; süre boyunca kendisi res + resAp * YG zırh ve büyü direnci kazanır
-      s:{ name:'Alev Halkası', max:3, type:'firering', cd:[30,24,21], radius:250, dur:4, dps:[40,65,80], ap:0.20, slow:0.25,
-          res:10, resAp:0.15 }
+      s:{ name:'Alev Halkası', max:3, type:'firering', cd:[40,35,30], radius:250, dur:4, dps:[30,50,70], ap:0.15, slow:0.25,
+          res:10, resAp:0.10 }   /* denge T1: cd 30/24/21, dps 40/65/80, ap 0.20, resAp 0.15 idi */
     }
   },
   blood: {
