@@ -3,6 +3,7 @@
 Haxball tarzı yuvarlak token karakterli 2D MOBA. Tarayıcıda çalışır, şimdilik botlara karşı 1v1, tek yatay koridor. Kazanma koşulu: düşman nexus'unu yıkmak.
 
 ## Çalışma tercihleri (Kayra)
+- Denge testleri kısa olsun (16.10.2026): 15-20 dk'lık hızlı tarama (teams2v2.js --fast 1, 4 bulut parçası, --diff expert; kullanıcı Uzman botu önemsiyor). Uzun tam tarama yalnız istenirse.
 - Her zaman Türkçe yaz, kısa ve doğrudan ol.
 - Belirsiz bir iş varsa uygulamadan önce soru sor.
 - Yazarken em dash ("—") kullanma.
