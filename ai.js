@@ -51,7 +51,7 @@ export const LEVEL_IDS = ['easy','medium','hard','expert'];
 AI.lvl=0; AI.artHp=0.4; AI.dodgeW=1; AI.dodgeNeed=0; AI.dodgeT=1e9; AI.look=0; AI.towerGate=0;
 /* Karar katmanı (12.10.2026): misjudge = öldürme/dövüş tahmininde rastgele yanılma payı (±), pokeP = dürtme fırsatını değerlendirme olasılığı,
    killSense = öldürme penceresini fark etme olasılığı, bushP = beklerken çalıya girme olasılığı, lead = nişanda hareket tahmininin ne kadarını kullandığı */
-AI.numAdv=0; AI.noLimbo=0; AI.limboT=1.2; AI.limboAdv=0.95; AI.titanAdv=0; AI.kwHit=0; AI.prio=0; AI.prioW=90; AI.prioD=1.2; AI.deadRecall=0; AI.deadRecallT=10; AI.persOn=1; AI.titan=0; AI.siege=1; AI.selfKw=1; AI.kwOn=1; AI.pokeOn=1; AI.bushOn=1; AI.misjudge=0.3; AI.pokeP=0.45; AI.killSense=0.6; AI.bushP=0.25; AI.lead=0.7;
+AI.blinkGate=0; AI.blinkAdv=1.3; AI.numAdv=0; AI.noLimbo=0; AI.limboT=1.2; AI.limboAdv=0.95; AI.titanAdv=0; AI.kwHit=0; AI.prio=0; AI.prioW=90; AI.prioD=1.2; AI.deadRecall=0; AI.deadRecallT=10; AI.persOn=1; AI.titan=0; AI.siege=1; AI.selfKw=1; AI.kwOn=1; AI.pokeOn=1; AI.bushOn=1; AI.misjudge=0.3; AI.pokeP=0.45; AI.killSense=0.6; AI.bushP=0.25; AI.lead=0.7;
 const MED = { lvl:1, win:1, cmb:1, recallHp:0.3,   /* bot C2: üsse dönüş canı 0.22 idi (Orta yeni-eski %68 ve %61, 160 maç) */   /* bot C1: Orta'ya bekleme penceresi ve kombo (Orta>Kolay %58->%66, 160 maç) */ misjudge:0.12, pokeP:0.7, killSense:0.95,   /* bot C3: misjudge 0.18, killSense 0.85 idi (yeni-eski Orta %57, 160 maç; Orta>Kolay %79, Zor>Orta %71) */ bushP:0.45, lead:0.85, react:[0.07,0.14], aimNoise:0.03, humanErr:22, humanRange:28, humanAtkDelay:0.07, humanMoveHold:[0.05,0.12], lhSoon:1.5, dodgeW:2, dodgeNeed:14 };
 const HARD = { lvl:2, win:1, cmb:1, bait:1, wave:1, misjudge:0.1, pokeP:0.85, killSense:0.95, bushP:0.55, lead:0.95,   // karar katmanı bayrakları (Zor): bekleme penceresi, kombo/öldürme, kule çekme, dalga dönüşü
   react:[0.04,0.09], aimNoise:0.02, humanErr:5, humanRange:6, humanAtkDelay:0.015, humanMoveHold:[0.025,0.06] };
@@ -59,7 +59,7 @@ export const LEVEL_PARAMS = [];   // araçlar için (tools/levels.js deney ayar�
 const LV = [AI,
   Object.assign(Object.create(AI), MED),
   Object.assign(Object.create(AI), MED, HARD),
-  Object.assign(Object.create(AI), MED, HARD, { lvl:3, numAdv:1, kwHit:1, noLimbo:1, selfKw:0, misjudge:0.05, pokeP:0.9, killSense:1, lead:1, dng:1, chain:1, focus:1, react:[0.03,0.08], aimNoise:0.015, humanErr:0, humanRange:0, humanAtkDelay:0, humanMoveHold:[0.02,0.04],
+  Object.assign(Object.create(AI), MED, HARD, { lvl:3, blinkGate:1, numAdv:1, kwHit:1, noLimbo:1, selfKw:0, misjudge:0.05, pokeP:0.9, killSense:1, lead:1, dng:1, chain:1, focus:1, react:[0.03,0.08], aimNoise:0.015, humanErr:0, humanRange:0, humanAtkDelay:0, humanMoveHold:[0.02,0.04],
     dodgeW:2.4, dodgeNeed:16, dodgeT:0.6, foeMemory:4, look:2, towerGate:0 })];
 LV.forEach((o,i)=>{ LEVEL_PARAMS[i]=o; });
 const LVP = b => LV[b.botLevel|0] || AI;
@@ -845,7 +845,7 @@ function tetherPlan(b, e, eVis, d, fight, M, sk, ev){
 }
 /* Gölge Adımı hedefi: { x, y, esc }. Kaçış: canı düşük ve rakip üstündeyse üsse doğru (rakipten uzaklaşan, duvarsız, kule dışı bir nokta).
    Giriş/kombo: dövüşte, patlama alanı rakibe değecek yere (rakipten ~130 geride iner), güvenliyse. */
-function blinkPlan(b, e, eVis, d, fight, M, sk){
+function blinkPlan(b, e, eVis, d, fight, M, sk, ev){
   if(!eVis || e.stasis>0) return null;
   if(hpNow(b)<AI.recallHp*1.8 && d<threatR(e,b)+120){
     const home=Math.atan2(b.spawnY-b.y, b.spawnX-b.x);
@@ -855,6 +855,8 @@ function blinkPlan(b, e, eVis, d, fight, M, sk){
     }
     return null;
   }
+  // bot T4 (Uzman, blinkGate): içeri giriş yalnız öldürme penceresi, rakip köklü/sersem/çekilmiş ya da açık üstünlükte (Gölge dibe inip ölüyordu)
+  if(LVP(b).blinkGate && !(M.kw || e.st.root>0.2 || e.st.freeze>0.2 || e.pulled || (ev && ev.adv>=LVP(b).blinkAdv))) return null;
   if((fight || M.poking) && !M.recall && hpNow(b)>=0.45 && d>200 && d<sk.range+sk.radius-30){
     const t=Math.min(sk.range, d-130), ux=(e.x-b.x)/d, uy=(e.y-b.y)/d, px=b.x+ux*t, py=b.y+uy*t;
     if(inWall(px,py,b.r+4) || unsafeAt(b,px,py) || !heroHitSafe(b,e,px,py)) return null;
@@ -1235,7 +1237,7 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
     } else if(sk.type==='blink'){
       // dövüşte rakibe girerken (patlama rakibe değer) ya da canı düşükken üsse doğru kaçış; zincir bu tikte atılmıyorsa
       if(!cmd.rmb){
-        const p=blinkPlan(b,e,eVis,d,fight,M,sk);
+        const p=blinkPlan(b,e,eVis,d,fight,M,sk,ev);
         if(p){ use=true; cmd.tx=p.x; cmd.ty=p.y; if(p.esc) M.noBack=S.time+sk.back+0.2; else if(!fight) M.blinkPoke=S.time+0.5+rand()*0.4; }
       }
     } else if(sk.type==='mimic'){
@@ -1244,7 +1246,7 @@ function useSkills(b, e, eVis, tgt, fight, M, cmd, ev){
       if(ls && b.rank[lk]>0 && !cmd.rmb && !cmd.e){
         if(ls.type==='tether'){ const a=tetherPlan(b,e,eVis,d,fight,M,ls,ev); if(a!==null){ use=true; cmd.aim=a; } }
         else if(ls.type==='blink'){
-          const p=blinkPlan(b,e,eVis,d,fight,M,ls);
+          const p=blinkPlan(b,e,eVis,d,fight,M,ls,ev);
           if(p){ use=true; cmd.tx=p.x; cmd.ty=p.y; if(p.esc) M.noBack=S.time+ls.back+0.2; }
         }
       }
