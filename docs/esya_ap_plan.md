@@ -1,6 +1,6 @@
 # Yetenek Gücü (YG) eşyaları planı (taslak, 16.10.2026)
 
-Yalnız tasarım taslağı: hiçbir kod ya da sayı değişmedi. Kaynaklar: items.js, itemdesc.js, sim.js "eşyalar" bölümü, docs/esya_cakisma.md.
+UYGULANDI (16.10.2026, Kayra kararlarıyla; son sayılar items.js ve CLAUDE.md 'YG eşyaları uygulandı' maddesinde, bazıları bu taslaktan farklı). Aşağısı ilk taslak. Kaynaklar: items.js, itemdesc.js, sim.js "eşyalar" bölümü, docs/esya_cakisma.md.
 
 ## Bizi LoL'den ayıran ilkeler
 

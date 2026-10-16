@@ -1,7 +1,7 @@
 /* Otomatik satın alma (mobil MOBA'lardaki gibi): oyuncu kahraman başına eşya sırası seçer; açıksa üste/ölüyken
    altın yettikçe sıradaki eşya (önce parçaları) alınır. Kural sim.js botShop ile aynı (h.autoBuy, h.build).
    Kayıt tarayıcıda (localStorage). Düzenleyici hem ana menüden hem mağazadan açılır. */
-import { ITEMS, PARTS, BUILDS, SLOTS, DEF } from './items.js';
+import { ITEMS, PARTS, BUILDS, SLOTS, DEF, BURN } from './items.js';
 import { HERO_NAMES } from './names.js';
 
 const KEY = 'moba2d_autobuy_v1', MAX = SLOTS + 1;   // 6. giriş yedek (bir eşya alınamazsa sıradaki)
@@ -10,7 +10,8 @@ const state = { on:true, builds:{} };
 try { const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (o) { state.on = o.on !== false; state.builds = o.builds || {}; } } catch (e) { /* varsayılan */ }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* sorun değil */ } }
 
-const valid = id => id === DEF || !!ITEMS[id];
+const FLEX = { [DEF]:['Esnek savunma','rakibin hasarına göre zırh ya da büyü direnci','rakibe göre zırh / BD'], [BURN]:['Esnek yakma','rakip canlıysa Kara Alev, YG yüksekse Akkor Asası','Kara Alev / Akkor'] };   // alım anında çözülen yuvalar
+const valid = id => !!FLEX[id] || !!ITEMS[id];
 export const autoBuyOn = () => state.on;
 export function setAutoBuy(v) { state.on = !!v; save(); }
 export function defaultBuild(hero) { return [...((BUILDS[hero] || {}).default || [])]; }
@@ -20,7 +21,7 @@ function setBuild(hero, list) { state.builds[hero] = list.slice(0, MAX); save();
 /* Oyun başında oyuncuya uygula (sim h.build kopyası; DEF alım anında çözülür) */
 export function applyAutoBuy(h) { if (!h) return; h.autoBuy = state.on; h.build = getBuild(h.type); }
 
-const nameOf = id => id === DEF ? 'Esnek savunma' : ITEMS[id].name;
+const nameOf = id => FLEX[id] ? FLEX[id][0] : ITEMS[id].name;
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const STATN = [['dmg','SG'],['asPct','SH',1],['crit','Krit',1],['ls','CÇ',1],['ap','YG'],['ah','YH'],['hp','Can'],['armor','Zırh'],['mr','BD'],['msPct','Hız',1],['lethal','Delme'],['regen','Yen.']];
 const statLine = st => STATN.filter(([k]) => st[k]).map(([k, n, p]) => '+' + (p ? Math.round(st[k] * 100) + '%' : st[k]) + ' ' + n).join(' ');
@@ -40,14 +41,14 @@ export function openBuildEditor(hero, onChange) {
       + (isCustom(hero) ? 'Kendi sıran.' : 'Şu an önerilen sıra.') + '</div><div class="abbody"><div class="ablist"><h4>Sıra <span>toplam ' + cost + ' altın</span></h4>';
     list.forEach((id, i) => {
       h += '<div class="abrow' + (i >= SLOTS ? ' spare' : '') + '"><span class="abn">' + (i + 1) + '</span><span class="abnm">' + esc(nameOf(id))
-        + '<small>' + (id === DEF ? 'rakibin hasarına göre zırh ya da büyü direnci' : statLine(ITEMS[id].stats) + ' · ' + ITEMS[id].cost) + '</small></span>'
+        + '<small>' + (FLEX[id] ? FLEX[id][1] : statLine(ITEMS[id].stats) + ' · ' + ITEMS[id].cost) + '</small></span>'
         + '<button data-act="up" data-i="' + i + '"' + (i ? '' : ' disabled') + '>▲</button><button data-act="down" data-i="' + i + '"' + (i < list.length - 1 ? '' : ' disabled') + '>▼</button>'
         + '<button data-act="rm" data-i="' + i + '">✕</button></div>';
     });
     if (!list.length) h += '<div class="abempty">Liste boş: aşağıdan ya da sağdan eşya ekle.</div>';
     h += '<div class="abbtns"><button data-act="reset">Önerilene dön</button><button data-act="clear">Temizle</button></div></div>'
       + '<div class="abpick"><input id="abQ" placeholder="Eşya ara" value="' + esc(q) + '">'
-      + '<button class="abit def" data-add="' + DEF + '"' + (list.length >= MAX ? ' disabled' : '') + '><b>Esnek savunma</b><small>rakibe göre zırh / BD</small></button>';
+      + [DEF, BURN].map(f => '<button class="abit def" data-add="' + f + '"' + (list.length >= MAX || (f === BURN && list.includes(BURN)) ? ' disabled' : '') + '><b>' + FLEX[f][0] + '</b><small>' + FLEX[f][2] + '</small></button>').join('');
     const lq = q.toLocaleLowerCase('tr');
     for (const c of CATS) {
       const ids = Object.keys(ITEMS).filter(id => ITEMS[id].cat === c && (!lq || ITEMS[id].name.toLocaleLowerCase('tr').includes(lq)));

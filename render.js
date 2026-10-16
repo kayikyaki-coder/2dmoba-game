@@ -392,6 +392,12 @@ function drawHero(h){
   if(st.giant){ ctx.beginPath(); ctx.arc(h.x,h.y,h.r+7,0,TAU); ctx.strokeStyle='rgba(255,207,90,0.85)'; ctx.lineWidth=4; ctx.stroke(); }
   juiceToken(ctx,h,()=>drawToken(ctx,h.type,h.x,h.y,h.r,{ team:h.team, aim:h.aim, flash:h.flash>0?h.flash/0.12:0 }));   // atılışta sıkış-uza (juice.js)
   if(st.slow){ ctx.beginPath(); ctx.arc(h.x,h.y,h.r,0,TAU); ctx.fillStyle='rgba(92,200,255,0.3)'; ctx.fill(); }
+  if(h.stasis>0){   // Kum Saati heykeli: kum rengi örtü, çatlak halka ve kalkışa kalan süre yayı
+    const k=Math.min(1,h.stasis/1.5);
+    ctx.save(); ctx.beginPath(); ctx.arc(h.x,h.y,h.r,0,TAU); ctx.fillStyle='rgba(214,180,110,0.72)'; ctx.fill();
+    ctx.strokeStyle='#f3dc9a'; ctx.lineWidth=3; ctx.setLineDash([6,4]); ctx.beginPath(); ctx.arc(h.x,h.y,h.r+4,0,TAU); ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle='#fff3c4'; ctx.lineWidth=4; ctx.beginPath(); ctx.arc(h.x,h.y,h.r+9,-Math.PI/2,-Math.PI/2+TAU*(1-k)); ctx.stroke(); ctx.restore();
+  }
   if(st.shell){   // Gülle Kabuk: kalın altıgen zırh plakaları
     const fade=Math.min(1,st.shell.t/0.3);
     ctx.save(); ctx.globalAlpha=fade; ctx.strokeStyle='#e8d9a0'; ctx.lineWidth=5; ctx.beginPath();
@@ -1479,7 +1485,7 @@ function hudChips(p,x,y,maxW){
   if(p.dead) list.push({ t:'Öldün, '+Math.ceil(Math.max(0,p.respawn))+' sn', c:'#ffb3b3', bg:'#58232a' });
   if(st.silence>0) list.push({ t:'Susturuldu '+st.silence.toFixed(1)+' sn', c:'#e3d1ff', bg:'#4a2f7a' });
   if(st.freeze>0 && !p.dead) list.push({ t:'Kontrol altında', c:'#bfeaff', bg:'#2c4a66' });
-  if(p.stasis>0) list.push({ t:'Dokunulmaz '+p.stasis.toFixed(1)+' sn', c:'#fff1b0', bg:'#5a4a1a' });
+  if(p.stasis>0) list.push({ t:'Kum Heykeli '+p.stasis.toFixed(1)+' sn', c:'#fff1b0', bg:'#5a4a1a' });
   if(p.recallCh) list.push({ t:'Üsse dönüş '+Math.max(0,p.recallCh.t).toFixed(1)+' sn', c:'#b8d8ff', bg:'#26406a' });
   if(p.jm) list.push({ t:'Orman '+p.jm+' (+%'+Math.round(Math.min(JUNGLE_MASTERY.max,p.jm)*JUNGLE_MASTERY.per*100)+')', c:'#d8f7c0', bg:'#2f4a22' });   // orman hakimiyeti
   if(p.jb){ for(const k of ['regen','burn']) if(p.jb[k]>S.time) list.push({ t:BUFFS[k].name+' '+Math.ceil(p.jb[k]-S.time)+' sn', c:k==='regen'?'#c8fff2':'#ffd9b8', bg:k==='regen'?'#1d5a4e':'#6a3416' }); }
@@ -1595,8 +1601,6 @@ function hudPanel(p,W,H){
         ctx.font='bold 18px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineWidth=3; ctx.strokeStyle='rgba(0,0,0,0.8)';
         ctx.strokeText(tx,x+IS/2,y+IS/2); ctx.fillStyle='#fff'; ctx.fillText(tx,x+IS/2,y+IS/2);
       }
-      ctx.fillStyle='#ffd24d'; rrect(x+3,y+3,14,14,4); ctx.fill();
-      hudText('1',x+10,y+11,11,'#222','center',true,'middle');
     }
     if(it) hudZones.push({ x, y, w:IS, h:IS, tip:()=>{ const t=hudItemTip(id); if(t && act) t.lines.push({ t:'Aktif eşya: 1 tuşu', c:'#ffd24d' }); return t; } });
   }

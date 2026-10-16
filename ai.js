@@ -22,7 +22,6 @@ export const AI = {
   commitTime:3,         // daldıktan sonra bu kadar sn dövüşü bırakma
   lhSoon:1.5,
   lhPushGuard:0,        // itme vuruşu, bu kadar saldırı süresi içinde son vuruş geliyorsa yapılmaz           // son vuruş: bu kadar saldırı süresi içinde öldürülebilecekse bekle
-  stasisHp:0.25,        // Kum Saati bu canın altında kullanılır         // geri çekilirken üsse doğru eğilim
   defendAdv:0.6,        // rakip kahraman yapımıza vururken bu üstünlükte bile savun (kule yardım eder)
   pokeAdv:0.9,          // menzilli kahraman bu üstünlükte rakibi dürter
   towerMargin:40,       // kule menzili güvenlik payı
@@ -558,7 +557,8 @@ function burstHit(h){ let s=0; for(const [t,v] of Object.entries(burstRaw(h,0)))
 function killCalc(b, e){
   const autos = ranged(b) ? 2 : 2.5;
   const myDmg=((LVP(b).kwHit ? burstHit(b) : burstSum(b))+atkDmg(b)*hitMult(b)*autos)*resF(e)+burnOf(b)*2;
-  const ehp=e.hp+(e.st.shield?e.st.shield.amt:0);
+  let ehp=e.hp+(e.st.shield?e.st.shield.amt:0);
+  const Z=e.bonus && e.bonus.stasis; if(Z && (e.ic.stasisCd||0)<=S.time) ehp+=e.maxHp*Z.hp;   // Kum Saati hazır: ölümcül vuruştan sonra heykel ve küçük canla kalkış
   let eDmg=0;
   for(const u of S.heroes) if(u.team!==b.team && !u.dead && (u===e || (canSee(b.team,u) && dist(u,e)<700))) eDmg+=(burstSum(u)+dps(u)*2)*resF(b);
   if(!heroHitSafe(b,e,e.x,e.y)) eDmg+=towerChampHit(0, S.time)+towerChampHit(1, S.time);
@@ -1582,8 +1582,7 @@ function botCommandCore(b, dt){
   if(eVis && !kw && LP.selfKw && mode!=='duel' && d<1100){ const k2=killCalc(e,b); M.inDanger = k2.myDmg > (b.hp+(b.st.shield?b.st.shield.amt:0))*0.95; }
   if(S.time>=(M.engT||0)){ M.engT=S.time+2+rand()*2; M.engJit=1+(rand()*2-1)*LP.misjudge*0.6; }
 
-  // Kum Saati: can çok azken ve rakip yakındayken dokunulmazlık
-  if(b.bonus && b.bonus.stasis && (b.ic.stasisCd||0)<=S.time && hpNow(b)<AI.stasisHp && eVis && d<450) cmd.item=true;
+  // Kum Saati (16.10.2026) pasif oldu: ölümcül hasarda kendiliğinden heykel olur, botun tuşa basması gerekmez
 
   // Eşya almak için üsse dön: sıradaki büyük eşyayı tamamlayacak altın biriktiyse ve ortalık sakinse
   const nb=nextBuild(b);
