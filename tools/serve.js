@@ -3,6 +3,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { attachRelay } from './wsrelay.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const port = Number(process.env.PORT) || 8080;
@@ -51,7 +52,11 @@ function saveMap(body) {
   return null;
 }
 
-http.createServer((req, res) => {
+/* Tünel/vekil üzerinden gelen (uzaktaki arkadaş) istekler: harita kaydı ve tools/ kapalı. Yerel istek (localhost) eskisi gibi. */
+const isRemote = req => !!(req.headers['x-forwarded-for'] || req.headers['cf-connecting-ip'] || req.headers['x-real-ip'] || req.headers['forwarded']);
+
+const server = http.createServer((req, res) => {
+  if (req.method === 'POST' && isRemote(req)) { res.writeHead(403).end(); return; }
   if (req.method === 'POST' && new URL(req.url, 'http://x').pathname === '/api/map') {
     let body = '', big = false;
     req.on('data', c => { body += c; if (body.length > 5e6) { big = true; req.destroy(); } });
@@ -65,9 +70,12 @@ http.createServer((req, res) => {
   let p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
   if (p === '/') p = '/index.html';
   const file = path.join(root, p);
-  if (!file.startsWith(root) || file.includes(path.sep + 'old' + path.sep)) { res.writeHead(403).end(); return; }
+  const rel = path.relative(root, file).split(path.sep);
+  if (!file.startsWith(root) || file.includes(path.sep + 'old' + path.sep) || rel.some(x => x.startsWith('.')) || (isRemote(req) && ['tools', 'docs'].includes(rel[0]))) { res.writeHead(403).end(); return; }
   fs.readFile(file, (err, buf) => {
     if (err) { res.writeHead(404).end('yok'); return; }
     res.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' }).end(buf);
   });
-}).listen(port, () => console.log('http://localhost:' + port));
+});
+attachRelay(server);   // online oda rölesi: ws://.../ws
+server.listen(port, () => console.log('http://localhost:' + port));

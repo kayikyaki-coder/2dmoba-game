@@ -45,7 +45,7 @@ function save() {
   try { localStorage.setItem(KEY, JSON.stringify({ ...pick, fog:settings.fog, waves:settings.waves, showHit:settings.showHit, aimMode:settings.aimMode })); } catch (e) { /* sorun değil */ }
 }
 
-const cb = { start(){}, resume(){}, restart(){}, toMenu(){}, levelUp(){} };
+const cb = { start(){}, resume(){}, restart(){}, toMenu(){}, levelUp(){}, online(){} };
 export function bindMenu(fns) { Object.assign(cb, fns); }
 
 const $ = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; };
@@ -125,6 +125,10 @@ function buildMenu() {
     mg.append(b);
   }
   m.append(mg); side.append(m);
+  // online
+  const on = $('section', 'blk'); on.append($('h2', '', 'Online'));
+  const onb = $('button', 'abbtn', 'Arkadaşla oyna'); onb.id = 'onlineBtn'; onb.addEventListener('click', () => cb.online());
+  on.append(onb, $('div', 'note', 'Oda kur ya da kodla katıl. 1v1, ortak 2v2 ya da karşılıklı 2v2.')); side.append(on);
   // otomatik alım
   const ab = $('section', 'blk'); ab.append($('h2', '', 'Otomatik alım'));
   const abb = $('button', 'abbtn'); abb.id = 'abBtn'; abb.addEventListener('click', () => openBuildEditor(pick.hero, () => sync()));
