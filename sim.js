@@ -1798,7 +1798,8 @@ function tetherTick(h, dt){
   h.ic.tether=null;
   damage(u, T.dmg, h, { type:'magic', skill:true });
   if(!u.dead && !(u.stasis>0)){
-    u.st.root=Math.max(u.st.root||0, T.root); ccHit(u);
+    if(u.kind==='hero'){ u.st.root=Math.max(u.st.root||0, T.root); ccHit(u); }
+    else u.st.freeze=Math.max(u.st.freeze||0, T.root);   // minyon/canavarda kök yok: aynı süre durur
     fx({ type:'ring', owner:u, r0:u.r, r1:u.r+30, color:'#9a7bff', lw:5, life:0.4 });
   }
 }
@@ -2617,8 +2618,8 @@ export function updateProjectiles(dt){
         p.dead=true;
         continue;
       }
-      if(p.tether){   // Zincir: minyon durdurur (hasar ve bağ yok); kahramana hasar + bağ (dokunulmaz hedefe bağ yok)
-        if(hit.kind==='hero' && !(hit.stasis>0) && !p.owner.dead){
+      if(p.tether){   // Zincir: değdiği ilk rakibe (kahraman, minyon, canavar; 17.10.2026'dan beri minyon da) hasar + bağ (dokunulmaz hedefe bağ yok)
+        if(!(hit.stasis>0) && !p.owner.dead){
           damage(hit, p.dmg, p.owner, { type:'magic', skill:true });
           if(!hit.dead && !p.owner.dead) p.owner.ic.tether={ target:hit, t:p.tether.bind, total:p.tether.bind, range:p.tether.range, dmg:p.dmg, root:p.tether.root };
         }
