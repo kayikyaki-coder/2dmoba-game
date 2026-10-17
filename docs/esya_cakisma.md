@@ -1,6 +1,6 @@
 # Eşya çakışma listesi (16.10.2026)
 
-Aynı işe yarayan ya da çakışan eşyalar. Yalnız liste: hiçbir eşya değiştirilmedi. Sayılar items.js'ten (stat kısmında her büyük eşyanın +100 taban canı da var, can yazan eşyalar hariç).
+Aynı işe yarayan ya da çakışan eşyalar. 17.10.2026 kararları (SG grubu): Yontulmuş Mızrak ve Kızıl Av kaldırıldı; Yırtıcı Pençe yetenek isabetinde azami canın %5'i (5 sn); Gölge Hançeri öldürünce 1 sn görünmezlik; Delici Ok SG + can + YH, bütün fiziksel hasarda %25 zırh delme (Kanlı Gürz ile aynı pasif, birikmez); Talih Kılıcı kendi kritiği yok, %40'a kadar birikim, yalnız kahramana kritik sıfırlar; Dikenli Çizme hız %5, kahramana vuruşta %6 saldırı hızı x3 (3 sn). Aşağıdaki tablo kararlardan önceki hali gösterir. Sayılar items.js'ten (stat kısmında her büyük eşyanın +100 taban canı da var, can yazan eşyalar hariç).
 
 Önemli kural: sim.js computeBonus pasifleri eşsiz tutar (`B[k]=v`). Aynı pasif anahtarını taşıyan iki eşya birikmez, envanterde SONRAKİ eşyanın değeri geçerli olur (daha zayıf olan sonradan alınırsa güçlü olanı ezer; bekleme sayacı da ortaktır). Mağaza açıklamasında bu eşyalara "Benzersiz: ... ile birikmez" notu düşülür.
 

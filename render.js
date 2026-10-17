@@ -1655,6 +1655,7 @@ function drawHud(){
 /* Oyuncunun takımının göremediği şeyler çizilmez */
 /* Çalıdaki birim yarı saydam çizilir (gizli olduğu belli olsun) */
 function inBushAlpha(u, draw){
+  if(!u.dead && u.ic && u.ic.invisUntil>S.time){ ctx.save(); ctx.globalAlpha=0.35; draw(); ctx.restore(); return; }   // Gölge Hançeri görünmezliği (yalnız dost görür)
   if(!BUSHES.length || u.dead || bushAt(u.x,u.y)<0){ draw(); return; }
   ctx.save(); ctx.globalAlpha=0.55; draw(); ctx.restore();
 }

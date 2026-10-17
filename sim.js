@@ -202,6 +202,7 @@ export function attackSpeed(h){
   return stat(h,'as') * (1 + (h.human ? settings.asBonus : 0)) * (1 + (h.st.asB ? h.st.asB.amt : 0)) * (1 + (h.st.frenzy ? h.st.frenzy.as : 0)) * (1+(B.asPct||0))
     * (h.st.titanSlow ? 1-h.st.titanSlow.amt : 1) * (h.ic.asUntil>S.time ? 1+h.ic.asAmt : 1)   // Kasırga Baltası
     * (h.ic.asStackUntil>S.time ? 1+h.ic.asStackN*h.ic.asStackAmt : 1)   // Hız Çarkı
+    * (h.ic.hasUntil>S.time ? 1+h.ic.hasN*h.ic.hasAmt : 1)               // Dikenli Çizme
     * (h.ic.frzUntil>S.time ? 1+h.ic.frzN*frzAmt(h) : 1)                   // Gladyatör Kızışma
     * (h.ic.arenaUntil>S.time ? 1+arenaAs(h) : 1);                          // Gladyatör Arena
 }
@@ -265,6 +266,7 @@ function bushOf(u){
 }
 export function canSee(team, u){
   if(u.team===team) return true;
+  if(u.ic && u.ic.invisUntil>S.time) return false;   // Gölge Hançeri görünmezliği (sis kapalıyken de)
   if(!settings.fog) return true;
   // Kilitli Yaylım kanallanırken takım hedefi görür (sis ve çalı dahil)
   if(u.kind==='hero') for(let i=0;i<S.heroes.length;i++){ const a=S.heroes[i]; if(a.chan && a.team===team && a.chan.target===u && !a.dead) return true; }
@@ -437,6 +439,9 @@ export function damage(e, amt, src, opts){
   if(src && src.kind==='hero' && src.bonus){
     if(opts.basic && SB.ls && !opts.noLs){ const hv=a*SB.ls*(SB.lsLow && src.hp<src.maxHp*SB.lsLow.hp ? SB.lsLow.mult : 1); heal(src, hv); if(SB.lsShare) shareHeal(src, hv*SB.lsShare); }   // Kan Bağı: yakın dosta pay   // can çalma (Sekme mermisinde yok); Kanlı Yay can azalınca katlar
     if(opts.skill && SB.spellVamp && !opts.noLs && e.kind!=='struct') heal(src, a*SB.spellVamp*(e.kind==='hero' ? 1 : ITEM_RULES.vampMinion));   // Kanlı Pençe, Kan Kasesi (minyonda üçte biri)
+    if(opts.skill && !opts.dot && !opts.noProc && e.kind==='hero' && e.team!==src.team && SB.skillMaxHp && e.hp>0 && (src.ic.skMhCd||0)<=S.time){   // Yırtıcı Pençe: yetenek isabeti azami can yüzdesi
+      src.ic.skMhCd=S.time+SB.skillMaxHp.cd; damage(e, e.maxHp*SB.skillMaxHp.pct, src, { noProc:true, noSplash:true });
+    }
     if(opts.skill && e.kind==='hero' && SB.skillSunder){ e.ic.sunderT=S.time+SB.skillSunder.dur; e.ic.sunderPct=SB.skillSunder.pct; }   // Zırh Paralayıcı
     if(opts.basic && opts.crit && SB.critSlow && e.kind!=='struct') applySlow(e, SB.critSlow.amt, SB.critSlow.dur);   // Kristal Hançer
     if(opts.skill && SB.skillAd && !opts.noProc && !opts.dot && e.kind!=='struct' && e.hp>0) damage(e, SB.skillAd*atkDmg(src), src, { type:opts.type||'phys', noProc:true, noSplash:true });   // Hüner Bıçağı
@@ -642,6 +647,7 @@ export function kill(e, src){
     if(killer && killer.kind==='hero' && killer.team!==e.team){ killer.kills++; for(const a of takedownParticipants(e, killer)) if(a!==killer) a.assists++; }
     bloodHarvest(e, src, killer);
     passBuffs(e, killer);
+    if(killer && killer.kind==='hero' && killer.team!==e.team && killer.bonus && killer.bonus.killInvis && !killer.dead) killer.ic.invisUntil=S.time+killer.bonus.killInvis.dur;   // Gölge Hançeri: öldürünce kısa görünmezlik
     e.ic.bleed=null; e.st.curse=null; e.ic.tether=null; e.ic.back=null;
     if(e.ic.duel) duelEnd(e); for(const g of S.heroes) if(g.ic.duel && g.ic.duel.tgt===e) duelEnd(g);   // Gladyatör: Meydan Okuma biter, çalınanlar döner
     if(e.ic.frzN) e.ic.frzN=0; e.ic.heavy=null; e.ic.arenaUntil=0;   // Gölge: bağ ve dönüş noktası da biter   // Kan Hasadı iyileşmesi ve Kan Laneti ölünce biter
@@ -793,6 +799,7 @@ export function onBasicHit(src, e){
     for(const u of foes(src.team,false)) if(dist(u,src)-u.r<=Q.radius) damage(u, x, src, { type:'magic', ...P });
     fx({ type:'boom', x:src.x, y:src.y, r0:src.r, r1:Q.radius, color:'#9fd6ff', life:0.3 });
   }
+  if(B.hitAsStack && e.kind==='hero'){ const H=B.hitAsStack, ic=src.ic; ic.hasN = ic.hasUntil>S.time ? Math.min(H.max, ic.hasN+1) : 1; ic.hasUntil=S.time+H.dur; ic.hasAmt=H.amt; }   // Dikenli Çizme: rakip kahramana vuruşta saldırı hızı birikir
   if(B.hitMsStack && e.kind==='hero'){ const H=B.hitMsStack, ic=src.ic; ic.hmsN = ic.hmsUntil>S.time ? Math.min(H.max, ic.hmsN+1) : 1; ic.hmsUntil=S.time+H.dur; ic.hmsAmt=H.amt; }   // Dikenli Çizme
   if(B.shredFlat && e.kind==='hero'){ e.ic.flatDownT=S.time+B.shredFlat.dur; e.ic.flatDown=B.shredFlat.amt; }   // Ölüm Haritası
   if(B.shred && e.kind==='hero' && !e.dead){ const o=e.st.shred; e.st.shred={ n:Math.min(B.shred.max,(o?o.n:0)+1), t:B.shred.dur, pct:B.shred.pct }; }
@@ -1476,7 +1483,7 @@ export function releaseAttack(h){
   const at=atkDef(h), ang=h.atk.aim, cx=Math.cos(ang), cy=Math.sin(ang), B=h.bonus||{};
   const cs=B.critStack ? (h.ic.critStk||0) : 0, cch=B.critStack ? Math.min(1,(B.crit||0)+cs) : B.crit;   // Talih Kılıcı: kritik vurulmadıkça biriken ilave şans
   const crit = cch>0 && rand()<cch;
-  if(B.critStack) h.ic.critStk = crit ? 0 : Math.min(B.critStack.max, cs+B.critStack.step);
+  if(B.critStack){ const t=h.atk.target; if(!crit) h.ic.critStk=Math.min(B.critStack.max, cs+B.critStack.step); else if(t && t.kind==='hero') h.ic.critStk=0; }   // kahramana kritik sıfırlar; minyon/canavar/yapıda birikim kalır
   const dmg=atkDmg(h)*(crit ? (B.critMult||CRIT_MULT) : 1);
   if(at.type==='projectile'){
     // güdümlü: hedefe gider, yoldakiler engelleyemez, ıskalamaz

@@ -37,7 +37,6 @@ export const ITEMS = {
   ldr:      { cat:'Nişancı', name:'Zırh Yaran',        cost:1225,  parts:['longsword','longsword','cloak'], stats:{ dmg:26, crit:0.19 }, basicArmorPen:0.30, desc:'Düz vuruşlar rakibin zırhının %30\'unu yok sayar' },
   // Dövüşçü
   cleaver:  { cat:'Dövüşçü', name:'Kara Balta',        cost:1175,  parts:['longsword','ruby','focus'],      stats:{ dmg:26, hp:225, ah:11 }, shred:{ pct:0.05, max:6, dur:4 }, desc:'Fiziksel vuruş rakibin zırhını %5 azaltır (6 kata kadar, 4 sn)' },
-  spear:    { cat:'Dövüşçü', name:'Yontulmuş Mızrak',  cost:1175,  parts:['longsword','longsword','ruby'],  stats:{ dmg:23, hp:188, ah:11 }, champMaxHp:{ pct:0.10, cd:10 }, desc:'Rakip şampiyona düz vuruş ek olarak onun azami canının %10\'u kadar fiziksel hasar verir. 10 sn bekleme, sadece şampiyonlarda' },
   titanic:  { cat:'Dövüşçü', name:'Dev Avcısı',        cost:1150,  parts:['longsword','ruby','ruby'],       stats:{ dmg:19, hp:225 }, onHitOwnHp:0.03, desc:'Düz vuruşlar ek olarak kendi azami canının %3\'ü kadar fiziksel hasar verir' },
   vengeance:{ cat:'Dövüşçü', name:'Öç Zırhı',          cost:1100,  parts:['longsword','ruby','cloth'],      stats:{ dmg:19, hp:263 }, store:{ pct:0.20, cap:120, decay:8 }, desc:'Alınan hasarın %20\'si birikir (en fazla 120, 8 sn\'de kullanılmazsa söner). Hasar veren sonraki yetenek bunu ek fiziksel hasar olarak verir' },
   sheen:    { cat:'Dövüşçü', name:'Tılsımlı Kılıç',    cost:1225,  parts:['longsword','ruby','focus'],      stats:{ dmg:19, hp:150, ah:11, asPct:0.11 }, spellblade:{ base:50, bonusAd:0.5, window:2, cd:1, type:'phys' }, desc:'Yetenek kullandıktan sonraki 2 sn içinde yapılan ilk saldırı ek 50 + ilave SG\'nin %50\'si kadar fiziksel hasar verir. 1 sn bekleme' },
@@ -72,16 +71,15 @@ export const ITEMS = {
   nightfang:{ cat:'Nişancı', name:'Gece Avcısı',     cost:1225, parts:['longsword','knife','cloak'],     stats:{ dmg:20, crit:0.14, lethal:10 }, onHitAd:0.06, desc:'Düz vuruşlar SG\'nin %6\'sı kadar ek fiziksel hasar verir' },
   bloodbow: { cat:'Nişancı', name:'Kanlı Yay',       cost:1175, parts:['dagger','cloak','fang'],         stats:{ asPct:0.20, crit:0.15, ls:0.07 }, lsLow:{ hp:0.5, mult:2 }, desc:'Canın %50 altındayken can çalma iki katına çıkar' },
   runbow:   { cat:'Nişancı', name:'Kaçak Yayı',      cost:1150, parts:['dagger','dagger','boots'],       stats:{ dmg:12, asPct:0.28, msPct:0.07 }, onHitMs:{ amt:0.10, dur:1 }, desc:'Düz vuruşlar 1 sn %10 hareket hızı verir' },
-  pierce:   { cat:'Nişancı', name:'Delici Ok',       cost:1200, parts:['longsword','knife','dagger'],    stats:{ dmg:19, asPct:0.17, lethal:14 }, basicArmorPen:0.12, desc:'Düz vuruşlar rakibin zırhının %12\'sini yok sayar' },
-  redhunt:  { cat:'Nişancı', name:'Kızıl Av',        cost:1175, parts:['longsword','dagger','fang'],     stats:{ dmg:17, asPct:0.14, ls:0.06 }, champMaxHp:{ pct:0.06, cd:6 }, desc:'Rakip şampiyona düz vuruş ek olarak onun azami canının %6\'sı kadar fiziksel hasar verir. 6 sn bekleme, sadece şampiyonlarda' },
+  pierce:   { cat:'Nişancı', name:'Delici Ok',       cost:1175, parts:['longsword','ruby','focus'],      stats:{ dmg:22, hp:150, ah:10 }, armorPen:0.25 },   // 17.10.2026: SG 19, SH %17, delme 14, düz vuruş %12 zırh yarma, 1200 idi
   // Dövüşçü
   typhoon:  { cat:'Dövüşçü', name:'Kasırga Baltası', cost:1225, parts:['longsword','ruby','focus'],      stats:{ dmg:19, hp:170, ah:11 }, castAs:{ amt:0.25, dur:3 }, desc:'Yetenek kullanınca 3 sn boyunca saldırı hızın %25 artar' },
   bullstr:  { cat:'Dövüşçü', name:'Boğa Gücü',       cost:1175, parts:['longsword','ruby','ruby'],       stats:{ dmg:10, hp:250 }, hpToAd:0.015, desc:'Azami canının %1,5\'i kadar SG kazanırsın' },
   bloodclaw:{ cat:'Dövüşçü', name:'Kanlı Pençe',     cost:1175, parts:['longsword','fang','ruby'],       stats:{ dmg:19, hp:188, ls:0.05 }, spellVamp:0.15, desc:'Yetenek hasarının %15\'i kadar can yenilenir' },
-  predator: { cat:'Dövüşçü', name:'Yırtıcı Pençe',   cost:1200, parts:['longsword','ruby','boots'],      stats:{ dmg:19, hp:188, msPct:0.05 }, champMaxHp:{ pct:0.05, cd:8 }, desc:'Rakip şampiyona düz vuruş ek olarak onun azami canının %5\'i kadar fiziksel hasar verir. 8 sn bekleme, sadece şampiyonlarda' },
+  predator: { cat:'Dövüşçü', name:'Yırtıcı Pençe',   cost:1200, parts:['longsword','ruby','boots'],      stats:{ dmg:19, hp:188, msPct:0.05 }, skillMaxHp:{ pct:0.05, cd:5 } },   // 17.10.2026: düz vuruş %5/8 sn idi
   ironheart:{ cat:'Dövüşçü', name:'Demir Yürek',     cost:1175, parts:['longsword','cloth','mantle'],    stats:{ dmg:13, hp:150, armor:13, mr:13 }, onHitOwnHp:0.02, desc:'Düz vuruşlar ek olarak kendi azami canının %2\'si kadar fiziksel hasar verir' },
   // Suikastçı / vur-kaç
-  duskknife:{ cat:'Suikastçı', name:'Gölge Hançeri', cost:1200, parts:['longsword','knife','boots'],     stats:{ dmg:24, lethal:12, msPct:0.06 }, execDmg:{ hp:0.30, pct:0.08 }, desc:'Canı %30 altındaki rakip şampiyona %8 ek hasar verirsin' },
+  duskknife:{ cat:'Suikastçı', name:'Gölge Hançeri', cost:1200, parts:['longsword','knife','boots'],     stats:{ dmg:24, lethal:12, msPct:0.06 }, killInvis:{ dur:1 } },   // 17.10.2026: İnfaz (%30 altına %8) idi
   quietblade:{cat:'Suikastçı', name:'Sessiz Bıçak',  cost:1150, parts:['longsword','knife','dagger'],    stats:{ dmg:19, asPct:0.14, lethal:10 }, hurtMs:{ amt:0.12, dur:2 }, desc:'Hasar alınca 2 sn %12 hareket hızı kazanırsın' },
   reaper:   { cat:'Suikastçı', name:'Hasat Kılıcı',  cost:1300, parts:['longsword','longsword','knife'], stats:{ dmg:32, lethal:15 }, execDmg:{ hp:0.35, pct:0.10 }, desc:'Canı %35 altındaki rakip şampiyona %10 ek hasar verirsin' },
   windwalk: { cat:'Suikastçı', name:'Rüzgar Yürüyüşü', cost:1150, parts:['boots','knife','longsword'],   stats:{ dmg:19, lethal:11, msPct:0.10 }, castMs:{ amt:0.15, dur:1.5 }, desc:'Yetenek kullanınca 1,5 sn %15 hareket hızı kazanırsın' },
@@ -113,10 +111,10 @@ export const ITEMS = {
   // ---- Eşya turu 2 (20 eşya, aktifsiz; esya-plani.md) ----
   // Nişancı
   fury:     { cat:'Nişancı', name:'Hız Çarkı',        cost:1175, parts:['longsword','dagger','cloak'],    stats:{ dmg:12, asPct:0.14, crit:0.10 }, asStack:{ amt:0.04, max:5, dur:3 }, desc:'Düz vuruş isabeti saldırı hızını %4 artırır (5 kata kadar, 3 sn vurmazsan söner)' },
-  luck:     { cat:'Nişancı', name:'Talih Kılıcı',     cost:1175, parts:['longsword','longsword','cloak'], stats:{ dmg:24, crit:0.12 }, critStack:{ step:0.05, max:0.35 }, desc:'Kritik vurmayan her düz vuruş +%5 ilave kritik şansı biriktirir (en fazla %35). Kritik vuruş gerçekleşince bu bonus sıfırlanır' },
+  luck:     { cat:'Nişancı', name:'Talih Kılıcı',     cost:1100, parts:['longsword','longsword','cloak'], stats:{ dmg:30 }, critStack:{ step:0.05, max:0.40 } },   // 17.10.2026: SG 24, kritik %12, en fazla %35, 1175 idi
   coil:     { cat:'Nişancı', name:'Yük Bobini',       cost:1200, parts:['longsword','dagger','cloak'],    stats:{ dmg:14, asPct:0.12, crit:0.10 }, coil:{ perDist:15, perHit:10, max:100, base:55, ad:0.20 }, desc:'Hareket etmek ve düz vurmak yük biriktirir. Yük 100\'e ulaşınca sonraki düz vuruş 55 + SG\'nin %20\'si kadar ek büyü hasarı verir' },
   crystal:  { cat:'Nişancı', name:'Kristal Hançer',   cost:1150, parts:['longsword','longsword','cloak'], stats:{ dmg:20, crit:0.15 }, critSlow:{ amt:0.10, dur:1 }, desc:'Kritik vuruşlar hedefi 1 sn %10 yavaşlatır' },
-  thornboot:{ cat:'Nişancı', name:'Dikenli Çizme',    cost:1100, parts:['boots','dagger','dagger'],       stats:{ asPct:0.23, msPct:0.10 }, hitMsStack:{ amt:0.03, max:3, dur:2 }, desc:'Rakip kahramana düz vurdukça %3 hareket hızı birikir (3 kata kadar, 2 sn sürer)' },
+  thornboot:{ cat:'Nişancı', name:'Dikenli Çizme',    cost:1100, parts:['boots','dagger','dagger'],       stats:{ asPct:0.23, msPct:0.05 }, hitAsStack:{ amt:0.06, max:3, dur:3 } },   // 17.10.2026: hız %10, vuruşta %3 hareket hızı x3 (2 sn) idi
   bloodbond:{ cat:'Nişancı', name:'Kan Bağı',         cost:1100, parts:['longsword','fang','fang'],       stats:{ dmg:19, ls:0.08 }, lsShare:0.20, desc:'Can çalmayla kazandığın canın %20\'si kadarı yakındaki dost kahramana da gider (700 menzil)' },
   // Dövüşçü
   skillblade:{cat:'Dövüşçü', name:'Hüner Bıçağı',     cost:1175, parts:['longsword','longsword','focus'], stats:{ dmg:24, ah:11 }, skillAd:0.10, desc:'Yetenek hasarı toplam SG\'nin %10\'u kadar ek hasar verir' },
@@ -147,12 +145,12 @@ for (const it of Object.values(ITEMS)) if (!it.stats.hp) it.stats.hp = ITEM_BASE
 /* Mağazada ortada gösterilen önerilen 8 eşya (kahraman başına) */
 export const RECOMMENDED = {
   archer:  ['kraken','botrk','windbow','bt','ldr','pd','fury','luck'],
-  warrior: ['cleaver','spear','randuin','titanic','visage','stonebelt','ironheart','godshield'],
+  warrior: ['cleaver','predator','randuin','titanic','visage','stonebelt','ironheart','godshield'],
   mage:    ['emberrod','blackflame','dcap','void','echo','frostrod','hourglass','horizon'],
   twin:    ['kraken','botrk','pd','ie','ldr','bt','runbow','fury'],
   bounce:  ['ie','pd','botrk','ldr','bt','bloodbow','nightfang','luck'],
   hook:    ['sunfire','warmog','randuin','visage','spellwall','ironwall','lastshield','godshield'],
-  gladiator:['cleaver','botrk','spear','titanic','randuin','visage','typhoon','godshield'],
+  gladiator:['cleaver','botrk','predator','titanic','randuin','visage','typhoon','godshield'],
   roller:  ['sunfire','warmog','randuin','visage','titanic','stonebelt','godshield','fortress'],
   flame:   ['lich','spring','embermask','blackflame','bloodtome','bloodcup','emberward','agetome'],
   blood:   ['spring','blackflame','dcap','void','bloodcup','embermask','abyss','agetome'],
@@ -196,10 +194,10 @@ export const BUILDS = {
     yikik:  ['botrk','kraken','ie','pd','ldr','bt']
   },
   warrior: {
-    default:['cleaver',DEF,'spear',DEF,DEF,'titanic'],   // dayanıklı: yuvaların çoğu esnek savunma
-    hasar:  ['cleaver','spear','mace','titanic','sheen','bt'],
+    default:['cleaver',DEF,'predator',DEF,DEF,'titanic'],   // dayanıklı: yuvaların çoğu esnek savunma
+    hasar:  ['cleaver','predator','mace','titanic','sheen','bt'],
     tank:   ['cleaver',DEF,DEF,DEF,DEF,'fortress'],
-    tilsim: ['sheen','cleaver','spear','randuin','visage','titanic']
+    tilsim: ['sheen','cleaver','predator','randuin','visage','titanic']
   },
   twin: {
     default:['kraken','botrk','pd','ie',DEF,'ldr'],   // her ok vuruş etkisi taşıdığı için okçuya benzer nişancı eşyaları (denenmedi)
@@ -218,7 +216,7 @@ export const BUILDS = {
   },
   gladiator: {
     default:['cleaver',DEF,'botrk',DEF,DEF,'titanic'],   // Gladyatör: Savaşçı gibi dövüşçü çekirdeği; saldırı hızı Kızışma ile katlanır (3 esnek)
-    tank:   ['cleaver',DEF,DEF,DEF,DEF,'spear']
+    tank:   ['cleaver',DEF,DEF,DEF,DEF,'predator']
   },
   roller: {
     default:['sunfire',DEF,'warmog',DEF,DEF,'titanic'],   // Gülle: Zincirli gibi can çekirdeği + esnek direnç yuvaları (3 esnek)
@@ -258,9 +256,9 @@ export const BUILDS = {
     hiz:    ['time','echo','dcap','blackflame','void','hourglass']
   },
   dual: {
-    default:['sheen','cleaver',DEF,'mace',DEF,'spear'],   // iki biçimde de ek SG ile büyüyen yetenekler (Enerji Küresi %110, Sıçrayış %100), vuruş/yetenek sonrası Tılsımlı Kılıç, can ve yetenek hızı (denenmedi)
+    default:['sheen','cleaver',DEF,'mace',DEF,'predator'],   // iki biçimde de ek SG ile büyüyen yetenekler (Enerji Küresi %110, Sıçrayış %100), vuruş/yetenek sonrası Tılsımlı Kılıç, can ve yetenek hızı (denenmedi)
     nisanci:['ie','pd','ldr','bt','botrk','kraken'],
-    dovuscu:['cleaver','spear','mace','sheen','randuin','bt']
+    dovuscu:['cleaver','predator','mace','sheen','randuin','bt']
   },
   mage: {
     default:['spring',BURN,'dcap','void',DEF,'hourglass'],   // 16.10.2026: Kara Alev -> esnek yakma. denge: can ağırlıklı, 27%->36% (testte) (eski: ['blackflame','echo','dcap','void',DEF,'glassbreak'])
