@@ -1,7 +1,7 @@
 /* Tarayıcı tarafı: girdi, HUD düğmeleri, ana döngü. */
 import { TICK, MAX_LEVEL, XP_NEED } from './data.js';
-import { S, settings, resetGame, step, nextBuild, learnSkill, gainXP, buy, buySmart, sell, sellValue, itemCostFor, canShop, attackTarget, inAttackRange, canSee } from './sim.js';
-import { PARTS, ITEMS, SLOTS, RECOMMENDED } from './items.js';
+import { S, settings, resetGame, step, nextBuild, learnSkill, gainXP, buy, buySmart, sell, buyRune, sellValue, itemCostFor, canShop, attackTarget, inAttackRange, canSee } from './sim.js';
+import { PARTS, ITEMS, SLOTS, RECOMMENDED, RUNES } from './items.js';
 import { itemInfo, statLines } from './itemdesc.js';
 import { PAL } from './palette.js';
 import { applyAutoBuy, openBuildEditor, buildEditorOpen, setAutoBuy, autoBuyOn, getBuild } from './autobuy.js';
@@ -23,7 +23,7 @@ let netPlaying=false, lastAdv=0;
 const pendingActs=[];
 function act(name, arg, arg2){
   if(netPlaying){ pendingActs.push(name==='auto' ? [name,arg,arg2] : [name,arg]); return; }
-  if(name==='learn') learnSkill(S.player,arg); else if(name==='buy') buySmart(S.player,arg); else if(name==='sell') sell(S.player,arg);
+  if(name==='learn') learnSkill(S.player,arg); else if(name==='buy') buySmart(S.player,arg); else if(name==='sell') sell(S.player,arg); else if(name==='rune') buyRune(S.player,arg);
 }
 const localNetCmd=()=>encodeCmd(playerCommand(), pendingActs.splice(0));
 
@@ -243,6 +243,28 @@ function doSell(idx){
   if(r<0) toast('Eşya sadece üste satılır, önce üsse dön (B)', false); else toast(nm+' satıldı, +'+r+' altın', true);
   shopSig=''; updateShop();
 }
+/* Rün al (yuva kaplamaz, istiflenir) ve sonucu bildir */
+const RUNE_STAT={ dmg:'SG', ap:'YG', hp:'can' };
+function runeText(id){ const R=RUNES[id]; return Object.entries(R.stats).map(([k,v])=>'+'+v+' '+RUNE_STAT[k]).join(', '); }
+function doRune(id){
+  const p=S.player, R=RUNES[id], n=p.runes[id]||0;
+  const why = n>=R.max ? R.name+' en fazla '+R.max+' kez alınır' : !canShop(p) ? 'Rün sadece üste alınır, önce üsse dön (B)' : p.gold<R.cost ? 'Altın yetmiyor, '+(R.cost-Math.floor(p.gold))+' altın daha gerekir' : null;
+  if(why){ toast(why, false); return; }
+  if(netPlaying){ act('rune',id); toast(R.name+' alma isteği gönderildi', true); return; }
+  buyRune(p,id); toast(R.name+' alındı ('+runeText(id)+', '+(n+1)+'/'+R.max+')', true);
+  shopSig=''; updateShop();
+}
+function runeStrip(p){
+  const f=document.createDocumentFragment();
+  for(const id of Object.keys(RUNES)){
+    const R=RUNES[id], n=p.runes[id]||0, b=document.createElement('button');
+    b.className='rune'+(n>=R.max?' full':'')+(p.gold>=R.cost&&n<R.max?' ok':''); b.dataset.rune=id;
+    b.title='Yuva kaplamaz, '+R.max+' kata kadar istiflenir. Verimsizdir: yuvalar dolunca kalan altın için.';
+    b.innerHTML='<b>'+R.name+'</b><span class="rs">'+runeText(id)+'</span><span class="rc">'+R.cost+'</span><span class="rn">'+n+'/'+R.max+'</span>';
+    f.appendChild(b);
+  }
+  return f;
+}
 /* Satın al ve sonucu bildir */
 function doBuy(id){
   const p=S.player, before=[...p.items], plan=planBuy(p,id);
@@ -335,10 +357,11 @@ function updateShop(force){
   const w=document.getElementById('sWhere'); w.textContent=here?(S.player.dead?'Ölüsün, alışveriş açık':'Üstesin, alışveriş açık'):'Üsse dön (B)'; w.className='where'+(here?' ok':'');
   document.getElementById('sAuto').checked=!!p.autoBuy;
   { const nx=p.autoBuy?nextBuild(p):null, e=document.getElementById('sAbNext'); e.textContent=p.autoBuy?(nx?'Sıradaki: '+itemOf(nx).name+' ('+itemCostFor(p,nx)+')':'Sıra tamam'):''; }
-  const sig=[Math.floor(p.gold),p.items.join(','),here,p.type,shopSel,shopFilter,shopQuery].join('|');
+  const sig=[Math.floor(p.gold),p.items.join(','),JSON.stringify(p.runes),here,p.type,shopSel,shopFilter,shopQuery].join('|');
   if(sig===shopSig && !force) return;
   shopSig=sig;
   document.getElementById('sInv').replaceChildren(inventoryStrip(p));
+  document.getElementById('sRunes').replaceChildren(runeStrip(p));
   const rec=document.getElementById('sRec'); rec.replaceChildren(...(RECOMMENDED[p.type]||[]).map(id=>itemCard(p,id,'rec')));
   const all=document.createDocumentFragment(); let any=false;
   const used=new Set();
@@ -362,12 +385,15 @@ function toggleShop(){ if(shopOpen) closeShop(); else openShop(); }
 (function buildShop(){
   shopEl.innerHTML='<div class="shead"><span class="stitle">Mağaza</span><span class="gold" id="sGold"></span><span class="where" id="sWhere"></span><span class="toast" id="sToast"></span><label class="abtog2" title="Üste altın yettikçe eşya sırasından otomatik al"><input type="checkbox" id="sAuto"> Otomatik alım</label><button class="sabEdit" id="sAbEdit">Sırayı düzenle</button><span class="abnext" id="sAbNext"></span>'
     +'<button class="sx" id="sClose" title="Kapat (Esc)">&times;</button></div>'
-    +'<div class="sinvwrap"><div class="lbl2">Envanter (en fazla '+SLOTS+' yuva, temel parça da yuva kaplar)</div><div class="sinv" id="sInv"></div></div>'
+    +'<div class="sinvrow"><div class="sinvwrap"><div class="lbl2">Envanter (en fazla '+SLOTS+' yuva, temel parça da yuva kaplar)</div><div class="sinv" id="sInv"></div></div>'
+    +'<div class="srunes"><div class="lbl2">Rünler (yuva kaplamaz, 10 kata kadar; verimsiz, kalan altın için)</div><div class="srunel" id="sRunes"></div></div></div>'
     +'<div class="smain"><div class="sleft"><h4>Önerilen<span>tek tık: seç, çift tık ya da sağ tık: al</span></h4><div class="grid rec" id="sRec"></div>'
     +'<h4>Tüm eşyalar</h4><div class="sfilter"><input id="sQuery" type="text" placeholder="Eşya ara" autocomplete="off" spellcheck="false"><div class="chips" id="sChips">'
     +FILTERS.map(([k,n])=>'<button class="chip" data-f="'+k+'">'+n+'</button>').join('')+'</div></div><div id="sAll"></div></div><div class="sright" id="sRight"></div></div>';
   const css=document.createElement('style');
-  css.textContent='#shop .sellrow{margin-top:4px}#shop .sellb{display:inline-block;padding:1px 8px;border-radius:9px;background:#4a2a2f;border:1px solid #8a4850;color:#ffb3b3;font-size:11px;font-weight:600;cursor:pointer}#shop .sellb:hover{background:#a33a44;color:#fff}'
+  css.textContent='#shop .sinvrow{display:flex;gap:10px;flex:none}#shop .sinvrow .sinvwrap{flex:1;min-width:0}#shop .srunes{flex:none;width:330px}#shop .srunel{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}'
+    +'#shop .rune{box-sizing:border-box;min-height:50px;border-radius:6px;padding:4px 6px;text-align:left;border:1px dashed #6c5fa8;background:#1d1838;cursor:pointer;display:grid;grid-template-columns:1fr auto;font-size:11.5px;line-height:1.3}#shop .rune b{grid-column:1/3;font-size:12px}#shop .rune .rs{color:#cfd0ea}#shop .rune .rc{color:'+PAL.gold+';font-weight:700;text-align:right}#shop .rune .rn{grid-column:1/3;color:#9b9ac4}#shop .rune.ok{border-style:solid;border-color:#9a7bff}#shop .rune.ok:hover{background:#2c2456}#shop .rune.full{opacity:.5;cursor:default}'
+    +'#shop .sellrow{margin-top:4px}#shop .sellb{display:inline-block;padding:1px 8px;border-radius:9px;background:#4a2a2f;border:1px solid #8a4850;color:#ffb3b3;font-size:11px;font-weight:600;cursor:pointer}#shop .sellb:hover{background:#a33a44;color:#fff}'
     // eşya açıklamaları (itemdesc.js)
     +'#shop .st{font-size:12.5px;line-height:1.35}#shop .st>span{white-space:nowrap}#shop .st .sep{color:#5d628f;font-style:normal}'
     +'#shop .pn{font-size:11.5px;color:'+PAL.passive+';margin-top:3px;font-weight:600}'
@@ -395,6 +421,7 @@ shopEl.addEventListener('mousedown',e=>{
   e.preventDefault();
   const q=document.getElementById('sQuery'); if(document.activeElement===q) q.blur();
   if(t.closest('#sClose')){ closeShop(); return; }
+  const rb=t.closest('.rune'); if(rb){ doRune(rb.dataset.rune); return; }
   const chip=t.closest('.chip');
   if(chip){
     const f=chip.dataset.f; shopFilter=shopFilter===f?null:f;

@@ -1,6 +1,6 @@
 /* Simülasyon: tarayıcıya bağımlı değil (document, window, canvas yok). */
 import { TICK, ULT_LEVELS, RANK_CAP, LEVEL_PER, WORLD, LANE_Y, TEAM_COLORS, TEAM_DARK, MAX_LEVEL, STATS, HEROES, FORMS, TOWER, towerChampHit, towerMinionHit, BASE_TOWER_HP, NEXUS, LAYOUT, FOUNTAIN, MINIONS, WAVE_ORDER, WAVE_FIRST, WAVE_INTERVAL, WAVE_GAP, OFF_TARGET_DMG, MINION_CALL, MINION_CALL_R, MINION_LEASH, respawnTime, RECALL, MINION_SCALE, GOLD, minionGold, XP_NEED, HERO_KILL_XP, STRUCT_XP, XP_RADIUS, VISION, JUNGLE, BUFFS, BIG_BUFF, CATCHUP_XP, CATCHUP_GOLD, JUNGLE_MASTERY, JUNGLE_AVOID } from './data.js';
-import { ITEMS, PARTS, SLOTS, START_GOLD, CRIT_MULT, BUILDS, DEF, BURN, DEF_CLASS, DEF_POOLS, DMG_PHYS } from './items.js';
+import { ITEMS, PARTS, SLOTS, START_GOLD, CRIT_MULT, BUILDS, DEF, BURN, DEF_CLASS, DEF_POOLS, DMG_PHYS, RUNES } from './items.js';
 import { MAP_W, structPos, SPAWN_OFF, pushOutWalls, pushOutWallsInto, PUSH, wallsFar, inWall, sightBlocked, bushAt, BUSHES, lanePoint, laneProject, laneLength, laneDir } from './map.js';
 
 export const S = { heroes:[], minions:[], monsters:[], camps:[], dots:[], teamBuff:[0,0], jstats:null, structs:[], lane:[[],[]], projs:[], bolts:[], booms:[], zones:[], novas:[], sights:[], fx:[], spawnQ:[],
@@ -77,7 +77,7 @@ export function makeHero(type, team, x, y, human){
   return { id:nextId++, kind:'hero', type, def:d, team, human:!!human, x, y, spawnX:x, spawnY:y,
     vx:0, vy:0, kx:0, ky:0, baseR:STATS[type].size.base, r:STATS[type].size.base, mass:STATS[type].mass.base, hp:STATS[type].hp.base, maxHp:STATS[type].hp.base,
     aim: team===0 ? 0 : Math.PI, atk:{ state:'ready', t:0, total:0, aim:0 },
-    rank:{ r:0, e:0, s:d.skills.s.fixed?1:0 }, level:1, xp:0, gold:START_GOLD, items:[], bonus:null, ic:{}, stasis:0, build:null, dmgBy:{}, helpBy:{}, kills:0, deaths:0, assists:0, points:0, cd:{ r:0, e:0, s:0 }, cdMax:{ r:1, e:1, s:1 },
+    rank:{ r:0, e:0, s:d.skills.s.fixed?1:0 }, level:1, xp:0, gold:START_GOLD, items:[], runes:{}, bonus:null, ic:{}, stasis:0, build:null, dmgBy:{}, helpBy:{}, kills:0, deaths:0, assists:0, points:0, cd:{ r:0, e:0, s:0 }, cdMax:{ r:1, e:1, s:1 },
     st:{ slow:null, freeze:0, asB:null, shield:null, spd:null, giant:null, burn:null, ignite:null, amp:null, bflame:null, titanSlow:null, shred:null, frenzy:null, fring:null, flow:null, silence:0, curse:null, root:0, shell:null, ball:null },
     cast:null, dash:null, chan:null, pulled:null, dead:false, respawn:0, flash:0,
     // biçim değiştiren kahraman (İkili): biçim, biçime özel stat farkları, diğer biçimin beklemeleri (arka planda akar); diğerlerinde null
@@ -721,6 +721,7 @@ export function computeBonus(h){
     for(const [k,v] of Object.entries(it.stats)) B[k]=(B[k]||0)+v;
     if(ITEMS[id]) for(const [k,v] of Object.entries(it)) if(!['name','cost','parts','stats','desc','cat'].includes(k)) B[k]=v;   // pasifler eşsiz
   }
+  for(const [id,n] of Object.entries(h.runes||{})) if(RUNES[id]) for(const [k,v] of Object.entries(RUNES[id].stats)) B[k]=(B[k]||0)+v*n;   // rünler: yuva kaplamaz, istiflenir
   B.crit=Math.min(1,B.crit);
   B.apItems=h.items.filter(id=>ITEMS[id] && ITEMS[id].stats.ap>0).length;   // Büyücü Şapkası: YG veren büyük eşya sayısı
   if(B.scale){ if(h.ic.scaleNext===undefined) h.ic.scaleNext=S.time+60; } else { h.ic.scaleNext=undefined; h.ic.scaleN=0; }   // Çağ Kitabı: satın alma anından itibaren sayılır
@@ -866,6 +867,16 @@ export function buy(h, id){
   h.gold-=cost; computeBonus(h); h.ic.carryBase=h.gold;   // Yük Taşıyıcı: alışverişte taşınan altın sıfırlanır
   return true;
 }
+/* Rün al (sadece üste): yuva kaplamaz, her rün en fazla max kez */
+export function buyRune(h, id){
+  const R=RUNES[id]; if(!R || !canShop(h)) return false;
+  const n=(h.runes[id]||0); if(n>=R.max || h.gold<R.cost) return false;
+  h.runes[id]=n+1; h.gold-=R.cost; computeBonus(h); h.ic.carryBase=h.gold;
+  return true;
+}
+export function runesValue(h){ let t=0; for(const [id,n] of Object.entries(h.runes||{})) t+=(RUNES[id] ? RUNES[id].cost : 0)*n; return t; }
+/* Bot rünü: 5 yuva dolunca kalan altın; tanklar can, fiziksel ağırlıklılar güç, diğerleri büyü */
+function botRunePick(h){ return (h.type==='hook' || h.type==='roller') ? 'rhp' : (DMG_PHYS[h.type]??0.5)>=0.5 ? 'rad' : 'rap'; }
 /* Büyük eşyayı al; alınamıyorsa eksik parçalarından alınabilenleri pahalıdan ucuza doğru al */
 export function buySmart(h, id){
   if(buy(h,id) || PARTS[id]) return;
@@ -940,7 +951,8 @@ export function nextBuild(h){ const n=nextBuildSlot(h); return n ? n.id : null; 
    DEF yuvası, ilk alım hareketinde (eşya ya da parça) çözülüp build listesine yazılır: parçalar boşa gitmesin. */
 export function botShop(h){
   for(let guard=0; guard<12; guard++){
-    const n=nextBuildSlot(h); if(!n) return;
+    const n=nextBuildSlot(h);
+    if(!n){ if(!h.human && h.items.filter(id=>ITEMS[id]).length>=SLOTS){ const r=botRunePick(h); while(buyRune(h,r)); } return; }   // yuvalar dolu: kalan altın rüne
     const id=n.id, commit=()=>{ if(h.build[n.slot]===DEF || h.build[n.slot]===BURN) h.build[n.slot]=id; };
     if(h.gold>=itemCostFor(h,id) && buy(h,id)){ commit(); continue; }
     const inv=[...h.items]; let bought=false;
@@ -1006,7 +1018,7 @@ export function awardXP(team, x, y, amt, radius, mult){
 /* ---- geri kalma telafisi (data.js CATCHUP_XP / CATCHUP_GOLD) ---- */
 export function totalXP(h){ let t=h.xp; for(let l=1;l<h.level;l++) t+=XP_NEED(l); return t; }
 export function itemsValue(items){ return (items||[]).reduce((t,id)=>t+((ITEMS[id]||PARTS[id]||{}).cost||0),0); }
-export function heroWorth(h){ return h.gold+(h.items||[]).reduce((t,id)=>t+((ITEMS[id]||PARTS[id]||{}).cost||0),0); }
+export function heroWorth(h){ return h.gold+runesValue(h)+(h.items||[]).reduce((t,id)=>t+((ITEMS[id]||PARTS[id]||{}).cost||0),0); }
 function foeAvg(h, f){ const F=S.heroes.filter(u=>u.team!==h.team && u.team<2); return F.length ? F.reduce((t,u)=>t+f(u),0)/F.length : 0; }
 function behind(h, f){ const a=foeAvg(h,f); return a>0 ? 1-f(h)/a : 0; }
 export function catchupXP(h){ const g=behind(h,totalXP); for(const r of CATCHUP_XP) if(g>=r.gap) return r.bonus; return 0; }
@@ -1604,6 +1616,9 @@ export function updateHero(h, cmd, dt){
       if(st.dead) continue;
       const dx=h.x-st.x, dy=h.y-st.y, dd=Math.hypot(dx,dy)||1, min=h.r+st.r;
       if(dd<min){ h.x=st.x+dx/dd*min; h.y=st.y+dy/dd*min; stop=true; }
+    }
+    if(d.roll && !stop) for(const e of S.heroes){   // Yuvarlan: rakip şampiyona çarpınca durur (iniş hasarı orada)
+      if(!e.dead && e.team!==h.team && dist(e,h)<=h.r+e.r+2){ stop=true; break; }
     }
     if(!d.noHit && !stop) for(const e of foes(h.team, false)){
       if(dist(e,h) <= h.r+e.r+2){

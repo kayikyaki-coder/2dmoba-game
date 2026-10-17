@@ -492,7 +492,7 @@ export const HEROES = {
       // sağ tık: basılı tutuldukça mesafe dMin'den dMax'a (charge sn'de) artar (bot imleç noktasına göre seçer); bırakınca o yöne speed hızıyla yuvarlanır
       //          (birimlerin içinden geçer, duvarda ve yapıda durur, kök engeller). İnişte radius yarıçapta rakiplere (kule hariç) fiziksel hasar
       //          dmg + hpPct * ek can, kahraman ve minyonlar stun sn sersemler (havaya atılır).
-      r:{ name:'Yuvarlan', max:7, type:'roll', cd:[12.5,11.5,10.5,9.5,9,8.5,8],   /* denge C2: cd 12-7.5 idi */   /* denge F2: cd 13-10 idi */ dMin:300, dMax:900, charge:1, speed:1300, radius:130,
+      r:{ name:'Yuvarlan', max:7, type:'roll', cd:[12.5,11.5,10.5,9.5,9,8.5,8],   /* denge C2: cd 12-7.5 idi */   /* denge F2: cd 13-10 idi */ dMin:0, dMax:900,   /* 17.10.2026: dMin 300 idi (basılı tutma 0'dan başlar) */ charge:1, speed:1300, radius:130,
           dmg:[70,105,140,175,196,217,238], hpPct:0.05, stun:[0.6,0.65,0.7,0.75,.78,.81,.84] },
       // E: anında, dur sn kabuk: kütle massMult katı, itilemez/çekilemez (kanca, Darbe, momentum itmesi, geri tepme), dr hasar azaltma,
       //    düz vuruş menzili +range, düz vuruşlar rakiplere ek dmg + hpPct * ek can fiziksel hasar ve slowDur sn slow yavaşlatma

@@ -10,6 +10,14 @@ export const START_GOLD = 250;     // başlangıçta tek bir temel parça alına
 export const SLOTS = 5;
 export const CRIT_MULT = 1.5;          // kritik vuruş normal vuruşun %150'si
 
+/* Rünler (17.10.2026): yuva kaplamayan, istiflenen küçük stat alımları. Her zaman alınabilir ama verimsiz
+   (500 altına parça fiyatıyla ~170-200 altınlık stat); asıl kullanım: 5 yuva dolunca kalan altın. Satılmaz. */
+export const RUNES = {
+  rad:{ name:'Güç Rünü',  cost:500, max:10, stats:{ dmg:5 } },
+  rap:{ name:'Büyü Rünü', cost:500, max:10, stats:{ ap:10 } },
+  rhp:{ name:'Can Rünü',  cost:500, max:10, stats:{ hp:50 } }
+};
+
 export const PARTS = {
   longsword:{ name:'Uzun Kılıç',    cost:225, stats:{ dmg:6 } },
   dagger:   { name:'Hançer',        cost:225, stats:{ asPct:0.07 } },
