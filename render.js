@@ -1300,7 +1300,7 @@ const TYPE_DESC={
   heavy:'Düz vuruş menzilindeki, imlece en yakın rakibe anında güçlü bir vuruş: düz vuruş hasarı + ek hasar, rakibi azalan biçimde yavaşlatır ve seni iyileştirir. Menzilde rakip yoksa harcanmaz.',
   arena:'Bulunduğun yerde, çevrende kısa süre arena açarsın (kimseyi engellemez, girip çıkılabilir); içindeyken saldırı gücün, saldırı hızın ve hareket hızın artar.',
   duel:'Yakındaki rakip kahramana atılırsın; süre boyunca zırhının ve büyü direncinin bir kısmını çalar, canını yakar ve verdiğin hasarla iyileşirsin.',
-  billiard:'Durdurulamaz top olursun: hızla ileri gider, duvarlardan seker, değdiğin rakipleri itip vurursun. İmleçle hafifçe yönlendirilir.'
+  billiard:'Durdurulamaz top olursun: hızla ileri gider, duvarlardan seker, değdiğin rakipleri itip vurursun. İmleçle hafifçe yönlendirilir. Duvara her çarpışta etrafına küçük alan hasarı verirsin; Boşluk\'a tekrar basınca top durur ve etrafına aynı küçük hasarı verir.'
 };
 const PASS_DESC={
   archer:'Düz vuruşların rakibi yavaşlatır.', warrior:'Hasarın bir kısmı yakındaki rakiplere yayılır.', mage:'Rakip kahramanı her vuruşta yakar.',

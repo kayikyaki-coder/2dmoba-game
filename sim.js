@@ -1935,6 +1935,12 @@ function rollLand(h, d){
   fx({ type:'boom', x:h.x, y:h.y, r0:20, r1:sk.radius, color:'#ffd27a', life:0.4 });
 }
 /* Bilardo: sürekli ileri giden top; imlece yavaşça döner, duvar/sınır/yapıdan seker, değdiği rakibi iter ve vurur */
+/* Bilardo çarpması: wallR içindeki rakiplere topun hasarının wallPct'i (duvar/sınır/yapıya çarpınca ve elle durdurunca) */
+function ballBurst(h, B){
+  const sk=B.sk, x=B.dmg*sk.wallPct;
+  for(const u of foes(h.team,false)) if(!u.dead && Math.hypot(u.x-h.x,u.y-h.y)<=sk.wallR+u.r) damage(u, x, h, { type:'phys', skill:true });
+  fx({ type:'boom', x:h.x, y:h.y, r0:h.r*0.6, r1:sk.wallR, color:'#ffe08a', life:0.35 });
+}
 function ballStep(h, cmd, dt){
   const B=h.st.ball, sk=B.sk;
   const cur=Math.atan2(B.dy,B.dx), mt=sk.turn*dt, da=Math.max(-mt, Math.min(mt, angDiff(cmd.aim, cur))), a=cur+da;
@@ -1950,8 +1956,8 @@ function ballStep(h, cmd, dt){
     const dx=nx-s.x, dy=ny-s.y, dd=Math.hypot(dx,dy)||1, min=h.r+s.r;
     if(dd<min){ refl(dx,dy); nx=s.x+dx/dd*min; ny=s.y+dy/dd*min; }
   }
-  if(bounced) fx({ type:'boom', x:nx, y:ny, r0:h.r*0.6, r1:h.r+26, color:'#ffe08a', life:0.25 });
-  h.x=nx; h.y=ny; h.vx=B.dx*sk.speed; h.vy=B.dy*sk.speed; h.kx=0; h.ky=0;
+  h.x=nx; h.y=ny;
+  if(bounced){ if(S.time-(B.wallT??-9)>=sk.wallCd){ B.wallT=S.time; ballBurst(h, B); } else fx({ type:'boom', x:nx, y:ny, r0:h.r*0.6, r1:h.r+26, color:'#ffe08a', life:0.25 }); }   // duvara çarpma: alan hasarı h.vx=B.dx*sk.speed; h.vy=B.dy*sk.speed; h.kx=0; h.ky=0;
   fx({ type:'ghost', x:ox, y:oy, r:h.r, team:h.team, life:0.2 });
   for(const u of foes(h.team,false)){
     if(u.dead || dist(u,h)>h.r+u.r+sk.hitR) continue;
@@ -1965,6 +1971,7 @@ function ballStep(h, cmd, dt){
     fx({ type:'hit', x:u.x, y:u.y, big:true, life:0.2 });
   }
   B.t-=dt;
+  if(cmd.space && B.total-B.t>=sk.stopMin){ ballBurst(h, B); B.t=0; }   // Boşluk'a tekrar basmak topu durdurur, çarpma gibi alan hasarı
   if(B.t<=0){ h.st.ball=null; h.ic.mom=100; h.ic.mhx=B.dx; h.ic.mhy=B.dy; h.vx=B.dx*stat(h,'spd'); h.vy=B.dy*stat(h,'spd'); }
 }
 

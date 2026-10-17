@@ -503,7 +503,8 @@ export const HEROES = {
       //         dmg + hpPct * ek can ve push birim itme (pushT sn); itilen duvara çarparsa stun sn sersemler. Topken sersemletme, itme, çekme işlemez;
       //         düz vuruş ve yetenek yok. Bitince momentum dolu.
       s:{ name:'Bilardo', max:3, type:'billiard', cd:[45,36,31.5], dur:3, speed:620, turn:1.6, hitR:8, rehit:0.8,
-          dmg:[120,180,216], hpPct:0.05, push:160, pushT:0.2, stun:0.6 }
+          dmg:[120,180,216], hpPct:0.05, push:160, pushT:0.2, stun:0.6,
+          wallPct:0.25, wallR:150, wallCd:0.25, stopMin:0.25 }   // 17.10.2026: duvara/sınıra/yapıya çarpınca ve Boşluk'a tekrar basıp durdurunca wallR içine topun hasarının wallPct'i (çarpma en sık wallCd sn'de bir); stopMin sn'den önce durdurulamaz
     }
   },
   gladiator: {
