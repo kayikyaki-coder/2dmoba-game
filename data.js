@@ -295,7 +295,7 @@ export const HEROES = {
       r:{ name:'Yan Atılış', max:7, type:'tumble', cd:[8,7,6,5,4.5,4,3.5], dist:120, speed:1100, window:4 },
       // E: imlece (menzile kırpılır) bomba atılır, delay sn sonra radius yarıçapta patlar: fiziksel hasar + sersemletme (minyonlara da)
       //    hasar = dmg + ad * ek SG + ap * YG
-      e:{ name:'Şok Bombası', max:7, type:'bomb', cd:[15,14,13,12,11.5,11,10.5],   /* denge F4: cd 14-11 idi */ range:480, radius:100, delay:0.35, stun:0.5,
+      e:{ name:'Şok Bombası', max:7, type:'bomb', cd:[15,14,13,12,11.5,11,10.5],   /* denge F4: cd 14-11 idi */ range:480, radius:100, delay:0.5, stun:0.5,   /* karşı oyun 20.10.2026: delay 0.35 idi */
           dmg:[45,68,90,113,127,140,154], ad:0.30, ap:0.30 },   // denge F1 (11.10.2026, zırh sonrası): Şok Bombası dmg 50-125 idi
       // boşluk: imlece en yakın görünen rakip kahramana kilitlenir; dur sn yerinde kanallar, gap sn arayla count güdümlü mermi.
       //    mermi = dmg + ad * ek SG, hedefin eksik canına göre en fazla +missing; yoldaki rakip kahraman/kule mermiyi alır.
@@ -367,7 +367,7 @@ export const HEROES = {
           dmg:[60,95,130,165,186,207,228], ad:0.60, hpPct:0.03, slow:[.30,.35,.40,.45,.48,.51,.54], slowDur:1.5 },
       // boşluk: anında; radius içindeki yalnız rakip kahramanlara büyü hasarı (dmg + ap * YG + hpPct * ek can), silence sn susturma
       //         (yetenek kullanamaz; yürüme ve düz vuruş serbest), slow oranında yavaşlatma slowDur sn boyunca doğrusal azalır
-      s:{ name:'Şok Dalgası', max:3, type:'shockwave', cd:[35,28,24.5], radius:450, dmg:[150,250,310], ap:0.80, hpPct:0.05,
+      s:{ name:'Şok Dalgası', max:3, type:'shockwave', windup:0.2,   /* karşı oyun 20.10.2026: anlıktı, şimdi görünür halka hazırlığı */ cd:[35,28,24.5], radius:450, dmg:[150,250,310], ap:0.80, hpPct:0.05,
           silence:[1.5,2,2.3], slow:0.60, slowDur:2 }
     }
   },
@@ -387,7 +387,7 @@ export const HEROES = {
           dmg:[60,90,120,150,168,186,204], ap:0.65, slow:0.25, slowDur:1 },   /* denge T1: ap 0.70 idi */
       // boşluk: anında; dur sn kahramanla hareket eden radius yarıçaplı halka: içindekilere saniyede dps + ap * YG büyü hasarı ve
       //         slow yavaşlatma; süre boyunca kendisi res + resAp * YG zırh ve büyü direnci kazanır
-      s:{ name:'Alev Halkası', max:3, type:'firering', cd:[40,35,30], radius:250, dur:4, dps:[30,50,70], ap:0.15, slow:0.25,
+      s:{ name:'Alev Halkası', max:3, type:'firering', cd:[40,35,30], radius:250, dur:4, dps:[30,50,70], ap:0.15,   /* karşı oyun 20.10.2026: slow 0.25 kalktı */
           res:10, resAp:0.10 }   /* denge T1: cd 30/24/21, dps 40/65/80, ap 0.20, resAp 0.15 idi */
     }
   },
@@ -526,7 +526,7 @@ export const HEROES = {
       // boşluk: range içindeki görünen rakip KAHRAMANA (imlece en yakın) atılır (hedefe yapışır, kök engeller, duvar/yapıda durur);
       //         değince dur sn: rakibin zırh ve BD'sinin steal oranını çalar, rakibe azami canının hpPct'i kadar büyü hasarını
       //         eşit dilimlerle verir, verdiği bu hasarın healPct'i kadar iyileşir. Süre bitince (ya da biri ölünce) çalınanlar döner.
-      s:{ name:'Meydan Okuma', max:3, type:'duel', cd:[34,28,25],   /* denge F2: cd 40,32 idi */ range:400, speed:1100, dur:8, steal:[.30,.40,.46], hpPct:[.20,.30,.36], healPct:0.5 }
+      s:{ name:'Meydan Okuma', max:3, type:'duel', windup:0.25,   /* karşı oyun 20.10.2026: hedefe çizgi; sersem/susturma/kök iptal eder, beklemenin yarısı döner */ cd:[34,28,25],   /* denge F2: cd 40,32 idi */ range:400, speed:1100, dur:8, steal:[.30,.40,.46], hpPct:[.20,.30,.36], healPct:0.5 }
     }
   },
   dual: {

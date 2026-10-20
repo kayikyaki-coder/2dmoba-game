@@ -195,6 +195,32 @@ function hpBar(u,x,y,w,col,h,shield,unit){
   }
   ctx.restore();
 }
+/* Karşı oyun (20.10.2026): görünmez eşikleri ve gizli birikimleri görünür yapar (yalnız çizim).
+   Can çubuğunda çentik: rakibin hazır Fırsatçı pasifi (Gölge) ya da İnfaz eşyası bu kahramana ek hasar verecekse o can oranında.
+   Yalnız çizimi yapan oyuncunun gördüğü (ya da dostu olan) kaynaklar sayılır. */
+function threatMarks(h,x,y,w,bh,shield){
+  const ths=[];
+  for(const g of S.heroes){
+    if(g.dead || g.team===h.team || (g.team!==S.player.team && !canSee(S.player.team,g))) continue;
+    const op=g.def.skills.p;
+    if(op.oppCd!==undefined && (g.ic.oppAt||0)<=S.time) ths.push(op.oppHp);
+    if(g.bonus && g.bonus.execDmg) ths.push(g.bonus.execDmg.hp);
+  }
+  if(ths.length){
+    const sc=w/Math.max(h.maxHp, Math.max(0,h.hp)+shield);
+    ctx.save(); ctx.fillStyle=PAL.passive; ctx.strokeStyle='rgba(6,4,22,0.9)'; ctx.lineWidth=1;
+    for(const t of new Set(ths)){ const tx=Math.round(x+h.maxHp*t*sc); ctx.beginPath(); ctx.moveTo(tx-3.5,y-5); ctx.lineTo(tx+3.5,y-5); ctx.lineTo(tx,y+1); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.fillRect(tx-0.75,y,1.5,bh); }
+    ctx.restore();
+  }
+  const B=h.bonus;
+  if(B && B.kor && h.ic.korN>0){   // Kor Maskesi: birikmiş Kor noktaları (token altında yay)
+    const n=h.ic.korN, full=n>=B.kor.max;
+    ctx.save(); for(let i=0;i<n;i++){ const a=Math.PI/2+(i-(n-1)/2)*0.32; ctx.beginPath(); ctx.arc(h.x+Math.cos(a)*(h.r+7),h.y+Math.sin(a)*(h.r+7),full?3.4:2.6,0,TAU); ctx.fillStyle=full?'#ffb347':'#ff7a3a'; ctx.fill(); } ctx.restore();
+  }
+  if(h.ic.drT>S.time){   // Tanrı Kalkanı: hasar azaltma sürerken ince altın halka
+    ctx.save(); ctx.beginPath(); ctx.arc(h.x,h.y,h.r+10,0,TAU); ctx.strokeStyle='rgba(255,226,140,0.85)'; ctx.lineWidth=2.5; ctx.stroke(); ctx.restore();
+  }
+}
 function teamRing(x,y,r,team){ ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.lineWidth=2; ctx.strokeStyle=TEAM_COLORS[team]; ctx.stroke(); }
 const projTeam=p=>p.owner?p.owner.team:(p.team!==undefined?p.team:0);
 function drawStruct(s){
@@ -306,7 +332,17 @@ function drawTelegraph(h){
     const fillA=a=>mine?`rgba(255,255,255,${a})`:rgba(tc,a*0.9), lineC=mine?'rgba(255,255,255,0.5)':rgba(tc,0.95*blink), lw=mine?2:3;
     ctx.save();
     if(!mine) ctx.setLineDash([12,7]);
-    if(sk.type==='volley'){
+    if(c.wind && sk.type==='duel' && c.tgt){   // Meydan Okuma hazırlığı: hedefe dolan çizgi (sersem/susturma/kök iptal eder)
+      const T=c.tgt; ctx.lineCap='round';
+      ctx.strokeStyle=lineC; ctx.lineWidth=lw+1; ctx.beginPath(); ctx.moveTo(h.x,h.y); ctx.lineTo(T.x,T.y); ctx.stroke();
+      ctx.setLineDash([]); ctx.strokeStyle=mine?`rgba(255,235,200,${0.4+0.5*p})`:rgba(tc,0.5+0.5*p); ctx.lineWidth=lw+2;
+      ctx.beginPath(); ctx.moveTo(h.x,h.y); ctx.lineTo(h.x+(T.x-h.x)*p,h.y+(T.y-h.y)*p); ctx.stroke();
+      ctx.beginPath(); ctx.arc(T.x,T.y,T.r+8,0,TAU); ctx.stroke();
+    } else if(c.wind && sk.type==='shockwave'){   // Şok Dalgası hazırlığı: alan halkası, içi dolar
+      ctx.beginPath(); ctx.arc(h.x,h.y,sk.radius,0,TAU); ctx.fillStyle=fillA(0.06+0.1*p); ctx.fill();
+      ctx.strokeStyle=lineC; ctx.lineWidth=lw; ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(h.x,h.y,h.r+(sk.radius-h.r)*p,0,TAU); ctx.strokeStyle=mine?`rgba(217,194,255,${0.4+0.5*p})`:rgba(tc,0.5+0.5*p); ctx.lineWidth=lw+1; ctx.stroke();
+    } else if(sk.type==='volley'){
       const reach=h.r+sk.range, half=sk.spread/2+0.04;
       wedge(h.x,h.y,reach,c.aim,half);
       ctx.fillStyle=fillA(0.08+0.12*p); ctx.fill();
@@ -500,6 +536,7 @@ function drawHero(h){
   ctx.fillStyle='#fff'; ctx.font='bold 11px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(h.level,bx-11,by+4.5);
   heroBuffMarks(h);
   hpBar(h,bx,by,bw,TEAM_COLORS[h.team],9,st.shield?st.shield.amt:0);
+  threatMarks(h,bx,by,bw,9,st.shield?st.shield.amt:0);
   if(S.heroes.length>2 && h!==S.player){   // 2v2: dost ve rakip kahraman isimleri
     ctx.save(); ctx.font='bold 11px system-ui'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.lineJoin='round'; ctx.lineWidth=3; ctx.strokeStyle='rgba(6,4,22,0.85)';
     const nm=HERO_NAMES[h.type]||h.def.name, ny=h.y+h.r+6;
@@ -1286,7 +1323,7 @@ const TYPE_DESC={
   fireball:'Düz giden, ilk değdiğine çarpan ateş topu.', ignite:'Hedefi yakar; yanarken daha fazla hasar alır.', meteor:'Seçilen alana gecikmeli büyük top düşer.',
   boomerang:'Gidip geri dönen bumerang; gidiş ve dönüşte ayrı vurur.', cleanse:'Yavaşlatma ve kontrolleri temizler, kısa hız verir.',
   frenzy:'Bumerang ve Arınma beklemesi sıfırlanır; güçlenir, sekme sayısı artar.', hook:'Kanca fırlatır; vurduğunu önüne çeker.',
-  slam:'Önündeki koniye vurur, yavaşlatır.', shockwave:'Çevredeki kahramanları susturur ve yavaşlatır.', breath:'Dar koni içine ateş üfler.',
+  slam:'Önündeki koniye vurur, yavaşlatır.', shockwave:'Kısa bir hazırlıktan sonra (alan halkası görünür) çevredeki kahramanları susturur ve yavaşlatır; hazırlıkta sersemletilir ya da susturulursan iptal olur, beklemenin yarısı döner.', breath:'Dar koni içine ateş üfler.',
   flameleap:'İleri sıçrarsın; arkanda yanan şerit kalır.', firering:'Çevrende yanan halka açılır; zırh ve BD artar.',
   bloodbolt:'Güdümlü kan oku; verdiği hasarın bir kısmı seni iyileştirir.', bloodnova:'Canının bir kısmını harcayıp etrafa mermi saçarsın.',
   bloodcurse:'Alanı lanetler; hasar artar, süre bitince patlar ve iyileştirir.', beam:'Önündeki şeride anlık ışın.',
@@ -1299,7 +1336,7 @@ const TYPE_DESC={
   shell:'Kabuğa çekilirsin: ağırlaşır, itilemez ve çekilemezsin, hasar azalır; düz vuruş menzili artar, vuruşların yavaşlatır.',
   heavy:'Düz vuruş menzilindeki, imlece en yakın rakibe anında güçlü bir vuruş: düz vuruş hasarı + ek hasar, rakibi azalan biçimde yavaşlatır ve seni iyileştirir. Menzilde rakip yoksa harcanmaz.',
   arena:'Bulunduğun yerde, çevrende kısa süre arena açarsın (kimseyi engellemez, girip çıkılabilir); içindeyken saldırı gücün, saldırı hızın ve hareket hızın artar.',
-  duel:'Yakındaki rakip kahramana atılırsın; süre boyunca zırhının ve büyü direncinin bir kısmını çalar, canını yakar ve verdiğin hasarla iyileşirsin.',
+  duel:'Kısa bir hazırlıktan sonra (hedefe çizgi görünür) yakındaki rakip kahramana atılırsın; hazırlıkta sersemletilir, susturulur ya da köklenirsen iptal olur, beklemenin yarısı döner. Değince süre boyunca zırhının ve büyü direncinin bir kısmını çalar, canını yakar ve verdiğin hasarla iyileşirsin.',
   billiard:'Durdurulamaz top olursun: hızla ileri gider, duvarlardan seker, değdiğin rakipleri itip vurursun. İmleçle hafifçe yönlendirilir. Duvara her çarpışta etrafına küçük alan hasarı verirsin; Boşluk\'a tekrar basınca top durur ve etrafına aynı küçük hasarı verir.'
 };
 const PASS_DESC={

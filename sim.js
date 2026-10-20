@@ -1165,7 +1165,9 @@ export function tryCast(h, k, aim, cmd){
     artilleryShot(h, cmd);
     return;
   }
-  if(sk.cast){
+  if(sk.windup){   // görünür hazırlık (Meydan Okuma, Şok Dalgası): kıpırdamadan bekler; sersem/susturma/kök iptal eder (windCancel)
+    h.cast = { k, t:sk.windup, total:sk.windup, aim, slow:1, tgt, wind:true };
+  } else if(sk.cast){
     h.cast = { k, t:sk.cast, total:sk.cast, aim, slow:sk.castSlow, emp };
   } else {
     instantSkill(h, k, aim, cmd, tgt, { emp });
@@ -1396,7 +1398,18 @@ export function instantSkill(h, k, aim, cmd, tgt, opt){
   }
 }
 
+/* Hazırlıklı yeteneğin iptali: beklemenin yarısı geri verilir */
+function windCancel(h){
+  const c=h.cast; h.cast=null;
+  if(c && c.wind){ h.cd[c.k]=Math.max(0, h.cd[c.k]-h.cdMax[c.k]*0.5); fx({ type:'ring', owner:h, r0:h.r, r1:h.r+18, color:'#aaa', lw:3, life:0.25 }); }
+}
 export function fireCast(h, c){
+  if(c.wind){   // hazırlık bitti: hedefli yetenekte hedef hâlâ geçerli mi
+    const sk=h.def.skills[c.k];
+    if(c.tgt && (c.tgt.dead || !canSee(h.team,c.tgt) || dist(h,c.tgt)-c.tgt.r>sk.range+150)){ h.cast=c; windCancel(h); return; }
+    instantSkill(h, c.k, c.aim, null, c.tgt, {});
+    return;
+  }
   const sk=h.def.skills[c.k], rk=h.rank[c.k], i=rk-1;
   const ang=c.aim, base=atkDmg(h);
   if(sk.type==='volley'){
@@ -1589,7 +1602,7 @@ export function updateHero(h, cmd, dt){
   h.mass = stat(h,'mass')*Math.pow(h.r/h.baseR,2)*(st.shell ? st.shell.mass : 1)*(st.ball ? 10 : 1);   // Gülle: Kabuk 3 kat, top çok ağır
   h.aim = cmd.aim;
 
-  if(st.freeze>0){ if(a.state==='windup') a.state='ready'; h.cast=null; h.dash=null; h.chan=null; }
+  if(st.freeze>0){ if(a.state==='windup') a.state='ready'; if(h.cast && h.cast.wind) windCancel(h); h.cast=null; h.dash=null; h.chan=null; }
 
   // Kanca ile çekiliyor: hareket, saldırı ve yetenek yok (zorla yer değiştirme)
   if(h.pulled){ pullStep(h, dt); return; }
@@ -1638,8 +1651,9 @@ export function updateHero(h, cmd, dt){
   // Yetenek hazırlığı (okçu sağ tık ve boşluk)
   if(h.cast){
     if(settings.aimMode==='track') h.cast.aim=cmd.aim;
-    h.cast.t-=dt;
-    if(h.cast.t<=0){ const c=h.cast; h.cast=null; fireCast(h,c); }
+    if(h.cast.wind && (st.silence>0 || (st.root>0 && h.def.skills[h.cast.k].type==='duel'))) windCancel(h);   // susturma, Meydan Okuma'da kök de iptal eder
+    else h.cast.t-=dt;
+    if(h.cast && h.cast.t<=0){ const c=h.cast; h.cast=null; fireCast(h,c); }
   }
 
   // Kilitli Yaylım kanallaması: hareket komutu, sersemleme, hedefin ölmesi ya da leash'ten uzaklaşması bitirir
@@ -1809,7 +1823,7 @@ function ringTick(h, dt){
   for(const u of foes(h.team,false)){
     if(u.stasis>0 || dist(u,h)-u.r>R.radius) continue;
     damage(u, R.dps*dt, h, { dot:true, noSplash:true, type:'magic' });
-    if(!u.dead && u.st) applySlow(u, R.slow, 0.3);
+    if(!u.dead && u.st && R.slow>0) applySlow(u, R.slow, 0.3);
   }
 }
 

@@ -534,6 +534,11 @@ function dodgeVec(b, e, eVis, M){
       const sk=e.def.skills[e.cast.k];
       ang=e.cast.aim; len=sk.range+e.r+40; width=sk.radius;
     }
+    if(e.cast && e.cast.wind && e.def.skills[e.cast.k].type==='shockwave'){   // Şok Dalgası hazırlığı: halkanın dışına çık (tepki gecikmesiyle)
+      const sk=e.def.skills[e.cast.k], rx=b.x-e.x, ry=b.y-e.y, l=hyp(rx,ry)||1;
+      if(e.cast!==M.swRef){ M.swRef=e.cast; M.swAt=S.time+RC[0]+rand()*(RC[1]-RC[0]); }
+      if(S.time>=M.swAt && l<sk.radius+b.r+30){ vx+=rx/l*3; vy+=ry/l*3; }
+    }
     const ref=ang!==null ? e.cast : null;
     if(ref && ref!==M.threatRef){ M.threatRef=ref; M.threatAt=S.time+RC[0]+rand()*(RC[1]-RC[0]); }
     if(ang!==null && S.time>=M.threatAt){
