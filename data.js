@@ -596,7 +596,8 @@ export const MINIONS = {
   ranged:{ name:'Menzilli', r:14, hp:250, speed:130, mass:0.5, dmg:25, kind:'proj', xp:20, range:210, projSpeed:600, projR:5, wind:0.3, period:1.3, aggro:320 }
 };
 /* Minyonlar zamanla güçlenir: dakika başına can ve hasar artışı, en fazla cap katı */
-export const MINION_SCALE = { hpPerMin:0.04, dmgPerMin:0.08, cap:3.0 };   // 15.10.2026 (güçlü kule sonrası maç süresi): 0.06/2.5 idi; 14.10.2026: dmgPerMin 0.03, cap 2.0 idi
+export const MINION_SCALE = { hpPerMin:0.05, dmgPerMin:0.10, cap:3.5 };   // 21.10.2026: 0.04/0.08/3.0 idi (ölüm süresi 30 sn sonrası oyun sonu, minyonlar güçlü element)
+//   // 15.10.2026 (güçlü kule sonrası maç süresi): 0.06/2.5 idi; 14.10.2026: dmgPerMin 0.03, cap 2.0 idi
 /* Altın (şimdilik sadece minyonlar). Minyon değeri 15'ten başlar, 20. dakikaya kadar doğrusal artıp 20'de sabitlenir.
    Son vuruşu yapan kahraman tam altın alır. Yakındaki (XP_RADIUS) diğer kahramanlar, son vuruş yokmuş gibi kendi sayılarına
    göre kişi başı esas altının share[n-1] katını alır (örn. 3 kişi yakın, biri son vurdu: o %100, diğer ikisi %40'ar). */
