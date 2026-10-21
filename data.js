@@ -675,7 +675,7 @@ export const BUFFS = {
 };
 /* Büyük canavar gücü: öldüren takımın bütün kahramanlarına (ölüler dahil) dur sn; takımın minyonları minionDmg/minionHp katı,
    kahraman ve minyonların yapılara hasarı structMult katı. Altın: takımın her üyesine gold. */
-export const BIG_BUFF = { name:'Titan Gücü', dur:120, minionDmg:1.4, minionHp:1.3, structMult:2.0,   /* 15.10.2026: 1.5 idi (14.10.2026: 1.25 idi) */ gold:120, color:'#ffd24d' };
+export const BIG_BUFF = { name:'Titan Gücü', dur:150, minionDmg:1.4, minionHp:1.4,   /* 21.10.2026: dur 120, minionHp 1.3 idi (ölüm süresi 30 sn'ye inince oyun sonunu hızlandırmak için) */ structMult:2.0,   /* 15.10.2026: 1.5 idi (14.10.2026: 1.25 idi) */ gold:120, color:'#ffd24d' };
 
 /* ---- Geri kalma telafisi ve orman hakimiyeti (12.10.2026) ----
    CATCHUP_XP: kahramanın toplam XP'si rakip takım ortalamasından en az gap oranı kadar düşükse bütün XP kazancı +bonus (ilk eşleşen, tavan %40).
