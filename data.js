@@ -619,11 +619,12 @@ export const MINION_CALL = 1.5, MINION_CALL_R = 450;   // minyon çağrısı: 45
 /* Yeniden doğma: 10 sn + dakika başına 1,5 sn, en fazla 40 sn (20. dakikada). */
 /* Üsse dönüş (B): sabit 8 sn kanallanır; hareket, saldırı, yetenek ya da hasar keser */
 export const RECALL = { time:8 };   // sabit 8 sn kanallama (her yerden)
-/* Yeniden doğma: başta kısa, sonra hızla uzar (karesel): base + k*dakika², en fazla cap.
-   6 sn (0. dk), ~9 (5), ~17 (10), ~31 (15), 50 (20+). (Eski: 10 sn'den 20. dakikada 40'a doğrusal.) */
-export const RESPAWN = { base:6, k:0.25, cap:30 };   // 21.10.2026: cap 50 idi (uzun ölü süre tek oyunculuda kopma noktası; ~10. dk'dan sonra 30 sn)
-//   15.10.2026: k 0.2 idi (14.10.2026: 0.11 idi) (10. dk 26 sn, 15. dk 50 sn)
-export const respawnTime = t => Math.min(RESPAWN.cap, RESPAWN.base+RESPAWN.k*(t/60)**2);
+/* Yeniden doğma (21.10.2026, iki parça): erken oyun karesel ve mid'de durur (base + k*dakika², en fazla mid),
+   lateStart dakikasından sonra küp ek terim (late*(dakika-lateStart)³) ile giderek hızlanan artış, en fazla cap.
+   6 sn (0. dk), ~12 (5), ~30 (10-15), ~32 (20), ~45 (25), ~81 (30), ~150 (35+). Amaç: uzun maçlar bitsin. */
+export const RESPAWN = { base:6, k:0.25, mid:30, lateStart:15, late:0.015, cap:150 };   // 21.10.2026: { base:6, k:0.25, cap:30 } idi (10. dk'dan sonra düz 30 sn)
+//   cap 50 idi; 15.10.2026: k 0.2 idi (14.10.2026: 0.11 idi)
+export const respawnTime = t => { const m=t/60; return Math.min(RESPAWN.cap, Math.min(RESPAWN.mid, RESPAWN.base+RESPAWN.k*m*m) + RESPAWN.late*Math.max(0,m-RESPAWN.lateStart)**3); };
 export const XP_NEED = lvl => 140 + 38*(lvl-1);         // seviyeden sonrakine gereken XP (14.10.2026, azami seviye 15: 180 + 54*(lvl-1) idi)
 export const HERO_KILL_XP = 150, STRUCT_XP = 100, XP_RADIUS = 600;
 export const KEY_LABELS = { p:'Pasif', r:'Sağ Tık', e:'E', s:'Boşluk' };
