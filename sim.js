@@ -420,6 +420,11 @@ export function damage(e, amt, src, opts){
   const hp0 = e.hp;   // Fırsatçı: vuruştan önceki can
   const dealt = Math.max(0, Math.min(a, e.hp));   // gerçekten düşen can (damage dönüş değeri: Kan Oku iyileşmesi için)
   e.hp -= a; e.flash = 0.12;
+  if(e.kind==='hero' && dealt>0 && src){   // ölüm özeti için son hasarlar (yalnız okunur; çizim gösterir)
+    const L=e.ic.dmgLog||(e.ic.dmgLog=[]);
+    L.push({ t:S.time, src, kind: opts.dot ? 'dot' : opts.basic ? 'basic' : opts.skill ? 'skill' : src.kind==='hero' ? 'item' : 'basic', type:opts.type||'phys', a:dealt });
+    if(L.length>60 || (L.length>8 && S.time-L[0].t>DEATH_RECAP.window+1)){ const t0=S.time-DEATH_RECAP.window-1; e.ic.dmgLog=L.filter(x=>x.t>=t0); }
+  }
   if(S.onDamage) S.onDamage(e, a, src, opts);   // ölçüm araçları için (normalde boş)
   if(e.kind==='hero'){
     e.ic.lastHurt=S.time;
@@ -642,7 +647,7 @@ export function kill(e, src){
     if(S.stats.firstKill===null) S.stats.firstKill=S.time;
     e.respawn=respawnTime(S.time); if(src.team<2) S.score[src.team]++;
     const killer=creditKiller(e, src);
-    e.deaths++;
+    e.deaths++; e.ic.deathAt=S.time;
     if(S.structs.some(t=>!t.dead && t.team!==e.team && t.sub!=='nexus' && Math.hypot(t.x-e.x,t.y-e.y)<=t.range+e.r+60)) e.towerDeaths=(e.towerDeaths||0)+1;   // ölçüm: kule altında ölüm
     if(killer && killer.kind==='hero' && killer.team!==e.team){ killer.kills++; for(const a of takedownParticipants(e, killer)) if(a!==killer) a.assists++; }
     bloodHarvest(e, src, killer);
@@ -1020,6 +1025,9 @@ export function totalXP(h){ let t=h.xp; for(let l=1;l<h.level;l++) t+=XP_NEED(l)
 export function itemsValue(items){ return (items||[]).reduce((t,id)=>t+((ITEMS[id]||PARTS[id]||{}).cost||0),0); }
 export function heroWorth(h){ return h.gold+runesValue(h)+(h.items||[]).reduce((t,id)=>t+((ITEMS[id]||PARTS[id]||{}).cost||0),0); }
 function foeAvg(h, f){ const F=S.heroes.filter(u=>u.team!==h.team && u.team<2); return F.length ? F.reduce((t,u)=>t+f(u),0)/F.length : 0; }
+export const DEATH_RECAP = { window:4 };   // ölüm özeti: ölümden önceki son 4 sn
+/* Telafi altını, yan etkisiz (çizim için): h bir rakip kahramanı öldürse alacağı ek altın */
+export function catchupGoldPeek(h){ const g=behind(h,heroWorth); for(const r of CATCHUP_GOLD.steps) if(g>=r.gap) return r.gold; return 0; }
 function behind(h, f){ const a=foeAvg(h,f); return a>0 ? 1-f(h)/a : 0; }
 export function catchupXP(h){ const g=behind(h,totalXP); for(const r of CATCHUP_XP) if(g>=r.gap) return r.bonus; return 0; }
 export function catchupGold(h){ const g=behind(h,heroWorth); for(const r of CATCHUP_GOLD.steps) if(g>=r.gap){ h.cuGold=(h.cuGold||0)+r.gold; return r.gold; } return 0; }

@@ -1,5 +1,5 @@
 /* Çizim: durumu sadece okur. Tarayıcıya bağımlı. */
-import { TEAM_COLORS as DATA_TEAM, MAX_LEVEL, FOUNTAIN, XP_NEED, KEY_LABELS, VISION, FORMS, JUNGLE, BUFFS, BIG_BUFF, JUNGLE_MASTERY } from './data.js';
+import { TEAM_COLORS as DATA_TEAM, MAX_LEVEL, FOUNTAIN, XP_NEED, KEY_LABELS, VISION, FORMS, JUNGLE, BUFFS, BIG_BUFF, JUNGLE_MASTERY, GOLD } from './data.js';
 import { PAL, rgba, mix } from './palette.js';
 import { drawToken, drawUnitToken, unitImg, drawGlow, drawCrystal, paintMap, bushLights, texReady, drawIcon, CAMP_ICON } from './art.js';
 texReady.then(()=>{ fieldCache=null; });   // dokular gelince zemini bir kez yeniden çiz
@@ -9,7 +9,7 @@ import { itemInfo } from './itemdesc.js';
 import { MAP_W, MAP_H, LANES, WALLS, BUSHES, BASES, rayDist, wallsNear, bushAt } from './map.js';
 import { HERO_NAMES } from './names.js';
 import { juiceInit, juiceFrame, juiceUnder, juiceOver, juiceScreen, juiceToken, juiceCamLead, juiceShake } from './juice.js';
-import { S, settings, stat, dist, atkDef, atkDmg, attackSpeed, timings, canLearn, passiveText, visiblePos, canSee, arenaOf, campIntel, seenItems, itemsValue } from './sim.js';
+import { S, settings, stat, dist, atkDef, atkDmg, attackSpeed, timings, canLearn, passiveText, visiblePos, canSee, arenaOf, campIntel, seenItems, itemsValue, catchupGoldPeek, DEATH_RECAP } from './sim.js';
 
 export const cam={ x:0, y:0 };
 export const uiState={ hold:null, aimTgt:null, mx:0, my:0 };   // girdiden gelen çizim bilgisi (basılı yetenek tuşu, nişan hedefi)
@@ -217,6 +217,13 @@ function threatMarks(h,x,y,w,bh,shield){
     const n=h.ic.korN, full=n>=B.kor.max;
     ctx.save(); for(let i=0;i<n;i++){ const a=Math.PI/2+(i-(n-1)/2)*0.32; ctx.beginPath(); ctx.arc(h.x+Math.cos(a)*(h.r+7),h.y+Math.sin(a)*(h.r+7),full?3.4:2.6,0,TAU); ctx.fillStyle=full?'#ffb347':'#ff7a3a'; ctx.fill(); } ctx.restore();
   }
+  { let cu=0; for(const g of S.heroes) if(!g.dead && g.team!==h.team && g.team<2) cu=Math.max(cu, catchupGoldPeek(g));   // görünür geri dönüş ödülü: rakibi gerideyse bu kahramanı öldüren ek altın alır
+    if(cu>0){
+      const k=0.6+0.4*Math.sin(S.time*TAU*1.2);
+      ctx.save(); ctx.setLineDash([4,4]); ctx.beginPath(); ctx.arc(h.x,h.y,h.r+14,0,TAU); ctx.strokeStyle=`rgba(255,207,90,${0.55+0.35*k})`; ctx.lineWidth=2.5; ctx.stroke(); ctx.setLineDash([]);
+      ctx.font='bold 11px system-ui'; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.lineWidth=3; ctx.strokeStyle='rgba(6,4,22,0.85)';
+      const tx=x+w+6, ty=y+bh/2, t='+'+(GOLD.heroKill+cu); ctx.strokeText(t,tx,ty); ctx.fillStyle=PAL.gold; ctx.fillText(t,tx,ty); ctx.restore();
+    } }
   if(h.ic.drT>S.time){   // Tanrı Kalkanı: hasar azaltma sürerken ince altın halka
     ctx.save(); ctx.beginPath(); ctx.arc(h.x,h.y,h.r+10,0,TAU); ctx.strokeStyle='rgba(255,226,140,0.85)'; ctx.lineWidth=2.5; ctx.stroke(); ctx.restore();
   }
@@ -1517,9 +1524,47 @@ function hudFlashOf(p,k,cd,sk){
   return d>=0 && d<0.4 ? 1-d/0.4 : 0;
 }
 
+/* Ölüm özeti: ölümden önceki son DEATH_RECAP.window sn'de kim, nasıl, ne kadar hasar verdi (sim.js e.ic.dmgLog) */
+const RECAP_KIND={ basic:'Düz vuruş', skill:'Yetenek', dot:'Süreli', item:'Eşya' };
+function recapName(u){
+  if(u.kind==='hero') return HERO_NAMES[u.type]||u.def.name;
+  if(u.kind==='struct') return u.sub==='nexus' ? 'Nexus' : 'Kule';
+  if(u.kind==='minion') return 'Minyon';
+  return (u.def && u.def.name) || 'Canavar';
+}
+function drawDeathRecap(p,W,H){
+  const dt=p.ic.deathAt; if(dt===undefined) return;
+  const rows=new Map(); let total=0, last=null;
+  for(const x of p.ic.dmgLog||[]){
+    if(x.t<dt-DEATH_RECAP.window || x.t>dt+0.001) continue;
+    let r=rows.get(x.src); if(!r){ r={ u:x.src, sum:0, phys:0, magic:0, kinds:{} }; rows.set(x.src,r); }
+    r.sum+=x.a; total+=x.a; if(x.type==='magic') r.magic+=x.a; else r.phys+=x.a;
+    r.kinds[x.kind]=(r.kinds[x.kind]||0)+x.a; last=x.src;
+  }
+  if(!rows.size) return;
+  const list=[...rows.values()].sort((a,b)=>b.sum-a.sum).slice(0,5);
+  const bw=Math.min(380, W-32), lh=34, bh=48+list.length*lh, bx=(W-bw)/2, by=Math.max(70, H*0.22);
+  ctx.save();
+  ctx.fillStyle='rgba(10,8,28,0.88)'; rrect(bx,by,bw,bh,10); ctx.fill(); ctx.strokeStyle='rgba(255,106,88,0.6)'; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.textBaseline='middle'; ctx.textAlign='left'; ctx.font='bold 14px system-ui'; ctx.fillStyle='#ffd0c8';
+  ctx.fillText('Son '+DEATH_RECAP.window+' saniye: '+Math.round(total)+' hasar', bx+14, by+18);
+  ctx.textAlign='right'; ctx.font='12px system-ui'; ctx.fillStyle='#c9cfdd'; ctx.fillText('Yeniden doğuş '+Math.ceil(Math.max(0,p.respawn))+' sn', bx+bw-14, by+18);
+  list.forEach((r,i)=>{
+    const y=by+40+i*lh, tc=r.u.team<2 ? PAL.team[r.u.team] : '#d9b56a';
+    ctx.textAlign='left'; ctx.font='bold 13px system-ui'; ctx.fillStyle=tc;
+    ctx.fillText(recapName(r.u)+(r.u===last?'  (son vuruş)':''), bx+14, y+6);
+    ctx.font='11px system-ui'; ctx.fillStyle='#b9bcd6';
+    ctx.fillText(Object.entries(r.kinds).sort((a,b)=>b[1]-a[1]).map(([k,v])=>(RECAP_KIND[k]||k)+' '+Math.round(v)).join(' · '), bx+14, y+22);
+    ctx.textAlign='right'; ctx.font='bold 13px system-ui'; ctx.fillStyle='#fff'; ctx.fillText(Math.round(r.sum), bx+bw-14, y+6);
+    const sw=90, sx=bx+bw-14-sw, sy=y+18, f=r.sum>0?r.phys/r.sum:1;   // fiziksel (turuncu) / büyü (mavi) payı
+    ctx.fillStyle='#ff9a5a'; ctx.fillRect(sx,sy,sw*f,5); ctx.fillStyle='#7fb4ff'; ctx.fillRect(sx+sw*f,sy,sw*(1-f),5);
+  });
+  ctx.restore();
+}
 function hudChips(p,x,y,maxW){
   const list=[], st=p.st;
   if(p.dead) list.push({ t:'Öldün, '+Math.ceil(Math.max(0,p.respawn))+' sn', c:'#ffb3b3', bg:'#58232a' });
+  { const cu=catchupGoldPeek(p); if(cu>0 && !p.dead) list.push({ t:'Geri dönüş: öldürme +'+cu+' altın', c:'#ffe9a8', bg:'#5a4a1a' }); }
   if(st.silence>0) list.push({ t:'Susturuldu '+st.silence.toFixed(1)+' sn', c:'#e3d1ff', bg:'#4a2f7a' });
   if(st.freeze>0 && !p.dead) list.push({ t:'Kontrol altında', c:'#bfeaff', bg:'#2c4a66' });
   if(p.stasis>0) list.push({ t:'Kum Heykeli '+p.stasis.toFixed(1)+' sn', c:'#fff1b0', bg:'#5a4a1a' });
@@ -1683,6 +1728,7 @@ function drawHud(){
     lines.forEach((l,i)=>{ ctx.fillStyle=i?'#c9cfdd':'#fff'; ctx.fillText(l,16,13+i*15); }); }
 
   hudPanel(p,W,H);
+  if(p.dead) drawDeathRecap(p,W,H);
   drawMinimap(W,H);
   if(uiState.showScore) drawScoreboard(W,H);
 
