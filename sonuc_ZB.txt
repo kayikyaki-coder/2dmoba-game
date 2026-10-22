@@ -1,0 +1,3 @@
+{"3":{"mlW":0.6}} | A kazanma %55 [47-63] 88/160 | süre 16.1 dk ölüm           A     9.7  B    10.5 10. dk fark (A-B) servet 54 XP 84 (133 maç) 
+{"3":{"mlW":1.0}} | A kazanma %46 [39-54] 74/160 | süre 14.1 dk ölüm           A     9.9  B     9.3 10. dk fark (A-B) servet -351 XP -145 (120 maç) 
+DONE
