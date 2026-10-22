@@ -2,8 +2,9 @@
    Mesajlar sunucu rölesinden geçer (tools/wsrelay.js). relay verisi (d): {lobby} {pick} {start} {ping} {pong} {k,c} (komut) {h,v} (durum özeti) */
 import { HERO_NAMES } from './names.js';
 import { ONLINE_MODES, makeConfig } from './lockstep.js';
+import { makeTransport } from './transport.js';
 
-export const net = { ws:null, slot:-1, code:'', slots:[], rtt:0, ls:null, playing:false };
+export const net = { tr:null, slot:-1, code:'', slots:[], rtt:0, ls:null, playing:false };
 const LEVELS = [['easy','Kolay'],['medium','Orta'],['hard','Zor'],['expert','Uzman']];
 let hooks = { start(){}, leave(){} };
 let lobby = { mode:'coop', heroes:['archer','warrior'], bots:['random','random'], botLevel:'medium' };
@@ -11,24 +12,31 @@ let delayPick = 'auto';
 let el = null, msg = '', pingT = 0;
 
 export function initNet(h){ hooks = h; }
-const wsUrl = () => (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws';
 
 export function netSend(d, to){
-  if(net.ws && net.ws.readyState === 1) net.ws.send(JSON.stringify(to === undefined ? { t:'relay', d } : { t:'relay', d, to }));
+  if(net.tr && net.tr.isOpen()) net.tr.send(to === undefined ? { t:'relay', d } : { t:'relay', d, to });
 }
-function sendRaw(o){ if(net.ws && net.ws.readyState === 1) net.ws.send(JSON.stringify(o)); }
+function sendRaw(o){ if(net.tr && net.tr.isOpen()) net.tr.send(o); }
+/* Bağlantı yolu: 'p2p' doğrudan, 'sb' Supabase rölesi, 'ws' sunucu rölesi */
+export const netPath = () => net.tr ? net.tr.path() : '';
+const pathName = () => ({ p2p:'doğrudan', sb:'Supabase rölesi', ws:'sunucu' })[netPath()] || '';
 
-function connect(then){
-  if(net.ws && net.ws.readyState === 1){ then(); return; }
+async function connect(then){
+  if(net.tr && net.tr.isOpen()){ then(); return; }
   msg = 'Bağlanıyor...'; render();
-  let ws; try { ws = new WebSocket(wsUrl()); } catch(e){ msg = 'Bağlantı kurulamadı'; render(); return; }
-  net.ws = ws;
-  ws.onopen = () => { msg = ''; then(); startPing(); };
-  ws.onmessage = e => onMessage(JSON.parse(e.data));
-  ws.onclose = () => { if(net.ws !== ws) return; net.ws = null; net.slot = -1; net.code = ''; net.slots = []; clearInterval(pingT);
-    const was = net.playing; net.playing = false; net.ls = null;
-    msg = 'Bağlantı koptu'; if(was) hooks.leave('Bağlantı koptu'); render(); };
-  ws.onerror = () => { msg = 'Sunucuya bağlanılamadı (oyun sunucusu açık mı?)'; render(); };
+  const tr = makeTransport({
+    message: m => { if(net.tr === tr) onMessage(m); },
+    close: () => onClose(tr),
+    path: () => { if(net.tr === tr && !net.playing) render(); }
+  });
+  try { await tr.open(); } catch(e){ msg = (e && e.message) || 'Bağlantı kurulamadı'; render(); return; }
+  net.tr = tr; msg = ''; then(); startPing();
+}
+function onClose(tr){
+  if(net.tr !== tr) return;
+  net.tr = null; net.slot = -1; net.code = ''; net.slots = []; clearInterval(pingT);
+  const was = net.playing; net.playing = false; net.ls = null;
+  msg = 'Bağlantı koptu'; if(was) hooks.leave('Bağlantı koptu'); render();
 }
 function startPing(){
   clearInterval(pingT);
@@ -57,11 +65,11 @@ export function openOnline(){ buildEl(); el.style.display = 'flex'; msg = ''; re
 export function closeLobby(){ if(el) el.style.display = 'none'; }
 export function leaveRoom(){
   clearInterval(pingT);
-  if(net.ws){ const w = net.ws; net.ws = null; try { w.close(); } catch(e){} }
+  if(net.tr){ const t = net.tr; net.tr = null; try { t.close(); } catch(e){} }
   net.slot = -1; net.code = ''; net.slots = []; net.rtt = 0; net.playing = false; net.ls = null;
 }
 /* Maç bitince aynı odada lobiye dön (oda sahibi yeniden başlatabilir) */
-export function backToLobby(){ net.playing = false; net.ls = null; if(net.ws){ buildEl(); el.style.display = 'flex'; render(); } }
+export function backToLobby(){ net.playing = false; net.ls = null; if(net.tr){ buildEl(); el.style.display = 'flex'; render(); } }
 
 function startMatch(){
   const oneWay = Math.max(net.rtt, 0) / 2;
@@ -92,7 +100,7 @@ function buildEl(){
   const st = document.createElement('style'); st.textContent = CSS; document.head.append(st);
   el = document.createElement('div'); el.id = 'online'; document.body.append(el);
   el.addEventListener('focusout', () => setTimeout(() => { if(renderLater) render(); }, 0));
-  el.addEventListener('keydown', e => { e.stopPropagation(); if(e.code === 'Escape' && !net.ws) closeLobby(); });
+  el.addEventListener('keydown', e => { e.stopPropagation(); if(e.code === 'Escape' && !net.tr) closeLobby(); });
 }
 const heroSel = (value, onChange, withRandom) => {
   const s = document.createElement('select');
@@ -106,7 +114,7 @@ const btn = (text, fn, cls) => { const b = document.createElement('button'); b.t
 /* Açılır liste ya da kutu odaktayken lobi yeniden çizilmez (liste kapanıyordu); odak bitince çizilir */
 let renderLater = false;
 function typing(){ const a = document.activeElement; return !!(a && el && el.contains(a) && (a.tagName === 'SELECT' || a.tagName === 'INPUT')); }
-function peerText(){ const host = net.slot === 0, two = net.slots.length >= 2; return two ? (host ? 'Arkadaşın: bağlı' : 'Sen') + (net.rtt ? '  ·  ping ' + Math.round(net.rtt) + ' ms' : '') : 'Arkadaşın: bekleniyor...'; }
+function peerText(){ const host = net.slot === 0, two = net.slots.length >= 2; return two ? (host ? 'Arkadaşın: bağlı' : 'Sen') + (net.rtt ? '  ·  ping ' + Math.round(net.rtt) + ' ms' : '') + (pathName() ? '  ·  ' + pathName() : '') : 'Arkadaşın: bekleniyor...'; }
 function render(){
   if(!el || el.style.display === 'none') return;
   if(typing()){ renderLater = true; return; }
@@ -118,7 +126,7 @@ function render(){
     const s = document.createElement('div'); s.className = 'osub'; s.textContent = 'Biri oda kurar, kodu arkadaşına söyler, arkadaşı kodu girip katılır.'; box.append(s);
     const code = document.createElement('input'); code.maxLength = 4; code.placeholder = 'KOD';
     code.onkeydown = e => { if(e.code === 'Enter') join(); };
-    const join = () => { if(code.value.trim().length === 4) connect(() => sendRaw({ t:'join', code:code.value.trim() })); };
+    const join = () => { if(code.value.trim().length === 4) connect(() => { sendRaw({ t:'join', code:code.value.trim() }); setTimeout(() => { if(net.slot < 0 && net.tr){ msg = 'Odaya katılınamadı (kod yanlış ya da bağlantı yavaş), tekrar dene'; render(); } }, 12000); }); };
     box.append(row('Oda kur', btn('Oda kur', () => connect(() => sendRaw({ t:'create' })), 'pri')), row('Odaya katıl', code, btn('Katıl', join)));
     const e = document.createElement('div'); e.className = 'oerr'; e.textContent = msg; box.append(e);
     const f = document.createElement('div'); f.className = 'ofoot'; f.append(btn('Kapat', closeLobby)); box.append(f);

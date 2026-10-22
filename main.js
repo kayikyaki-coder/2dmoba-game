@@ -6,7 +6,7 @@ import { applyAutoBuy, openBuildEditor, buildEditorOpen, setAutoBuy, autoBuyOn, 
 import { botCommand, setBotLevel } from './ai.js';
 import { GAME_TITLE, HERO_NAMES } from './names.js';
 import { bindMenu, showMenu, hideMenu, showPause, hidePause, showResult, hideResult } from './menu.js';
-import { net, initNet, netSend, openOnline, leaveRoom, backToLobby, netInfo } from './net.js';
+import { net, initNet, netSend, netPath, openOnline, leaveRoom, backToLobby, netInfo } from './net.js';
 import { beginMatch, encodeCmd } from './lockstep.js';
 import { view, cam, hudBtns, canvas, resize, updateCamera, render, uiState, shopSpot } from './render.js';
 
@@ -73,7 +73,7 @@ function netStatus(now){
   const ls=net.ls; if(!ls){ netInfo(''); return; }
   if(ls.desync){ netInfo('SENKRON BOZULDU (tik '+ls.desync.tick+'): iki oyun ayrıştı, maçı yeniden kurun', true); return; }
   const stalled=now-lastAdv>400 && !S.over;
-  netInfo((stalled?'Arkadaş bekleniyor... ':'')+'ping '+Math.round(net.rtt)+' ms · tampon '+ls.delay+' tik', stalled);
+  netInfo((stalled?'Arkadaş bekleniyor... ':'')+'ping '+Math.round(net.rtt)+' ms · tampon '+ls.delay+' tik · '+({p2p:'doğrudan',sb:'röle',ws:'sunucu'}[netPath()]||''), stalled);
 }
 
 function getCmd(h, dt){ return h===S.player ? playerCommand() : botCommand(h, dt); }
