@@ -1,0 +1,2 @@
+{"3":{"riskModel":"v2"}} | A kazanma %50 [42-58] 80/160 | süre 17.0 dk ölüm           A     8.2  B     8.3 10. dk fark (A-B) servet -125 XP -116 (131 maç) 
+DONE
