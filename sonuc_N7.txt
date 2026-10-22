@@ -1,0 +1,4 @@
+{"3":{"mlModel":"v7"}} | A kazanma %52 [44-59] 83/160 | süre 16.7 dk ölüm           A     8.4  B     9.0 10. dk fark (A-B) servet 75 XP 53 (131 maç) 
+{"3":{"riskModel":"v4"}} | A kazanma %48 [41-56] 77/160 | süre 17.0 dk ölüm           A     8.6  B     8.3 10. dk fark (A-B) servet -36 XP 5 (137 maç) 
+{"3":{"qModel":"v4"}} | A kazanma %46 [38-53] 73/160 | süre 17.1 dk ölüm           A     8.8  B     8.2 10. dk fark (A-B) servet -137 XP -107 (142 maç) 
+DONE
