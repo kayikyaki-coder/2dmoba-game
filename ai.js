@@ -6,7 +6,7 @@ import { S, settings, rand, dist, atkDef, atkDmg, attackSpeed, timings, canSee, 
 import { CRIT_MULT } from './items.js';
 import { lanePoint, laneProject, laneDir, inWall, BUSHES, bushAt } from './map.js';
 import { navDir, slideDir } from './nav.js';
-import { FIGHT_MODEL, RISK_MODEL } from './ai_model.js';
+import { FIGHT_MODEL, RISK_MODEL, FIGHT_MODELS } from './ai_model.js';
 
 /* Ayarlanabilir sabitler */
 export const AI = {
@@ -59,7 +59,7 @@ export const LEVEL_PARAMS = [];   // araçlar için (tools/levels.js deney ayar�
 const LV = [AI,
   Object.assign(Object.create(AI), MED),
   Object.assign(Object.create(AI), MED, HARD),
-  Object.assign(Object.create(AI), MED, HARD, { lvl:3, mlW:0.6, blinkGate:1, numAdv:1, kwHit:1, noLimbo:1, selfKw:0, misjudge:0.05, pokeP:0.9, killSense:1, lead:1, dng:1, chain:1, focus:1, react:[0.03,0.08], aimNoise:0.015, humanErr:0, humanRange:0, humanAtkDelay:0, humanMoveHold:[0.02,0.04],
+  Object.assign(Object.create(AI), MED, HARD, { lvl:3, mlW:0.8, blinkGate:1, numAdv:1, kwHit:1, noLimbo:1, selfKw:0, misjudge:0.05, pokeP:0.9, killSense:1, lead:1, dng:1, chain:1, focus:1, react:[0.03,0.08], aimNoise:0.015, humanErr:0, humanRange:0, humanAtkDelay:0, humanMoveHold:[0.02,0.04],
     dodgeW:2.4, dodgeNeed:16, dodgeT:0.6, foeMemory:4, look:2, towerGate:0 })];
 LV.forEach((o,i)=>{ LEVEL_PARAMS[i]=o; });
 const LVP = b => LV[b.botLevel|0] || AI;
@@ -319,7 +319,7 @@ function pickFoe(b, M, mode){
       let c=dist(b,u) + (LVP(b).prio ? Math.min(900, (u.hp+(u.st.shield?u.st.shield.amt:0))/(resF(u)*Math.max(1,dps(b)+burstSum(b)/3))*AI.prioW) - Math.min(300, dps(u)*AI.prioD) : u.hp/u.maxHp*500) + (u.id===M.foeId ? -150 : 0);   // Uzman: öldürme süresi kısa ve hasarı yüksek rakip önce
       if(!heroHitSafe(b,u,u.x,u.y)) c+=300;
       if(myS && dist(u,myS)<900) c-=200;
-      if(LVP(b).mlTgt && FIGHT_MODEL && dist(b,u)<1400) c-=LVP(b).mlTgt*mlPredict(fightFeatures(b,u,teamEval(b,u,M),dist(b,u)));   // mlTgt (ML hedef seçimi): dövüş modeli bu rakiple sonucu iyi buluyorsa onu seç
+      if(LVP(b).mlTgt && FIGHT_MODEL && dist(b,u)<1400) c-=LVP(b).mlTgt*mlPredict(fightFeatures(b,u,teamEval(b,u,M),dist(b,u)), fmOf(b));   // mlTgt (ML hedef seçimi): dövüş modeli bu rakiple sonucu iyi buluyorsa onu seç
       const xp=LVP(b).focus;   // Uzman: dostun vurduğu / seçtiği hedefe odak
       for(const a of S.heroes) if(a!==b && a.team===b.team && !a.dead && (a.dmgBy[u.id] ?? -1e9) >= S.time-3) { c-=xp ? 380 : 200; break; }
       if(xp) for(const a of S.heroes) if(a!==b && a.team===b.team && !a.dead && a.ai && a.ai.v2 && a.ai.v2.foeId===u.id) { c-=220; break; }
@@ -392,8 +392,8 @@ export function fightFeatures(b, e, ev, d){
   for(const t of HERO_IDS) f.push(e.type===t?1:0);
   return f;
 }
-export function mlPredict(f){
-  const M=FIGHT_MODEL; if(!M) return 0;
+export function mlPredict(f, M=FIGHT_MODEL){
+  if(!M) return 0;
   const H=M.b1.length, N=M.W1[0].length, h=new Array(H);
   for(let j=0;j<H;j++){ let z=M.b1[j]; const w=M.W1[j]; for(let i=0;i<N;i++) z+=w[i]*f[i]; h[j]=Math.tanh(z); }
   let o=M.b2; for(let j=0;j<H;j++) o+=M.W2[j]*h[j];
@@ -406,9 +406,10 @@ export function riskPredict(f){
   let o=M.b2; for(let j=0;j<H;j++){ let z=M.b1[j]; const w=M.W1[j]; for(let i=0;i<N;i++) z+=w[i]*f[i]; o+=M.W2[j]*Math.tanh(z); }
   return 1/(1+Math.exp(-o));
 }
+const fmOf = b => (LVP(b).mlModel && FIGHT_MODELS[LVP(b).mlModel]) || FIGHT_MODEL;   // LP.mlModel: seçilebilir model (A/B)
 function mlBlend(b, e, ev, d, w){
-  const p=mlPredict(fightFeatures(b,e,ev,d));
-  return { ...ev, adv: Math.exp((1-w)*Math.log(Math.max(0.05,ev.adv)) + w*FIGHT_MODEL.k*p), ml:p };
+  const M=fmOf(b), p=mlPredict(fightFeatures(b,e,ev,d), M);
+  return { ...ev, adv: Math.exp((1-w)*Math.log(Math.max(0.05,ev.adv)) + w*M.k*p), ml:p };
 }
 /* Dostumuz (canlı) rakiple dövüşte mi? (o dostun botu M.fight tuttu ve rakip yakında) */
 function allyFighting(b, e){
