@@ -319,6 +319,7 @@ function pickFoe(b, M, mode){
       let c=dist(b,u) + (LVP(b).prio ? Math.min(900, (u.hp+(u.st.shield?u.st.shield.amt:0))/(resF(u)*Math.max(1,dps(b)+burstSum(b)/3))*AI.prioW) - Math.min(300, dps(u)*AI.prioD) : u.hp/u.maxHp*500) + (u.id===M.foeId ? -150 : 0);   // Uzman: öldürme süresi kısa ve hasarı yüksek rakip önce
       if(!heroHitSafe(b,u,u.x,u.y)) c+=300;
       if(myS && dist(u,myS)<900) c-=200;
+      if(LVP(b).mlTgt && FIGHT_MODEL && dist(b,u)<1400) c-=LVP(b).mlTgt*mlPredict(fightFeatures(b,u,teamEval(b,u,M),dist(b,u)));   // mlTgt (ML hedef seçimi): dövüş modeli bu rakiple sonucu iyi buluyorsa onu seç
       const xp=LVP(b).focus;   // Uzman: dostun vurduğu / seçtiği hedefe odak
       for(const a of S.heroes) if(a!==b && a.team===b.team && !a.dead && (a.dmgBy[u.id] ?? -1e9) >= S.time-3) { c-=xp ? 380 : 200; break; }
       if(xp) for(const a of S.heroes) if(a!==b && a.team===b.team && !a.dead && a.ai && a.ai.v2 && a.ai.v2.foeId===u.id) { c-=220; break; }
@@ -369,7 +370,7 @@ function teamEval(b, e, M){
    fightFeatures: botun e rakibine karşı dövüş durumu (sabit uzunlukta sayı dizisi). tools/fightdata.js bu özelliklerle veri toplar,
    tools/mltrain.js küçük bir sinir ağı eğitir (hedef: 6 sn dövüş sonunda net sonuç = rakip can kaybı - bizim can kaybımız + ölüm payı),
    ai_model.js'e yazar. mlBlend: ağın tahmini ev.adv ile log uzayında karıştırılır (LP.mlW ağırlığı; 0 kapalı). */
-AI.mlW=0; AI.riskT=0; AI.explore=0; AI.collect=0; AI.sink=null;
+AI.mlW=0; AI.mlTgt=0; AI.riskT=0; AI.explore=0; AI.collect=0; AI.sink=null;
 const HERO_IDS=Object.keys(HEROES);
 function readyN(h){ let n=0; for(const k of ['r','e','s']) if(h.rank[k]>0 && rdy(h,k)) n++; return n; }
 /* İlk 17 özellik v1 modelle aynı (model W1 genişliği kadarı okunur); 17'den sonrası v2: mutlak can, yakın can oranları, hız farkı, kontrol/kalkan, dalga, rakip kule, kahraman türleri (one-hot b, e) */
