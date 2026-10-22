@@ -1456,6 +1456,14 @@ function defendSpot(b){
 function jungleMove(b, e, eVis, M, ev){
   if(b.noJungle) return null;
   const late=b.level>=AI.jgLateLv;   // geç oyun: yalnız Titan, gerisi koridor/itme
+  // Titan bitirme (bot L5, titanFinish): Titan'ın canı bu orandan azsa ve vuruyorsak savunma/baskın için bırakma (yarım kalan Titan canını yeniler)
+  if(LVP(b).titanFinish){
+    const bc0=bigCamp();
+    if(bc0 && campLive(bc0,b) && b.hp/b.maxHp>0.35 && !foeNear(b,bc0.x,bc0.y,700)){
+      const tm=bc0.mobs.find(m=>!m.dead);
+      if(tm && tm.aggro && tm.aggro.team===b.team && tm.hp/tm.maxHp<LVP(b).titanFinish){ M.jgS='big'; return campAttack(b,bc0); }
+    }
+  }
   { const d=defendSpot(b); if(d && b.hp/b.maxHp>0.35){ M.jgS='defend'; if(dist(b,d)>700) return { mv:{ x:d.x-b.x, y:d.y-b.y }, tgt:null, dive:false, hold:false }; return null; } }
   const hpF=b.hp/b.maxHp;
   if(LVP(b).numAdv && hpF>0.4 && numEdge(b)>0 && !(bigCamp() && campLive(bigCamp(),b) && b.level>=LVP(b).jgBigLv)){ M.jgS='push'; return null; }   // sayı üstünlüğü: koridora, itmeye
@@ -1516,7 +1524,7 @@ function bigHelp(b, eVis, e){
   return null;
 }
 /* Sayı üstünlüğünde Titan (Uzman/Zor titanAdv): rakiplerden biri uzun süre ölü, dost da çukura yakınsa koridorcu da Titan'a gider */
-AI.titanAdvR=2600; AI.titanTeam=0;   // titanTeam (bot L4): sayı üstünlüğü aranmadan, dost de çukura yakınsa ve rakip yakında değilse koridorcu da Titan'a gider
+AI.titanAdvR=2600; AI.titanFinish=0;   // titanFinish (bot L5): 0 kapalı; örn. 0,5 AI.titanTeam=0;   // titanTeam (bot L4): sayı üstünlüğü aranmadan, dost de çukura yakınsa ve rakip yakında değilse koridorcu da Titan'a gider
 function titanAdv(b, eVis, e){
   if(!(LVP(b).titanAdv || LVP(b).titanTeam) || b.noJungle || b.role==='jungle' || hpNow(b)<0.5 || b.level<LVP(b).jgBigLv) return null;
   const bc=bigCamp(); if(!bc || !campLive(bc,b)) return null;
