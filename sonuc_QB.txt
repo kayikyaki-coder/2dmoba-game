@@ -1,0 +1,3 @@
+{"3":{"qW":8}} | A kazanma %59 [52-67] 95/160 | süre 16.4 dk ölüm           A     7.6  B     9.2 10. dk fark (A-B) servet 426 XP 288 (137 maç) 
+{"3":{"qW":15}} | A kazanma %52 [44-59] 83/160 | süre 17.2 dk ölüm           A     8.7  B     9.5 10. dk fark (A-B) servet 137 XP 147 (141 maç) 
+DONE
