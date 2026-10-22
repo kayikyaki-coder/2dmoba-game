@@ -1,0 +1,6 @@
+{"3":{"jgBigWait":6}} | A kazanma %50 [42-57] 79/159 | süre 18.1 dk ölüm           A    10.7  B    10.2 10. dk fark (A-B) servet 93 XP 53 (136 maç) 
+{"3":{"jgBigWait":6}} | A kazanma %50 [42-57] 79/159 | süre 18.1 dk ölüm           A    10.7  B    10.2 10. dk fark (A-B) servet 93 XP 53 (136 maç) 
+{"3":{"jgBigSolo":9}} | A kazanma %51 [44-59] 82/160 | süre 19.0 dk ölüm           A    10.9  B    10.9 10. dk fark (A-B) servet -56 XP -34 (137 maç) 
+DONE
+{"3":{"jgBigSolo":9}} | A kazanma %51 [44-59] 82/160 | süre 19.0 dk ölüm           A    10.9  B    10.9 10. dk fark (A-B) servet -56 XP -34 (137 maç) 
+DONE
