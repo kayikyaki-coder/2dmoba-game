@@ -6,7 +6,7 @@ import { S, settings, rand, dist, atkDef, atkDmg, attackSpeed, timings, canSee, 
 import { CRIT_MULT } from './items.js';
 import { lanePoint, laneProject, laneDir, inWall, BUSHES, bushAt } from './map.js';
 import { navDir, slideDir } from './nav.js';
-import { FIGHT_MODEL, RISK_MODEL, FIGHT_MODELS, Q_MODEL } from './ai_model.js';
+import { FIGHT_MODEL, RISK_MODEL, FIGHT_MODELS, Q_MODEL, RISK_MODELS, Q_MODELS } from './ai_model.js';
 
 /* Ayarlanabilir sabitler */
 export const AI = {
@@ -400,8 +400,8 @@ export function mlPredict(f, M=FIGHT_MODEL){
   return o;
 }
 /* Ölüm riski modeli (RISK_MODEL, tools/mltrain.js --task cls): 5 sn içinde ölme olasılığı; LP.riskT eşiğini geçerse (öldürme penceresi/savunma yoksa) dövüşü bırak ve geri çekil */
-export function riskPredict(f){
-  const M=RISK_MODEL; if(!M) return 0;
+export function riskPredict(f, M=RISK_MODEL){
+  if(!M) return 0;
   const H=M.b1.length, N=M.W1[0].length;
   let o=M.b2; for(let j=0;j<H;j++){ let z=M.b1[j]; const w=M.W1[j]; for(let i=0;i<N;i++) z+=w[i]*f[i]; o+=M.W2[j]*Math.tanh(z); }
   return 1/(1+Math.exp(-o));
@@ -409,10 +409,10 @@ export function riskPredict(f){
 const fmOf = b => (LVP(b).mlModel && FIGHT_MODELS[LVP(b).mlModel]) || FIGHT_MODEL;   // LP.mlModel: seçilebilir model (A/B)
 /* Q modeli (Q_MODEL, mltrain --addfg 1): girdinin sonuna dövüş kararı eklenir; Q(dövüş) - Q(dövüşme) = dövüşmenin beklenen getirisi.
    LP.qW > 0 ise ev.adv bu farkla karıştırılır (mlBlend'den sonra). */
-function qGain(f){ return mlPredict([...f,1], Q_MODEL) - mlPredict([...f,0], Q_MODEL); }
+function qGain(f, Q=Q_MODEL){ return mlPredict([...f,1], Q) - mlPredict([...f,0], Q); }
 function qBlend(b, e, ev, d, w){
-  const g=qGain(fightFeatures(b,e,ev,d));
-  return { ...ev, adv: Math.exp(Math.log(Math.max(0.05,ev.adv)) + w*Q_MODEL.k*(g-(Q_MODEL.g0||0))), qg:g };   // g0: tipik kazanç (medyan), yalnız göreli fark etkiler
+  const Q=(LVP(b).qModel && Q_MODELS[LVP(b).qModel]) || Q_MODEL, g=qGain(fightFeatures(b,e,ev,d), Q);
+  return { ...ev, adv: Math.exp(Math.log(Math.max(0.05,ev.adv)) + w*Q.k*(g-(Q.g0||0))), qg:g };   // g0: tipik kazanç (medyan), yalnız göreli fark etkiler
 }
 function mlBlend(b, e, ev, d, w){
   const M=fmOf(b), p=mlPredict(fightFeatures(b,e,ev,d), M);
@@ -1765,7 +1765,7 @@ function botCommandCore(b, dt){
       }
     }
     if(LP.riskT && RISK_MODEL && eVis && ev && !kw && !defend && d<1300 && hpNow(b)<0.9){
-      const pr=riskPredict(fightFeatures(b,e,ev,d)); M.risk=pr;
+      const pr=riskPredict(fightFeatures(b,e,ev,d), (LP.riskModel && RISK_MODELS[LP.riskModel]) || RISK_MODEL); M.risk=pr;
       if(pr>LP.riskT){ fight=false; M.tradeBack=Math.max(M.tradeBack||0, S.time+0.8); }
     }
     M.fight=fight;
