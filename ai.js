@@ -412,7 +412,7 @@ const fmOf = b => (LVP(b).mlModel && FIGHT_MODELS[LVP(b).mlModel]) || FIGHT_MODE
 function qGain(f){ return mlPredict([...f,1], Q_MODEL) - mlPredict([...f,0], Q_MODEL); }
 function qBlend(b, e, ev, d, w){
   const g=qGain(fightFeatures(b,e,ev,d));
-  return { ...ev, adv: Math.exp(Math.log(Math.max(0.05,ev.adv)) + w*Q_MODEL.k*g), qg:g };
+  return { ...ev, adv: Math.exp(Math.log(Math.max(0.05,ev.adv)) + w*Q_MODEL.k*(g-(Q_MODEL.g0||0))), qg:g };   // g0: tipik kazanç (medyan), yalnız göreli fark etkiler
 }
 function mlBlend(b, e, ev, d, w){
   const M=fmOf(b), p=mlPredict(fightFeatures(b,e,ev,d), M);
