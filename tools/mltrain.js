@@ -7,6 +7,7 @@ for(let i=0;i<args.length;i++){ if(args[i].startsWith('--')){ opt[args[i].slice(
 const H=+(opt.hidden||16), EP=+(opt.epochs||60), OUT=opt.out||'ai_model.js', CLS=opt.task==='cls', NAME=opt.name||(CLS?'RISK_MODEL':'FIGHT_MODEL');   // --task cls: ölüm (dd) sınıflandırıcı, sigmoid + çapraz entropi; --fight 1: yalnız dövüş örnekleri (fg 1)
 let rows=files.flatMap(f=>fs.readFileSync(f,'utf8').trim().split('\n').filter(Boolean).map(JSON.parse));
 if(opt.fight) rows=rows.filter(r=>r.fg===undefined||r.fg===1);
+if(opt.addfg) rows=rows.filter(r=>r.fg!==undefined).map(r=>({ ...r, f:[...r.f, r.fg] }));   // --addfg 1: dövüş kararı (fg) girdi olur -> Q(durum, dövüş/dövüşme) modeli
 if(CLS) rows=rows.filter(r=>r.dd!==undefined).map(r=>({ ...r, y:r.dd }));
 const N=rows[0].f.length, ntr=Math.floor(rows.length*0.8), tr=rows.slice(0,ntr), va=rows.slice(ntr);
 const mean=new Array(N).fill(0), sd=new Array(N).fill(0);

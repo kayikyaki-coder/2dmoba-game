@@ -6,7 +6,7 @@ import { S, settings, rand, dist, atkDef, atkDmg, attackSpeed, timings, canSee, 
 import { CRIT_MULT } from './items.js';
 import { lanePoint, laneProject, laneDir, inWall, BUSHES, bushAt } from './map.js';
 import { navDir, slideDir } from './nav.js';
-import { FIGHT_MODEL, RISK_MODEL, FIGHT_MODELS } from './ai_model.js';
+import { FIGHT_MODEL, RISK_MODEL, FIGHT_MODELS, Q_MODEL } from './ai_model.js';
 
 /* Ayarlanabilir sabitler */
 export const AI = {
@@ -370,7 +370,7 @@ function teamEval(b, e, M){
    fightFeatures: botun e rakibine karşı dövüş durumu (sabit uzunlukta sayı dizisi). tools/fightdata.js bu özelliklerle veri toplar,
    tools/mltrain.js küçük bir sinir ağı eğitir (hedef: 6 sn dövüş sonunda net sonuç = rakip can kaybı - bizim can kaybımız + ölüm payı),
    ai_model.js'e yazar. mlBlend: ağın tahmini ev.adv ile log uzayında karıştırılır (LP.mlW ağırlığı; 0 kapalı). */
-AI.mlW=0; AI.mlTgt=0; AI.riskT=0; AI.explore=0; AI.collect=0; AI.sink=null;
+AI.mlW=0; AI.qW=0; AI.mlTgt=0; AI.riskT=0; AI.explore=0; AI.collect=0; AI.sink=null;
 const HERO_IDS=Object.keys(HEROES);
 function readyN(h){ let n=0; for(const k of ['r','e','s']) if(h.rank[k]>0 && rdy(h,k)) n++; return n; }
 /* İlk 17 özellik v1 modelle aynı (model W1 genişliği kadarı okunur); 17'den sonrası v2: mutlak can, yakın can oranları, hız farkı, kontrol/kalkan, dalga, rakip kule, kahraman türleri (one-hot b, e) */
@@ -407,6 +407,13 @@ export function riskPredict(f){
   return 1/(1+Math.exp(-o));
 }
 const fmOf = b => (LVP(b).mlModel && FIGHT_MODELS[LVP(b).mlModel]) || FIGHT_MODEL;   // LP.mlModel: seçilebilir model (A/B)
+/* Q modeli (Q_MODEL, mltrain --addfg 1): girdinin sonuna dövüş kararı eklenir; Q(dövüş) - Q(dövüşme) = dövüşmenin beklenen getirisi.
+   LP.qW > 0 ise ev.adv bu farkla karıştırılır (mlBlend'den sonra). */
+function qGain(f){ return mlPredict([...f,1], Q_MODEL) - mlPredict([...f,0], Q_MODEL); }
+function qBlend(b, e, ev, d, w){
+  const g=qGain(fightFeatures(b,e,ev,d));
+  return { ...ev, adv: Math.exp(Math.log(Math.max(0.05,ev.adv)) + w*Q_MODEL.k*g), qg:g };
+}
 function mlBlend(b, e, ev, d, w){
   const M=fmOf(b), p=mlPredict(fightFeatures(b,e,ev,d), M);
   return { ...ev, adv: Math.exp((1-w)*Math.log(Math.max(0.05,ev.adv)) + w*M.k*p), ml:p };
@@ -1637,6 +1644,7 @@ function botCommandCore(b, dt){
   const d = eVis ? dist(b,e) : 1e9;
   if(ev && (LP.win || LP.dng)) ev=adjustEv(b,e,ev,d,LP);
   if(ev && LP.mlW && FIGHT_MODEL) ev=mlBlend(b,e,ev,d,LP.mlW);
+  if(ev && LP.qW && Q_MODEL) ev=qBlend(b,e,ev,d,LP.qW);
   if(eVis) M.eLast={ x:e.x, y:e.y, vx:(e.vx||0)+(e.kx||0), vy:(e.vy||0)+(e.ky||0), t:S.time };   // son görülen yer (Kök Sal)
   // Öldürme penceresi: kendi can eşiğimizden önce gelir (rakip 1-2 vuruşluksa kaçmayız)
   const kw = eVis && mode!=='duel' && !b.chan && !inFountain(b) ? killWindow(b,e,d,M) : false;
