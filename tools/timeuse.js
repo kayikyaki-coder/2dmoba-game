@@ -26,8 +26,8 @@ for(const J of jobs.slice(from,to)){
       else if(M.fight) c='fight';
       else { const t=h.atk&&h.atk.target; if(t&&t.kind==='struct') c='tower'; else if(t&&t.kind==='minion') c='minion'; else if(t&&t.kind==='monster') c='jungle'; else c='walk'; }
       A[c]++;
-      if(!h.dead){ const st=S.lane[1-h.team].find(x=>!x.dead); if(st&&!st.prot&&Math.hypot(h.x-st.x,h.y-st.y)<1600){ A.near=(A.near||0)+1; if(c==='tower') A.nearTower=(A.nearTower||0)+1; if(c==='minion') A.nearMin=(A.nearMin||0)+1; if(c==='fight') A.nearFight=(A.nearFight||0)+1; if(c==='recall') A.nearRecall=(A.nearRecall||0)+1; if(c==='walk') A.nearWalk=(A.nearWalk||0)+1; } }
+      if(!h.dead){ const st=S.lane[1-h.team].find(x=>!x.dead); if(st&&!st.prot&&Math.hypot(h.x-st.x,h.y-st.y)<1600){ A.near=(A.near||0)+1; if(c==='tower') A.nearTower=(A.nearTower||0)+1; if(c==='minion') A.nearMin=(A.nearMin||0)+1; if(c==='fight') A.nearFight=(A.nearFight||0)+1; if(c==='recall') A.nearRecall=(A.nearRecall||0)+1; if(c==='walk') A.nearWalk=(A.nearWalk||0)+1; if((c==='minion'||c==='walk') && h.role!=='jungle'){ const k='sg_'+(M.sgR||'-')+(S.minions.some(m=>!m.dead&&m.team===h.team&&Math.hypot(m.x-st.x,m.y-st.y)<st.range+40)?'+w':''); A[k]=(A[k]||0)+1; } } }
     }
   }
 }
-for(const sl of Object.keys(acc)){ const A=acc[sl], tot=cats.reduce((s,c)=>s+A[c],0); console.log('   (kule 1600 içinde: %'+(100*(A.near||0)/tot).toFixed(1)+' zaman; bunun içinde kule '+(A.nearTower||0)+' minyon '+(A.nearMin||0)+' dövüş '+(A.nearFight||0)+' dönüş '+(A.nearRecall||0)+' yürüme '+(A.nearWalk||0)+')'); console.log(sl.padEnd(5), cats.map(c=>`${c} ${(100*A[c]/tot).toFixed(0)}%`).join('  ')); }
+for(const sl of Object.keys(acc)){ const A=acc[sl], tot=cats.reduce((s,c)=>s+A[c],0); console.log('   (kule 1600 içinde: %'+(100*(A.near||0)/tot).toFixed(1)+' zaman; bunun içinde kule '+(A.nearTower||0)+' minyon '+(A.nearMin||0)+' dövüş '+(A.nearFight||0)+' dönüş '+(A.nearRecall||0)+' yürüme '+(A.nearWalk||0)+')'); console.log('   sebep:', Object.keys(A).filter(k=>k.startsWith('sg_')).sort().map(k=>k.slice(3)+' '+A[k]).join(', ')); console.log(sl.padEnd(5), cats.map(c=>`${c} ${(100*A[c]/tot).toFixed(0)}%`).join('  ')); }

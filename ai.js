@@ -51,7 +51,7 @@ export const LEVEL_IDS = ['easy','medium','hard','expert'];
 AI.lvl=0; AI.artHp=0.4; AI.dodgeW=1; AI.dodgeNeed=0; AI.dodgeT=1e9; AI.look=0; AI.towerGate=0;
 /* Karar katmanı (12.10.2026): misjudge = öldürme/dövüş tahmininde rastgele yanılma payı (±), pokeP = dürtme fırsatını değerlendirme olasılığı,
    killSense = öldürme penceresini fark etme olasılığı, bushP = beklerken çalıya girme olasılığı, lead = nişanda hareket tahmininin ne kadarını kullandığı */
-AI.blinkGate=0; AI.blinkAdv=1.3; AI.numAdv=0; AI.noLimbo=0; AI.limboT=1.2; AI.limboAdv=0.95; AI.titanAdv=0; AI.kwHit=0; AI.prio=0; AI.prioW=90; AI.prioD=1.2; AI.deadRecall=0; AI.deadRecallT=10; AI.persOn=1; AI.titan=0; AI.siege=1; AI.selfKw=1; AI.kwOn=1; AI.pokeOn=1; AI.bushOn=1; AI.misjudge=0.3; AI.pokeP=0.45; AI.killSense=0.6; AI.bushP=0.25; AI.lead=0.7;
+AI.shove=0; AI.shoveResp=6; AI.blinkGate=0; AI.blinkAdv=1.3; AI.numAdv=0; AI.noLimbo=0; AI.limboT=1.2; AI.limboAdv=0.95; AI.titanAdv=0; AI.kwHit=0; AI.prio=0; AI.prioW=90; AI.prioD=1.2; AI.deadRecall=0; AI.deadRecallT=10; AI.persOn=1; AI.titan=0; AI.siege=1; AI.selfKw=1; AI.kwOn=1; AI.pokeOn=1; AI.bushOn=1; AI.misjudge=0.3; AI.pokeP=0.45; AI.killSense=0.6; AI.bushP=0.25; AI.lead=0.7;
 const MED = { lvl:1, win:1, cmb:1, recallHp:0.3,   /* bot C2: üsse dönüş canı 0.22 idi (Orta yeni-eski %68 ve %61, 160 maç) */   /* bot C1: Orta'ya bekleme penceresi ve kombo (Orta>Kolay %58->%66, 160 maç) */ misjudge:0.12, pokeP:0.7, killSense:0.95,   /* bot C3: misjudge 0.18, killSense 0.85 idi (yeni-eski Orta %57, 160 maç; Orta>Kolay %79, Zor>Orta %71) */ bushP:0.45, lead:0.85, react:[0.07,0.14], aimNoise:0.03, humanErr:22, humanRange:28, humanAtkDelay:0.07, humanMoveHold:[0.05,0.12], lhSoon:1.5, dodgeW:2, dodgeNeed:14 };
 const HARD = { lvl:2, win:1, cmb:1, bait:1, wave:1, misjudge:0.1, pokeP:0.85, killSense:0.95, bushP:0.55, lead:0.95,   // karar katmanı bayrakları (Zor): bekleme penceresi, kombo/öldürme, kule çekme, dalga dönüşü
   react:[0.04,0.09], aimNoise:0.02, humanErr:5, humanRange:6, humanAtkDelay:0.015, humanMoveHold:[0.025,0.06] };
@@ -762,6 +762,14 @@ function lastHitInfo(b, m){
   return { now, soon: !now && tUntil<=tm.period*LP.lhSoon, tUntil: now?0:tUntil, pred:hpAtLead };
 }
 
+/* Rakiplerden biri ölü (yeniden doğuşa shoveResp sn+) ve görünür yakında rakip yok: dalgayı itmek güvenli */
+function laneFoeOut(b){
+  let down=0;
+  for(const u of S.heroes){ if(u.team===b.team) continue;
+    if(u.dead){ if(u.respawn>LVP(b).shoveResp) down++; }
+    else if(canSee(b.team,u) && dist(u,b)<2200) return false; }
+  return down>0;
+}
 function laneMove(b, e, eVis, M, ev){
   const dir=b.team===0?1:-1;
   let tgt=null, stand=null;
@@ -774,10 +782,12 @@ function laneMove(b, e, eVis, M, ev){
   M.foesDown=foesDown;
   const pushAdv = !foesDown && ((LVP(b).numAdv && numEdge(b)>0) || (LVP(b).lateSiege && S.time/60>=LVP(b).lateSiege && numEdge(b)>=0)) && alliesAround(b,b.x,b.y,LVP(b).numAllyR)>0;   // sayı üstünlüğü: dostla birlikte kuleye
   M.pushAdv=pushAdv;
+  M.sgR = !st||st.prot ? 'prot' : outn ? 'outn' : 'far';   // teşhis (tools/siegediag.js)
   if(st && !st.prot && dist(b,st)<((foesDown || pushAdv) && LVP(b).siege ? 4200 : 1600) && !outn){
     const sp=findStand(b, st, reachTo(b,st)-15);
-    if(sp){ tgt=st; stand=sp; }
-    else if(canDive(b,st,e,M)){ tgt=st; stand=standPoint(b, st, reachTo(b,st)-15); dive=true; }
+    if(sp){ tgt=st; stand=sp; M.sgR='stand'; }
+    else if(canDive(b,st,e,M)){ tgt=st; stand=standPoint(b, st, reachTo(b,st)-15); dive=true; M.sgR='dive'; }
+    else M.sgR='nostand';
   }
   let hold=false;
   {
@@ -805,6 +815,7 @@ function laneMove(b, e, eVis, M, ev){
       if(!bestInfo.now && bestInfo.soon && incomingDps(mTgt)>0) hold=true;
       // dalgayı itmek için vurmak, yakında gelecek bir son vuruşu kaçırtacaksa vurma
       if(!bestInfo.now && !bestInfo.soon && soonest<=timings(b).period*LVP(b).lhPushGuard) hold=true;
+      if(LVP(b).shove && (foesDown || pushAdv || laneFoeOut(b))) hold=false;   // üstünlükte dalgayı it (kuleye taşı)
     }
   }
   let mv;
