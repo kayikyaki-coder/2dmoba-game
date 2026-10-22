@@ -1,0 +1,3 @@
+{"3":{"lateSiege":18}} | A kazanma %74 [67-80] 116/157 | süre 18.0 dk
+{"3":{"lateSiege":24}} | A kazanma %76 [69-82] 119/157 | süre 18.2 dk
+DONE
