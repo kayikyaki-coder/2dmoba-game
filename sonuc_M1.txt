@@ -1,0 +1,3 @@
+{"3":{"mlTgt":300}} | A kazanma %49 [41-56] 78/160 | süre 15.9 dk ölüm           A    10.0  B     9.9 10. dk fark (A-B) servet -82 XP -57 (126 maç) 
+{"3":{"mlTgt":600}} | A kazanma %54 [46-61] 86/160 | süre 16.5 dk ölüm           A    11.2  B    10.3 10. dk fark (A-B) servet -40 XP -3 (133 maç) 
+DONE
