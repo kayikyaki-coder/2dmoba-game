@@ -27,7 +27,11 @@ export const PAL = {
   // arayüz
   bg:'#0d0f26', panel:'#161936', panel2:'#1f2347', panel3:'#11132b', line:'#34396e', text:'#ece8ff', muted:'#9b9ac4', accent:'#1f9d93',
   hudBg:'rgba(11,12,32,0.94)', hudLine:'#3a4080',
-  hp:['#37e0a2', '#ff6e5e']
+  hp:['#37e0a2', '#ff6e5e'],
+  // eşya statları (mağaza ve HUD açıklamaları, itemdesc.js): saldırı sıcak, büyü mor-mavi, dayanıklılık yeşil-altın
+  stat:{ ad:'#ff9a5c', as:'#ffd36a', crit:'#ff6f61', ls:'#ff5f8f', pen:'#ff8a7a', ap:'#b99bff', ah:'#7fc8ff',
+         hp:'#5ee8a8', regen:'#9df0c4', armor:'#f2c27a', mr:'#57e6e0', ms:'#e8e2ff' },
+  passive:'#ffcf5a'
 };
 
 /* Hex rengi 0..1 oranda karıştırır, rgba üretir (önbellekli) */

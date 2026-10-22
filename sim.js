@@ -1,6 +1,6 @@
 /* Simülasyon: tarayıcıya bağımlı değil (document, window, canvas yok). */
 import { TICK, ULT_LEVELS, RANK_CAP, LEVEL_PER, WORLD, LANE_Y, TEAM_COLORS, TEAM_DARK, MAX_LEVEL, STATS, HEROES, FORMS, TOWER, towerChampHit, towerMinionHit, BASE_TOWER_HP, NEXUS, LAYOUT, FOUNTAIN, MINIONS, WAVE_ORDER, WAVE_FIRST, WAVE_INTERVAL, WAVE_GAP, OFF_TARGET_DMG, MINION_CALL, MINION_CALL_R, MINION_LEASH, respawnTime, RECALL, MINION_SCALE, GOLD, minionGold, XP_NEED, HERO_KILL_XP, STRUCT_XP, XP_RADIUS, VISION, JUNGLE, BUFFS, BIG_BUFF, CATCHUP_XP, CATCHUP_GOLD, JUNGLE_MASTERY, JUNGLE_AVOID } from './data.js';
-import { ITEMS, PARTS, SLOTS, START_GOLD, CRIT_MULT, BUILDS, DEF, DEF_CLASS, DEF_POOLS, DMG_PHYS } from './items.js';
+import { ITEMS, PARTS, SLOTS, START_GOLD, CRIT_MULT, BUILDS, DEF, BURN, DEF_CLASS, DEF_POOLS, DMG_PHYS, RUNES } from './items.js';
 import { MAP_W, structPos, SPAWN_OFF, pushOutWalls, pushOutWallsInto, PUSH, wallsFar, inWall, sightBlocked, bushAt, BUSHES, lanePoint, laneProject, laneLength, laneDir } from './map.js';
 
 export const S = { heroes:[], minions:[], monsters:[], camps:[], dots:[], teamBuff:[0,0], jstats:null, structs:[], lane:[[],[]], projs:[], bolts:[], booms:[], zones:[], novas:[], sights:[], fx:[], spawnQ:[],
@@ -41,7 +41,7 @@ export function stat(h, k){
   if(FLAT_KEYS[k]) v+=B[k]||0;
   if(B.lvlStats && (k==='armor' || k==='mr' || k==='ah' || k==='spd')) v+=h.level||1;   // Yük Taşıyıcı: seviyen kadar zırh, BD, yetenek hızı, hareket hızı
   if(B.scale){ const n=(h.ic && h.ic.scaleN)||0; if(k==='ap') v+=n*B.scale.ap; else if(k==='hp') v+=n*B.scale.hp; }   // Çağ Kitabı
-  if(k==='ap'){ v+=(B.hpToAp||0)*(h.maxHp||0); v*=B.apMult||1; }
+  if(k==='ap'){ v+=(B.hpToAp||0)*(h.maxHp||0); if(B.apAmp) v*=1+apAmpOf(B); }   // Büyücü Şapkası: %15 + başka YG eşyası başına %5
   else if(k==='dmg'){ if(B.hpToAd) v+=B.hpToAd*(h.maxHp||0); }   // Boğa Gücü
   else if(k==='armor' || k==='mr'){
     v*=B.resistMult||1;
@@ -77,7 +77,7 @@ export function makeHero(type, team, x, y, human){
   return { id:nextId++, kind:'hero', type, def:d, team, human:!!human, x, y, spawnX:x, spawnY:y,
     vx:0, vy:0, kx:0, ky:0, baseR:STATS[type].size.base, r:STATS[type].size.base, mass:STATS[type].mass.base, hp:STATS[type].hp.base, maxHp:STATS[type].hp.base,
     aim: team===0 ? 0 : Math.PI, atk:{ state:'ready', t:0, total:0, aim:0 },
-    rank:{ r:0, e:0, s:d.skills.s.fixed?1:0 }, level:1, xp:0, gold:START_GOLD, items:[], bonus:null, ic:{}, stasis:0, build:null, dmgBy:{}, helpBy:{}, kills:0, deaths:0, assists:0, points:0, cd:{ r:0, e:0, s:0 }, cdMax:{ r:1, e:1, s:1 },
+    rank:{ r:0, e:0, s:d.skills.s.fixed?1:0 }, level:1, xp:0, gold:START_GOLD, items:[], runes:{}, bonus:null, ic:{}, stasis:0, build:null, dmgBy:{}, helpBy:{}, kills:0, deaths:0, assists:0, points:0, cd:{ r:0, e:0, s:0 }, cdMax:{ r:1, e:1, s:1 },
     st:{ slow:null, freeze:0, asB:null, shield:null, spd:null, giant:null, burn:null, ignite:null, amp:null, bflame:null, titanSlow:null, shred:null, frenzy:null, fring:null, flow:null, silence:0, curse:null, root:0, shell:null, ball:null },
     cast:null, dash:null, chan:null, pulled:null, dead:false, respawn:0, flash:0,
     // biçim değiştiren kahraman (İkili): biçim, biçime özel stat farkları, diğer biçimin beklemeleri (arka planda akar); diğerlerinde null
@@ -202,6 +202,7 @@ export function attackSpeed(h){
   return stat(h,'as') * (1 + (h.human ? settings.asBonus : 0)) * (1 + (h.st.asB ? h.st.asB.amt : 0)) * (1 + (h.st.frenzy ? h.st.frenzy.as : 0)) * (1+(B.asPct||0))
     * (h.st.titanSlow ? 1-h.st.titanSlow.amt : 1) * (h.ic.asUntil>S.time ? 1+h.ic.asAmt : 1)   // Kasırga Baltası
     * (h.ic.asStackUntil>S.time ? 1+h.ic.asStackN*h.ic.asStackAmt : 1)   // Hız Çarkı
+    * (h.ic.hasUntil>S.time ? 1+h.ic.hasN*h.ic.hasAmt : 1)               // Dikenli Çizme
     * (h.ic.frzUntil>S.time ? 1+h.ic.frzN*frzAmt(h) : 1)                   // Gladyatör Kızışma
     * (h.ic.arenaUntil>S.time ? 1+arenaAs(h) : 1);                          // Gladyatör Arena
 }
@@ -214,7 +215,7 @@ export function inAttackRange(h, u){ return dist(u,h)-u.r <= h.r+atkDef(h).range
 export function attackTarget(h, px, py){
   let best=null, bd=1e9;
   for(const u of S.heroes.concat(S.minions, S.monsters, S.structs)){
-    if(u.dead || u.team===h.team || !canSee(h.team,u) || !inAttackRange(h,u)) continue;
+    if(u.dead || u.team===h.team || u.stasis>0 || !canSee(h.team,u) || !inAttackRange(h,u)) continue;   // Kum Saati heykeli hedeflenemez
     if(u.kind==='struct' && u.prot) continue;
     const d=Math.hypot(u.x-px, u.y-py); if(d<bd){ bd=d; best=u; }
   }
@@ -265,9 +266,11 @@ function bushOf(u){
 }
 export function canSee(team, u){
   if(u.team===team) return true;
+  if(u.ic && u.ic.invisUntil>S.time) return false;   // Gölge Hançeri görünmezliği (sis kapalıyken de)
   if(!settings.fog) return true;
   // Kilitli Yaylım kanallanırken takım hedefi görür (sis ve çalı dahil)
   if(u.kind==='hero') for(let i=0;i<S.heroes.length;i++){ const a=S.heroes[i]; if(a.chan && a.team===team && a.chan.target===u && !a.dead) return true; }
+  if(u.ic && u.ic.markUntil>S.time && u.ic.markTeam===team) return true;   // Ufuk Merceği: uzaktan vurulan rakip kısa süre görünür (sis ve çalı dahil)
   const b=bushOf(u);
   if(b>=0 && !((u.revealT||0)>S.time)){
     for(const a of S.heroes)  if(!a.dead && a.team===team && bushOf(a)===b) return true;
@@ -368,7 +371,7 @@ export function damage(e, amt, src, opts){
   if(SB.siege && e.kind!=='hero'){ amt*=1+SB.siege; a=amt; }
   if(e.kind==='struct' && src && src.team<2 && S.teamBuff[src.team]>S.time){ amt*=BIG_BUFF.structMult; a=amt; }   // Titan Gücü: yapılara ek hasar
   if(e.kind==='struct' && src && src.kind==='minion'){ amt*=TOWER.minionTaken; a=amt; }   // dalga kuşatması güçlü
-  if(e.kind==='struct' && src && src.kind==='hero' && !waveNear(src.team, e)){ amt*=TOWER.ward.mult; a=amt; }   // kale koruması: dalgasız kuşatma zayıf
+  if(e.kind==='struct' && src && src.kind==='hero' && !opts.noWard && !waveNear(src.team, e)){ amt*=TOWER.ward.mult; a=amt; }   // noWard: Cadı Bıçağı ek büyü hasarı   // kale koruması: dalgasız kuşatma zayıf
   if(e.kind==='monster' && src && src.kind==='hero'){ e.lastHero=src; e.lastHeroT=S.time; monsterAggro(e, src); amt*=opts.basic ? JUNGLE.basicMult : JUNGLE.skillMult; a=amt; }   // canavarlara kahraman hasarı çarpanı (yetenek ağırlıklı kahramanlar da kesebilsin)   // Kuşatma Çekici: yapılara ve minyonlara ek hasar
   // zırh / büyü direnci (sadece kahramanlarda): hasar * 100/(100+değer); 'true' türü delip geçer. Delme ve azaltmalar burada.
   if(e.kind==='hero'){
@@ -386,12 +389,17 @@ export function damage(e, amt, src, opts){
       if(opts.basic && e.bonus && e.bonus.basicReduce) a*=1-e.bonus.basicReduce;   // Demir Duvar
     } else if(t==='magic'){
       let mr=stat(e,'mr')-mrAuraOn(e)-(SB.magicPenFlat||0);
-      mr*=1-(SB.magicPenPct||0);
+      if(e.ic.mrBrkT>S.time) mr*=1-e.ic.mrBrkPct;                                // Cam Kırıcı: kırılmış büyü direnci (bütün rakip takım)
+      mr*=1-Math.max(SB.magicPenPct||0, SB.mrBreak ? SB.mrBreak.pen : 0);      // Boşluk Asası / Cam Kırıcı yüzdelik delme (birikmez, büyüğü)
       a *= 100/(100+Math.max(0,mr));
       if(e.st.curse) a*=1+e.st.curse.amt;   // Kan Laneti: işaretliyken fazla büyü hasarı
+      if(src && src.kind==='hero') a*=1+korAmp(src);                         // Kor Maskesi: kendi Kor'u + dolu Kor'lu yakın dostun payı
       if(e.bonus && e.bonus.magicReduce) a*=1-e.bonus.magicReduce;   // Büyü Duvarı
     }
-    if(SB.execDmg && e.hp<e.maxHp*SB.execDmg.hp) a*=1+SB.execDmg.pct;   // Gölge Hançeri, Hasat Kılıcı, Son Darbe Asası: canı azalmış şampiyona ek hasar
+    if(SB.execDmg && e.hp<e.maxHp*SB.execDmg.hp) a*=1+SB.execDmg.pct;
+    if(SB.horizon && opts.skill && !opts.dot && src.team!==e.team && dist(src,e)>=SB.horizon.range){   // Ufuk Merceği: uzaktan yetenek isabeti
+      a*=1+SB.horizon.pct; e.ic.markTeam=src.team; e.ic.markUntil=S.time+SB.horizon.reveal;
+    }   // Gölge Hançeri, Hasat Kılıcı, Son Darbe Asası: canı azalmış şampiyona ek hasar
     if(opts.crit && e.bonus && e.bonus.critReduce) a*=1-e.bonus.critReduce;   // Titan Kalkanı
     if(e.bonus){
       if(e.bonus.ccShield && e.ic.drT>S.time) a*=1-e.bonus.ccShield.pct;      // Tanrı Kalkanı: kitle kontrolü sonrası hasar azaltma
@@ -412,6 +420,11 @@ export function damage(e, amt, src, opts){
   const hp0 = e.hp;   // Fırsatçı: vuruştan önceki can
   const dealt = Math.max(0, Math.min(a, e.hp));   // gerçekten düşen can (damage dönüş değeri: Kan Oku iyileşmesi için)
   e.hp -= a; e.flash = 0.12;
+  if(e.kind==='hero' && dealt>0 && src){   // ölüm özeti için son hasarlar (yalnız okunur; çizim gösterir)
+    const L=e.ic.dmgLog||(e.ic.dmgLog=[]);
+    L.push({ t:S.time, src, kind: opts.dot ? 'dot' : opts.basic ? 'basic' : opts.skill ? 'skill' : src.kind==='hero' ? 'item' : 'basic', type:opts.type||'phys', a:dealt });
+    if(L.length>60 || (L.length>8 && S.time-L[0].t>DEATH_RECAP.window+1)){ const t0=S.time-DEATH_RECAP.window-1; e.ic.dmgLog=L.filter(x=>x.t>=t0); }
+  }
   if(S.onDamage) S.onDamage(e, a, src, opts);   // ölçüm araçları için (normalde boş)
   if(e.kind==='hero'){
     e.ic.lastHurt=S.time;
@@ -422,7 +435,7 @@ export function damage(e, amt, src, opts){
     if(EB.lowShield && !e.dead && e.hp>0 && e.hp<e.maxHp*EB.lowShield.hp && (e.ic.lsCd||0)<=S.time){   // Son Nefes Kalkanı
       e.ic.lsCd=S.time+EB.lowShield.cd; giveShield(e, EB.lowShield.base+EB.lowShield.pct*e.maxHp, EB.lowShield.dur);
     }
-    if(opts.basic && !opts.noProc && src && src.kind==='hero' && EB.antiHeal){ src.ic.woundUntil=S.time+EB.antiHeal.dur; src.ic.woundPct=EB.antiHeal.pct; }   // Yara Zırhı
+    if(opts.basic && !opts.noProc && src && src.kind==='hero' && EB.antiHeal) wound(src, EB.antiHeal.pct, EB.antiHeal.dur);   // Yara Zırhı
     if(opts.basic && !opts.noProc && src && src.kind!=='struct'){
       if(EB.thorns) damage(src, EB.thorns.base+EB.thorns.armorPct*stat(e,'armor'), e, { type:'magic', noProc:true, noSplash:true });   // Diken Zırhı
       if(EB.attackerAsSlow && src.kind==='hero') src.st.titanSlow={ amt:EB.attackerAsSlow.pct, t:EB.attackerAsSlow.dur };          // Titan Kalkanı
@@ -430,15 +443,25 @@ export function damage(e, amt, src, opts){
   }
   if(src && src.kind==='hero' && src.bonus){
     if(opts.basic && SB.ls && !opts.noLs){ const hv=a*SB.ls*(SB.lsLow && src.hp<src.maxHp*SB.lsLow.hp ? SB.lsLow.mult : 1); heal(src, hv); if(SB.lsShare) shareHeal(src, hv*SB.lsShare); }   // Kan Bağı: yakın dosta pay   // can çalma (Sekme mermisinde yok); Kanlı Yay can azalınca katlar
-    if(opts.skill && SB.spellVamp && !opts.noLs && e.kind!=='struct') heal(src, a*SB.spellVamp*(e.kind==='hero' ? 1 : 0.33));   // Kanlı Pençe, Kan Kasesi (minyonda üçte biri)
+    if(opts.skill && SB.spellVamp && !opts.noLs && e.kind!=='struct') heal(src, a*SB.spellVamp*(e.kind==='hero' ? 1 : ITEM_RULES.vampMinion));   // Kanlı Pençe, Kan Kasesi (minyonda üçte biri)
+    if(opts.skill && !opts.dot && !opts.noProc && e.kind==='hero' && e.team!==src.team && SB.skillMaxHp && e.hp>0 && (src.ic.skMhCd||0)<=S.time){   // Yırtıcı Pençe: yetenek isabeti azami can yüzdesi
+      src.ic.skMhCd=S.time+SB.skillMaxHp.cd; damage(e, e.maxHp*SB.skillMaxHp.pct, src, { noProc:true, noSplash:true });
+    }
     if(opts.skill && e.kind==='hero' && SB.skillSunder){ e.ic.sunderT=S.time+SB.skillSunder.dur; e.ic.sunderPct=SB.skillSunder.pct; }   // Zırh Paralayıcı
     if(opts.basic && opts.crit && SB.critSlow && e.kind!=='struct') applySlow(e, SB.critSlow.amt, SB.critSlow.dur);   // Kristal Hançer
     if(opts.skill && SB.skillAd && !opts.noProc && !opts.dot && e.kind!=='struct' && e.hp>0) damage(e, SB.skillAd*atkDmg(src), src, { type:opts.type||'phys', noProc:true, noSplash:true });   // Hüner Bıçağı
-    if(opts.skill && e.kind==='hero' && SB.skillSlow) applySlow(e, SB.skillSlow.amt, SB.skillSlow.dur);   // Buz Asası, Gece Maskesi
-    if(opts.skill && e.kind==='hero' && SB.skillBurn) e.st.bflame={ dps:e.maxHp*SB.skillBurn.pct/SB.skillBurn.dur, t:SB.skillBurn.dur, src };   // Kara Alev
-    if(opts.skill && e.kind!=='struct' && !opts.noProc){                            // Yankı Asası / Öç Zırhı: sonraki yetenek ek hasarı
+    if(opts.skill && e.kind==='hero' && SB.skillSlow) applySlow(e, SB.skillSlow.amt, SB.skillSlow.dur);   // Gece Maskesi
+    if(opts.skill && !opts.dot && e.kind==='hero' && SB.frost) frostHit(e, src, SB.frost);                 // Buz Asası: art arda isabette artan yavaşlatma
+    if(opts.skill && !opts.dot && e.kind==='hero' && SB.skillBurn && e.hp>0){                               // Kara Alev: azami can yüzdesi yakma + iyileşme azaltma
+      const K=SB.skillBurn; addDot(e, src, 'bflame', e.maxHp*K.pct/K.dur, K.dur); wound(e, K.wound, K.dur);
+    }
+    if(opts.skill && !opts.dot && e.kind!=='struct' && SB.ember && e.hp>0){                                 // Akkor Asası: YG ölçekli yakma (minyon ve canavar dahil)
+      const K=SB.ember; addDot(e, src, 'ember', (K.base+K.ap*apOf(src))/K.dur, K.dur);
+    }
+    if(opts.type==='magic' && !opts.dot && e.kind==='hero' && SB.mrBreak){ e.ic.mrBrkT=S.time+SB.mrBreak.dur; e.ic.mrBrkPct=SB.mrBreak.pct; }   // Cam Kırıcı
+    if(opts.skill && !opts.noProc && !opts.dot && e.kind==='hero' && SB.echo && (src.ic.echoCd||0)<=S.time && e.hp>0) echoHit(e, src, SB.echo);   // Yankı Asası
+    if(opts.skill && e.kind!=='struct' && !opts.noProc){                            // Öç Zırhı: sonraki yetenek ek hasarı
       const ic=src.ic;
-      if(ic.pendMagic){ const x=ic.pendMagic; ic.pendMagic=0; if(!e.dead) damage(e, x, src, { type:'magic', noProc:true }); }
       if(ic.pendPhys){ const x=ic.pendPhys; ic.pendPhys=0; if(!e.dead) damage(e, x, src, { type:'phys', noProc:true }); }
     }
   }
@@ -493,15 +516,95 @@ export function damage(e, amt, src, opts){
     for(const u of foes(src.team,false)){ if(u.dead || u.hp<=0 || Math.hypot(u.x-e.x,u.y-e.y)-u.r>LB.radius) continue; damage(u, bd, src, { type:'magic', noProc:true, noSplash:true }); }
     fx({ type:'boom', x:e.x, y:e.y, r0:e.r, r1:LB.radius, color:'#b58cff', life:0.4 });
   }
-  if(e.hp<=0 && !e.dead) kill(e, src);
+  if(e.hp<=0 && !e.dead && !sandStatue(e)) kill(e, src);
   return dealt;
 }
 
+/* ---- YG eşyası yardımcıları (16.10.2026, docs/esya_ap_plan.md) ---- */
+/* Büyücü Şapkası: YG çarpanı payı (envanterdeki başka YG veren büyük eşya başına artar) */
+function apAmpOf(B){ const A=B.apAmp; return Math.min(A.max, A.base+A.per*Math.max(0,(B.apItems||1)-1)); }
+/* Süreli hasar (S.dots): kaynak ve tür başına tek kayıt, yeni isabet süreyi ve gücü yeniler. Farklı kaynaklar (2v2) ve
+   farklı türler (Kara Alev, Akkor, Yakıcı) ayrı kayıt: birbirini ezmez, birikir. */
+function addDot(tgt, src, kind, dps, dur){
+  const o=S.dots.find(x=>x.tgt===tgt && x.src===src && x.kind===kind);
+  if(o){ o.t=dur; o.dps=dps; } else S.dots.push({ tgt, src, dps, t:dur, kind });
+}
+/* İyileşme azaltma (Yara Zırhı, Kara Alev): süren pencere varsa güçlüsü kalır */
+function wound(e, pct, dur){
+  if(!e.ic) return;
+  if(e.ic.woundUntil>S.time) pct=Math.max(pct, e.ic.woundPct);
+  e.ic.woundPct=pct; e.ic.woundUntil=Math.max(e.ic.woundUntil||0, S.time+dur);
+}
+/* Buz Asası: aynı kaynaktan win sn içinde gelen her yeni yetenek isabeti yavaşlatmayı step kadar artırır */
+function frostHit(e, src, F){
+  const ic=e.ic, chain=ic.frostSrc===src && ic.frostT>S.time;
+  const amt = chain ? Math.min(F.max, ic.frostAmt+F.step) : F.amt;
+  ic.frostSrc=src; ic.frostT=S.time+F.win; ic.frostAmt=amt;
+  applySlow(e, amt, F.dur);
+}
+/* Yankı Asası: dolu yük yalnız rakip şampiyona yetenek isabetinde harcanır; ek hasar + yarısı yakındaki başka görünen rakibe seker */
+function echoHit(e, src, E){
+  src.ic.echoCd=S.time+E.cd;
+  const x=E.base+E.ap*apOf(src);
+  damage(e, x, src, { type:'magic', noProc:true, noSplash:true });
+  let best=null, bd=1e9;
+  for(const u of foes(src.team,false)){
+    if(u===e || u.dead || u.hp<=0 || !canSee(src.team,u)) continue;
+    const d=Math.hypot(u.x-e.x,u.y-e.y)-u.r; if(d>E.range) continue;
+    const s=d-(u.kind==='hero' ? 1e4 : 0);   // kahraman öncelikli
+    if(s<bd){ bd=s; best=u; }
+  }
+  if(best){ damage(best, x*E.bounce, src, { type:'magic', noProc:true, noSplash:true }); fx({ type:'line', x1:e.x, y1:e.y, x2:best.x, y2:best.y, life:0.3 }); }
+  fx({ type:'ring', owner:e, r0:e.r, r1:e.r+30, color:'#c9a6ff', lw:3, life:0.3 });
+}
+/* Kor Maskesi: büyü hasarı artışı (kendi Kor'u + 500 içindeki dolu Kor'lu dostun payı, en büyüğü) */
+function korAmp(src){
+  let a=0;
+  const K=src.bonus && src.bonus.kor;
+  if(K) a+=(src.ic.korN||0)*K.per;
+  let al=0;
+  for(const h of S.heroes){
+    if(h===src || h.dead || h.team!==src.team || !h.bonus || !h.bonus.kor) continue;
+    const H=h.bonus.kor; if((h.ic.korN||0)>=H.max && dist(h,src)<=H.range) al=Math.max(al, H.ally);
+  }
+  return a+al;
+}
+/* Kum Saati: ölümcül hasarda ölmez, dur sn kum heykeli (dokunulmaz, hedeflenemez, aksiyon yok), sonra azami canın hp'siyle kalkar.
+   Ölüm sayılmaz: öldürme, altın ve XP yok. Bekleme cd sn. Dönüş: true ise ölüm iptal. */
+function sandStatue(e){
+  const B=e.kind==='hero' && e.bonus, Z=B && B.stasis;
+  if(!Z || (e.ic.stasisCd||0)>S.time) return false;
+  e.hp=1; e.stasis=Z.dur; e.ic.stasisCd=S.time+Z.cd; e.ic.sandHp=Z.hp;
+  e.cast=null; e.dash=null; e.chan=null; e.recallCh=null; e.pulled=null; e.vx=0; e.vy=0; e.kx=0; e.ky=0;
+  if(e.atk.state==='windup') e.atk.state='ready';
+  fx({ type:'boom', x:e.x, y:e.y, r0:e.r, r1:e.r+50, color:'#e8c87a', life:0.5 });
+  return true;
+}
+/* Akkor Asası: yanan birim ölünce kalan süreyle jump içindeki en yakın görünen rakibe (kahraman öncelikli) sıçrar, bir kez */
+function emberJump(e){
+  for(const d of S.dots){
+    if(d.tgt!==e || d.kind!=='ember' || d.jumped || d.t<=0) continue;
+    const src=d.src, K=src.bonus && src.bonus.ember; if(!K) continue;
+    let best=null, bd=1e9;
+    for(const u of foes(src.team,false)){
+      if(u===e || u.dead || u.hp<=0 || !canSee(src.team,u)) continue;
+      const dd=Math.hypot(u.x-e.x,u.y-e.y)-u.r; if(dd>K.jump) continue;
+      const sc=dd-(u.kind==='hero' ? 1e4 : 0);
+      if(sc<bd){ bd=sc; best=u; }
+    }
+    if(best && !S.dots.some(x=>x.tgt===best && x.src===src && x.kind==='ember')){
+      S.dots.push({ tgt:best, src, dps:d.dps, t:d.t, kind:'ember', jumped:true });
+      fx({ type:'line', x1:e.x, y1:e.y, x2:best.x, y2:best.y, life:0.3 });
+    }
+  }
+}
+/* Çağ Kitabı: öldürme/asist, güçlendirme kampı ve Titan sıradaki katı hemen verir (dakika sayacı baştan başlar) */
+function scaleRush(h){ if(h && h.bonus && h.bonus.scale && !h.dead && (h.ic.scaleN||0)<h.bonus.scale.max) h.ic.scaleNext=S.time; }
 /* Yük Taşıyıcı: son alışverişten beri biriken (taşınan) altına göre hasar azaltma oranı */
 function carryRed(e){ const c=e.bonus.carry, g=Math.min(c.gold, Math.max(0, e.gold-(e.ic.carryBase||0))); return c.red*g/c.gold; }
 /* Kan Bağı: can çalma ile kazanılan canın payı, 700 içindeki en yakın dost kahramana (kendisi hariç) */
 function shareHeal(src, x){
-  let best=null, bd=700;
+  let best=null, bd=ITEM_RULES.shareR;
   for(const h of S.heroes){ if(h===src || h.dead || h.team!==src.team) continue; const d=dist(h,src); if(d<=bd){ bd=d; best=h; } }
   if(best){ heal(best, x); markHelp(best, src); }
 }
@@ -539,20 +642,23 @@ function curseEnd(h){
 
 export function kill(e, src){
   e.hp=0; e.dead=true;
+  if(S.dots && S.dots.length) emberJump(e);   // Akkor Asası: yanma sıçrar
   if(e.kind==='hero'){
     if(S.stats.firstKill===null) S.stats.firstKill=S.time;
     e.respawn=respawnTime(S.time); if(src.team<2) S.score[src.team]++;
     const killer=creditKiller(e, src);
-    e.deaths++;
+    e.deaths++; e.ic.deathAt=S.time;
     if(S.structs.some(t=>!t.dead && t.team!==e.team && t.sub!=='nexus' && Math.hypot(t.x-e.x,t.y-e.y)<=t.range+e.r+60)) e.towerDeaths=(e.towerDeaths||0)+1;   // ölçüm: kule altında ölüm
     if(killer && killer.kind==='hero' && killer.team!==e.team){ killer.kills++; for(const a of takedownParticipants(e, killer)) if(a!==killer) a.assists++; }
     bloodHarvest(e, src, killer);
     passBuffs(e, killer);
+    if(killer && killer.kind==='hero' && killer.team!==e.team && killer.bonus && killer.bonus.killInvis && !killer.dead) killer.ic.invisUntil=S.time+killer.bonus.killInvis.dur;   // Gölge Hançeri: öldürünce kısa görünmezlik
     e.ic.bleed=null; e.st.curse=null; e.ic.tether=null; e.ic.back=null;
     if(e.ic.duel) duelEnd(e); for(const g of S.heroes) if(g.ic.duel && g.ic.duel.tgt===e) duelEnd(g);   // Gladyatör: Meydan Okuma biter, çalınanlar döner
     if(e.ic.frzN) e.ic.frzN=0; e.ic.heavy=null; e.ic.arenaUntil=0;   // Gölge: bağ ve dönüş noktası da biter   // Kan Hasadı iyileşmesi ve Kan Laneti ölünce biter
     awardHeroKillGold(e, killer);
-    if(killer) for(const h of takedownParticipants(e, killer)) if(h.bonus && h.bonus.takedownCd && !h.dead) for(const k of ['r','e']) h.cd[k]*=1-h.bonus.takedownCd;   // Zaman Kumu: sağ tık ve E'nin kalan beklemesi (Boşluk hariç)
+    if(killer) for(const h of takedownParticipants(e, killer)) if(h.bonus && h.bonus.takedownCd && !h.dead) for(const k of ['r','e']) h.cd[k]*=1-h.bonus.takedownCd;   // Ganimet Mührü (eski Zaman Kumu): sağ tık ve E'nin kalan beklemesi (Boşluk hariç)
+    if(killer) for(const h of takedownParticipants(e, killer)) scaleRush(h);   // Çağ Kitabı
     if(killer) for(const h of takedownParticipants(e, killer)) if(h.bonus && h.bonus.takedownHeal && !h.dead){ const T=h.bonus.takedownHeal; h.ic.td={ left:h.maxHp*T.pct, rate:h.maxHp*T.pct/T.dur }; }
     awardXP(src.team, e.x, e.y, HERO_KILL_XP, 1200);
     fx({ type:'death', x:e.x, y:e.y, r:e.r, team:e.team, life:0.5 });
@@ -596,6 +702,8 @@ export function respawnHero(h){
 }
 
 /* ---- eşyalar ---- */
+/* Eşya pasiflerinin koda gömülü sabitleri (mağaza açıklaması itemdesc.js de buradan okur) */
+export const ITEM_RULES = { curPctCap:60, vampMinion:0.33, shareR:700, minionAsR:600 };
 /* İyileştirme (Ruh Örtüsü artırır) */
 /* Kalkan ver (Koruyucu Muska kalkanları artırır). keep=true: eldeki daha büyük kalkanı bozma (eşya kalkanları) */
 export function giveShield(h, amt, dur, keep){
@@ -618,8 +726,10 @@ export function computeBonus(h){
     for(const [k,v] of Object.entries(it.stats)) B[k]=(B[k]||0)+v;
     if(ITEMS[id]) for(const [k,v] of Object.entries(it)) if(!['name','cost','parts','stats','desc','cat'].includes(k)) B[k]=v;   // pasifler eşsiz
   }
+  for(const [id,n] of Object.entries(h.runes||{})) if(RUNES[id]) for(const [k,v] of Object.entries(RUNES[id].stats)) B[k]=(B[k]||0)+v*n;   // rünler: yuva kaplamaz, istiflenir
   B.crit=Math.min(1,B.crit);
-  if(B.scale){ if(h.ic.scaleAt===undefined) h.ic.scaleAt=S.time; } else { h.ic.scaleAt=undefined; h.ic.scaleN=0; }   // Çağ Kitabı: satın alma anından itibaren sayılır
+  B.apItems=h.items.filter(id=>ITEMS[id] && ITEMS[id].stats.ap>0).length;   // Büyücü Şapkası: YG veren büyük eşya sayısı
+  if(B.scale){ if(h.ic.scaleNext===undefined) h.ic.scaleNext=S.time+60; } else { h.ic.scaleNext=undefined; h.ic.scaleN=0; }   // Çağ Kitabı: satın alma anından itibaren sayılır
   const old=h.maxHp;
   h.bonus=B;
   if(old!==undefined){ h.maxHp=Math.round(stat(h,'hp')); if(!h.dead) h.hp=Math.max(1,Math.min(h.maxHp, h.hp+(h.maxHp-old))); }
@@ -631,13 +741,17 @@ function mrAuraOn(e){
   return r;
 }
 /* Yetenek kullanıldı: Tılsımlı Kılıç/Büyü Kılıcı hazırlanır, Yankı ve Öç ek hasarı bekler, Can Pınarı iyileştirir */
-export function onCast(h){
+export function onCast(h, k){
   const sp=h.def.skills.p;
   if(sp.flowMin!==undefined) h.st.flow={ amt:flowAmt(sp,h.level), t:sp.dur, total:sp.dur };   // Akış: her yetenek kullanımı (biçim değiştirme dahil) yenilenir
   if(sp.sparkMin!==undefined) h.ic.sparkUntil=S.time+sp.window;   // Kıvılcım: yetenekten sonra window sn içinde ilk düz vuruş patlar
   const B=h.bonus; if(!B) return;
   if(B.spellblade) h.ic.sbUntil=S.time+B.spellblade.window;
-  if(B.echo && (h.ic.echoCd||0)<=S.time){ h.ic.echoCd=S.time+B.echo.cd; h.ic.pendMagic=(h.ic.pendMagic||0)+B.echo.base+B.echo.ap*apOf(h); }
+  if(B.spellbladeM){   // Büyü Kılıcı: pencere içinde kullanılan farklı yetenekler (Çift Mühür)
+    const ic=h.ic; if(!((ic.sbmUntil||0)>=S.time) || !ic.sbmKeys) ic.sbmKeys=[];
+    if(k && !ic.sbmKeys.includes(k)) ic.sbmKeys.push(k);
+    ic.sbmUntil=S.time+B.spellbladeM.window;
+  }
   if(B.store && h.ic.store>0){ h.ic.pendPhys=(h.ic.pendPhys||0)+h.ic.store; h.ic.store=0; }
   if(B.castHeal && (h.ic.healCd||0)<=S.time){ h.ic.healCd=S.time+B.castHeal.cd; heal(h, B.castHeal.base+B.castHeal.pctMax*h.maxHp); }
   if(B.castAs){ h.ic.asAmt=B.castAs.amt; h.ic.asUntil=S.time+B.castAs.dur; }                          // Kasırga Baltası
@@ -656,14 +770,29 @@ export function onBasicHit(src, e){
   if(!src || src.kind!=='hero' || !src.bonus || e.dead) return;
   const B=src.bonus, P={ noProc:true, noSplash:true };
   if(B.every3){ src.ic.k3=(src.ic.k3||0)+1; if(src.ic.k3>=3){ src.ic.k3=0; damage(e, B.every3, src, { type:'magic', ...P }); } }
-  if(B.onHitCurPct && !e.dead){ let x=e.hp*B.onHitCurPct; if(e.kind!=='hero') x=Math.min(x,60); damage(e, x, src, P); }
+  if(B.onHitCurPct && !e.dead){ let x=e.hp*B.onHitCurPct; if(e.kind!=='hero') x=Math.min(x,ITEM_RULES.curPctCap); damage(e, x, src, P); }
   if(B.onHitOwnHp && !e.dead) damage(e, src.maxHp*B.onHitOwnHp, src, P);
   if(B.champMaxHp && e.kind==='hero' && !e.dead && (src.ic.spearCd||0)<=S.time){ src.ic.spearCd=S.time+B.champMaxHp.cd; damage(e, e.maxHp*B.champMaxHp.pct, src, P); }
   if(B.spellblade && !e.dead && (src.ic.sbUntil||0)>=S.time && (src.ic.sbCd||0)<=S.time){
     const sb=B.spellblade; src.ic.sbUntil=0; src.ic.sbCd=S.time+sb.cd;
     damage(e, sb.base+(sb.bonusAd||0)*(B.dmg||0)+(sb.apRatio||0)*apOf(src), src, { type:sb.type, ...P });
   }
+  if(B.spellbladeM && !e.dead && (src.ic.sbmUntil||0)>=S.time && (src.ic.sbmCd||0)<=S.time){   // Büyü Kılıcı (Tılsımlı Kılıç ile ayrı, birikir)
+    const sb=B.spellbladeM, ic=src.ic, two=(ic.sbmKeys||[]).length>=2 && sb.dual;
+    ic.sbmUntil=0; ic.sbmCd=S.time+sb.cd; ic.sbmKeys=[];
+    damage(e, (sb.base+sb.apRatio*apOf(src))*(two ? sb.dual.mult : 1), src, { type:'magic', ...P });
+    if(two && e.kind==='hero' && !e.dead && !(e.stasis>0) && !e.pulled){   // Çift Mühür: hedefi kütle oranlı iter, duvara çarparsa sersem
+      const dx=e.x-src.x, dy=e.y-src.y, L=Math.hypot(dx,dy)||1, m=Math.max(0.5, Math.min(1.5, (src.mass||1)/(e.mass||1)));
+      shoveStart(e, src, dx/L, dy/L, { push:sb.dual.push*m, pushT:sb.dual.pushT, stun:sb.dual.stun });
+      fx({ type:'ring', owner:e, r0:e.r, r1:e.r+28, color:'#9a7bff', lw:4, life:0.3 });
+    }
+  }
   if(B.onHitAp && !e.dead) damage(e, B.onHitAp*apOf(src), src, { type:'magic', ...P });
+  if(B.witch && !e.dead){   // Cadı Bıçağı: aynı hedefe art arda vuruşta artar; yapılarda kale korumasından etkilenmez
+    const W=B.witch, ic=src.ic;
+    if(ic.whTgt===e) ic.whN=(ic.whN||0)+1; else { ic.whTgt=e; ic.whN=0; }
+    damage(e, Math.min(W.max, W.base+W.step*ic.whN)*apOf(src), src, { type:'magic', ...P, noWard:true });
+  }
   if(B.onHitAd && !e.dead) damage(e, B.onHitAd*atkDmg(src), src, P);                                  // Gece Avcısı
   if(B.onHitMs) hurtSpeed(src, B.onHitMs.amt, B.onHitMs.dur);                                         // Kaçak Yayı
   if(B.asStack){ const A=B.asStack, ic=src.ic; ic.asStackN = ic.asStackUntil>S.time ? Math.min(A.max, ic.asStackN+1) : 1; ic.asStackUntil=S.time+A.dur; ic.asStackAmt=A.amt; }   // Hız Çarkı
@@ -676,6 +805,7 @@ export function onBasicHit(src, e){
     for(const u of foes(src.team,false)) if(dist(u,src)-u.r<=Q.radius) damage(u, x, src, { type:'magic', ...P });
     fx({ type:'boom', x:src.x, y:src.y, r0:src.r, r1:Q.radius, color:'#9fd6ff', life:0.3 });
   }
+  if(B.hitAsStack && e.kind==='hero'){ const H=B.hitAsStack, ic=src.ic; ic.hasN = ic.hasUntil>S.time ? Math.min(H.max, ic.hasN+1) : 1; ic.hasUntil=S.time+H.dur; ic.hasAmt=H.amt; }   // Dikenli Çizme: rakip kahramana vuruşta saldırı hızı birikir
   if(B.hitMsStack && e.kind==='hero'){ const H=B.hitMsStack, ic=src.ic; ic.hmsN = ic.hmsUntil>S.time ? Math.min(H.max, ic.hmsN+1) : 1; ic.hmsUntil=S.time+H.dur; ic.hmsAmt=H.amt; }   // Dikenli Çizme
   if(B.shredFlat && e.kind==='hero'){ e.ic.flatDownT=S.time+B.shredFlat.dur; e.ic.flatDown=B.shredFlat.amt; }   // Ölüm Haritası
   if(B.shred && e.kind==='hero' && !e.dead){ const o=e.st.shred; e.st.shred={ n:Math.min(B.shred.max,(o?o.n:0)+1), t:B.shred.dur, pct:B.shred.pct }; }
@@ -684,9 +814,18 @@ export function onBasicHit(src, e){
 function itemTick(h, dt){
   const B=h.bonus; if(!B) return;
   if(B.store && h.ic.store && S.time-(h.ic.storeT||0)>B.store.decay) h.ic.store=0;
-  if(B.scale){                                                                                        // Çağ Kitabı
-    const n=Math.min(B.scale.max, Math.floor((S.time-h.ic.scaleAt)/60));
-    if(n!==(h.ic.scaleN||0)){ h.ic.scaleN=n; const old=h.maxHp; h.maxHp=Math.round(stat(h,'hp')); h.hp=Math.max(1,Math.min(h.maxHp, h.hp+(h.maxHp-old))); }
+  if(B.scale && (h.ic.scaleN||0)<B.scale.max && S.time>=h.ic.scaleNext){                             // Çağ Kitabı: dakikada bir kat (scaleRush öne çeker)
+    h.ic.scaleN=(h.ic.scaleN||0)+1; h.ic.scaleNext=S.time+60;
+    const old=h.maxHp; h.maxHp=Math.round(stat(h,'hp')); h.hp=Math.max(1,Math.min(h.maxHp, h.hp+(h.maxHp-old)));
+  }
+  if(B.kor){                                                                                          // Kor Maskesi: yakın görünen rakip şampiyonla saniyede 1 Kor
+    const K=B.kor, ic=h.ic; ic.korT=(ic.korT||0)-dt;
+    if(ic.korT<=0){
+      ic.korT+=1;
+      const near=S.heroes.some(u=>!u.dead && u.team!==h.team && dist(u,h)<=K.range && canSee(h.team,u));
+      if(near){ ic.korN=Math.min(K.max,(ic.korN||0)+1); ic.korSeen=S.time; }
+      else if(S.time-(ic.korSeen??-99)>=K.fade) ic.korN=Math.max(0,(ic.korN||0)-1);
+    }
   }
   if(B.coil || B.stride){                                                                            // Yük Bobini, Fırtına Adımı: yürünen mesafe yük biriktirir
     const ic=h.ic;
@@ -733,6 +872,16 @@ export function buy(h, id){
   h.gold-=cost; computeBonus(h); h.ic.carryBase=h.gold;   // Yük Taşıyıcı: alışverişte taşınan altın sıfırlanır
   return true;
 }
+/* Rün al (sadece üste): yuva kaplamaz, her rün en fazla max kez */
+export function buyRune(h, id){
+  const R=RUNES[id]; if(!R || !canShop(h)) return false;
+  const n=(h.runes[id]||0); if(n>=R.max || h.gold<R.cost) return false;
+  h.runes[id]=n+1; h.gold-=R.cost; computeBonus(h); h.ic.carryBase=h.gold;
+  return true;
+}
+export function runesValue(h){ let t=0; for(const [id,n] of Object.entries(h.runes||{})) t+=(RUNES[id] ? RUNES[id].cost : 0)*n; return t; }
+/* Bot rünü: 5 yuva dolunca kalan altın; tanklar can, fiziksel ağırlıklılar güç, diğerleri büyü */
+function botRunePick(h){ return (h.type==='hook' || h.type==='roller') ? 'rhp' : (DMG_PHYS[h.type]??0.5)>=0.5 ? 'rad' : 'rap'; }
 /* Büyük eşyayı al; alınamıyorsa eksik parçalarından alınabilenleri pahalıdan ucuza doğru al */
 export function buySmart(h, id){
   if(buy(h,id) || PARTS[id]) return;
@@ -777,13 +926,26 @@ export function defPick(h){
   for(const k of order){ const l=free(pool[k]); if(l.length) return l[0]; }
   return null;
 }
+/* Esnek yakma yuvası (BURN): Kara Alev'in tipik yakması (pct x rakiplerin ortalama azami canı) ile Akkor Asası'nınki
+   (base + ap x YG; YG = şimdiki + iki eşyanın ortalama YG'si) karşılaştırılır, büyüğü alınır. Biri elde varsa öbürü. */
+export function burnPick(h){
+  const KA=ITEMS.blackflame, AK=ITEMS.emberrod, haveKA=h.items.includes('blackflame'), haveAK=h.items.includes('emberrod');
+  if(haveKA && haveAK) return null;
+  if(haveKA) return 'emberrod';
+  if(haveAK) return 'blackflame';
+  const foes=S.heroes.filter(x=>x.team!==h.team);
+  const hp=foes.length ? foes.reduce((a,f)=>a+f.maxHp,0)/foes.length : 1000;
+  const ap=apOf(h)+(KA.stats.ap+AK.stats.ap)/2;
+  return KA.skillBurn.pct*hp > AK.ember.base+AK.ember.ap*ap ? 'blackflame' : 'emberrod';
+}
+const flexPick=(h,id)=> id===DEF ? defPick(h) : id===BURN ? burnPick(h) : id;
 /* Botun sıradaki alım yuvası: { id, slot } (DEF yuvası alım anındaki profile göre çözülür). Yoksa null */
 function nextBuildSlot(h){
   const done=h.items.filter(id=>ITEMS[id]).length;
   if(done>=SLOTS) return null;                                   // yuvalar dolu
   const B=h.build||[];
   for(let i=0;i<B.length;i++){
-    const id = B[i]===DEF ? defPick(h) : B[i];
+    const id = flexPick(h, B[i]);
     if(id && !h.items.includes(id)) return { id, slot:i };
   }
   return null;
@@ -794,8 +956,9 @@ export function nextBuild(h){ const n=nextBuildSlot(h); return n ? n.id : null; 
    DEF yuvası, ilk alım hareketinde (eşya ya da parça) çözülüp build listesine yazılır: parçalar boşa gitmesin. */
 export function botShop(h){
   for(let guard=0; guard<12; guard++){
-    const n=nextBuildSlot(h); if(!n) return;
-    const id=n.id, commit=()=>{ if(h.build[n.slot]===DEF) h.build[n.slot]=id; };
+    const n=nextBuildSlot(h);
+    if(!n){ if(!h.human && h.items.filter(id=>ITEMS[id]).length>=SLOTS){ const r=botRunePick(h); while(buyRune(h,r)); } return; }   // yuvalar dolu: kalan altın rüne
+    const id=n.id, commit=()=>{ if(h.build[n.slot]===DEF || h.build[n.slot]===BURN) h.build[n.slot]=id; };
     if(h.gold>=itemCostFor(h,id) && buy(h,id)){ commit(); continue; }
     const inv=[...h.items]; let bought=false;
     for(const p of ITEMS[id].parts){
@@ -860,8 +1023,11 @@ export function awardXP(team, x, y, amt, radius, mult){
 /* ---- geri kalma telafisi (data.js CATCHUP_XP / CATCHUP_GOLD) ---- */
 export function totalXP(h){ let t=h.xp; for(let l=1;l<h.level;l++) t+=XP_NEED(l); return t; }
 export function itemsValue(items){ return (items||[]).reduce((t,id)=>t+((ITEMS[id]||PARTS[id]||{}).cost||0),0); }
-export function heroWorth(h){ return h.gold+(h.items||[]).reduce((t,id)=>t+((ITEMS[id]||PARTS[id]||{}).cost||0),0); }
+export function heroWorth(h){ return h.gold+runesValue(h)+(h.items||[]).reduce((t,id)=>t+((ITEMS[id]||PARTS[id]||{}).cost||0),0); }
 function foeAvg(h, f){ const F=S.heroes.filter(u=>u.team!==h.team && u.team<2); return F.length ? F.reduce((t,u)=>t+f(u),0)/F.length : 0; }
+export const DEATH_RECAP = { window:4 };   // ölüm özeti: ölümden önceki son 4 sn
+/* Telafi altını, yan etkisiz (çizim için): h bir rakip kahramanı öldürse alacağı ek altın */
+export function catchupGoldPeek(h){ const g=behind(h,heroWorth); for(const r of CATCHUP_GOLD.steps) if(g>=r.gap) return r.gold; return 0; }
 function behind(h, f){ const a=foeAvg(h,f); return a>0 ? 1-f(h)/a : 0; }
 export function catchupXP(h){ const g=behind(h,totalXP); for(const r of CATCHUP_XP) if(g>=r.gap) return r.bonus; return 0; }
 export function catchupGold(h){ const g=behind(h,heroWorth); for(const r of CATCHUP_GOLD.steps) if(g>=r.gap){ h.cuGold=(h.cuGold||0)+r.gold; return r.gold; } return 0; }
@@ -980,8 +1146,10 @@ export function tryCast(h, k, aim, cmd){
   h.chan=null;   // başka bir yetenek kullanmak Kilitli Yaylım kanallamasını bitirir
   let cdv = sk.cd[rk-1] * 100/(100+Math.max(0,stat(h,'ah')));   // yetenek hızı (bekleme baştan harcanır)
   if(k!=='s' && h.ic.focus){ cdv*=1-h.def.skills.p.cut; h.ic.focus=false; h.ic.focusT=0; fx({ type:'ring', owner:h, r0:h.r, r1:h.r+24, color:'#c9a6ff', lw:3, life:0.3 }); }   // Odak: bu kullanımın beklemesi kısalır
+  const RH=h.bonus && h.bonus.rhythm;   // Zaman Asası Ritim: sağ tık ve E art arda (win sn içinde) kullanılınca ikincinin beklemesi kısalır
+  if(RH && k!=='s'){ const ic=h.ic; if(ic.rhK && ic.rhK!==k && S.time-ic.rhT<=RH.win){ cdv*=1-RH.cut; ic.rhK=null; } else { ic.rhK=k; ic.rhT=S.time; } }
   h.cd[k] = h.cdMax[k] = cdv;
-  onCast(h);
+  onCast(h, k);
   // Güçlendir: 6 sn içindeki ilk Ruh Patlaması ya da Ruh Kalkanı güçlenir (kullanılınca ya da süre dolunca biter)
   let emp=false;
   if(sk.type==='spiritburst' || sk.type==='spiritshield'){ const m=h.ic.mantra; emp = !!m && S.time<=m.until; h.ic.mantra=null; }
@@ -1005,7 +1173,9 @@ export function tryCast(h, k, aim, cmd){
     artilleryShot(h, cmd);
     return;
   }
-  if(sk.cast){
+  if(sk.windup){   // görünür hazırlık (Meydan Okuma, Şok Dalgası): kıpırdamadan bekler; sersem/susturma/kök iptal eder (windCancel)
+    h.cast = { k, t:sk.windup, total:sk.windup, aim, slow:1, tgt, wind:true };
+  } else if(sk.cast){
     h.cast = { k, t:sk.cast, total:sk.cast, aim, slow:sk.castSlow, emp };
   } else {
     instantSkill(h, k, aim, cmd, tgt, { emp });
@@ -1236,7 +1406,18 @@ export function instantSkill(h, k, aim, cmd, tgt, opt){
   }
 }
 
+/* Hazırlıklı yeteneğin iptali: beklemenin yarısı geri verilir */
+function windCancel(h){
+  const c=h.cast; h.cast=null;
+  if(c && c.wind){ h.cd[c.k]=Math.max(0, h.cd[c.k]-h.cdMax[c.k]*0.5); fx({ type:'ring', owner:h, r0:h.r, r1:h.r+18, color:'#aaa', lw:3, life:0.25 }); }
+}
 export function fireCast(h, c){
+  if(c.wind){   // hazırlık bitti: hedefli yetenekte hedef hâlâ geçerli mi
+    const sk=h.def.skills[c.k];
+    if(c.tgt && (c.tgt.dead || !canSee(h.team,c.tgt) || dist(h,c.tgt)-c.tgt.r>sk.range+150)){ h.cast=c; windCancel(h); return; }
+    instantSkill(h, c.k, c.aim, null, c.tgt, {});
+    return;
+  }
   const sk=h.def.skills[c.k], rk=h.rank[c.k], i=rk-1;
   const ang=c.aim, base=atkDmg(h);
   if(sk.type==='volley'){
@@ -1335,7 +1516,7 @@ export function releaseAttack(h){
   const at=atkDef(h), ang=h.atk.aim, cx=Math.cos(ang), cy=Math.sin(ang), B=h.bonus||{};
   const cs=B.critStack ? (h.ic.critStk||0) : 0, cch=B.critStack ? Math.min(1,(B.crit||0)+cs) : B.crit;   // Talih Kılıcı: kritik vurulmadıkça biriken ilave şans
   const crit = cch>0 && rand()<cch;
-  if(B.critStack) h.ic.critStk = crit ? 0 : Math.min(B.critStack.max, cs+B.critStack.step);
+  if(B.critStack){ const t=h.atk.target; if(!crit) h.ic.critStk=Math.min(B.critStack.max, cs+B.critStack.step); else if(t && t.kind==='hero') h.ic.critStk=0; }   // kahramana kritik sıfırlar; minyon/canavar/yapıda birikim kalır
   const dmg=atkDmg(h)*(crit ? (B.critMult||CRIT_MULT) : 1);
   if(at.type==='projectile'){
     // güdümlü: hedefe gider, yoldakiler engelleyemez, ıskalamaz
@@ -1405,7 +1586,8 @@ export function updateHero(h, cmd, dt){
     if(b.t<=0) st[k]=null;
   }
   if(st.freeze>0) st.freeze-=dt;
-  for(const k of ['r','e','s']) h.cd[k]=Math.max(0,h.cd[k]-dt);
+  { const cdt = h.recallCh && h.bonus && h.bonus.rhythm ? dt*h.bonus.rhythm.recall : dt;   // Zaman Asası: üsse dönerken beklemeler hızlı akar
+    for(const k of ['r','e','s']) h.cd[k]=Math.max(0,h.cd[k]-cdt); }
   if(h.offCd){ h.offCd.r=Math.max(0,h.offCd.r-dt); h.offCd.e=Math.max(0,h.offCd.e-dt); }   // İkili: diğer biçimin beklemesi arka planda akar
   { // Demir Gövde: saniyede eksik canın missPct'i; son combatT sn içinde kahramanla hasar alışverişi varsa combatMult katı
     const pp=h.def.skills.p; let ex=0;
@@ -1416,19 +1598,19 @@ export function updateHero(h, cmd, dt){
   focusTick(h, dt);   // Odak sayacı
   itemTick(h, dt);
   if(h.dead) return;
-  // Kum Saati aktifi: 2 sn dokunulmaz ve hareketsiz
-  if(cmd.item && h.bonus && h.bonus.stasis && (h.ic.stasisCd||0)<=S.time && h.st.freeze<=0){
-    h.stasis=h.bonus.stasis.dur; h.ic.stasisCd=S.time+h.bonus.stasis.cd; h.cast=null; h.dash=null; h.chan=null; h.recallCh=null;
-    if(h.atk.state==='windup') h.atk.state='ready';
+  // Kum Saati (16.10.2026, pasif; aktifi kalktı): ölümcül hasarda heykel (sandStatue), süre bitince azami canın sandHp'siyle kalkar
+  if(h.stasis>0){
+    h.stasis-=dt; h.vx=0; h.vy=0;
+    if(h.stasis<=0 && h.ic.sandHp){ h.hp=Math.max(h.hp, h.maxHp*h.ic.sandHp); h.ic.sandHp=0; fx({ type:'ring', owner:h, r0:h.r, r1:h.r+36, color:'#e8c87a', lw:4, life:0.45 }); }
+    return;
   }
-  if(h.stasis>0){ h.stasis-=dt; h.vx=0; h.vy=0; return; }
 
   const tr=h.baseR*(1+(st.giant?st.giant.size:0));
   h.r += (tr-h.r)*Math.min(1,12*dt);
   h.mass = stat(h,'mass')*Math.pow(h.r/h.baseR,2)*(st.shell ? st.shell.mass : 1)*(st.ball ? 10 : 1);   // Gülle: Kabuk 3 kat, top çok ağır
   h.aim = cmd.aim;
 
-  if(st.freeze>0){ if(a.state==='windup') a.state='ready'; h.cast=null; h.dash=null; h.chan=null; }
+  if(st.freeze>0){ if(a.state==='windup') a.state='ready'; if(h.cast && h.cast.wind) windCancel(h); h.cast=null; h.dash=null; h.chan=null; }
 
   // Kanca ile çekiliyor: hareket, saldırı ve yetenek yok (zorla yer değiştirme)
   if(h.pulled){ pullStep(h, dt); return; }
@@ -1456,6 +1638,9 @@ export function updateHero(h, cmd, dt){
       const dx=h.x-st.x, dy=h.y-st.y, dd=Math.hypot(dx,dy)||1, min=h.r+st.r;
       if(dd<min){ h.x=st.x+dx/dd*min; h.y=st.y+dy/dd*min; stop=true; }
     }
+    if(d.roll && !stop) for(const e of S.heroes){   // Yuvarlan: rakip şampiyona çarpınca durur (iniş hasarı orada)
+      if(!e.dead && e.team!==h.team && dist(e,h)<=h.r+e.r+2){ stop=true; break; }
+    }
     if(!d.noHit && !stop) for(const e of foes(h.team, false)){
       if(dist(e,h) <= h.r+e.r+2){
         const dx=e.x-h.x, dy=e.y-h.y, dd=Math.hypot(dx,dy)||1;
@@ -1474,8 +1659,9 @@ export function updateHero(h, cmd, dt){
   // Yetenek hazırlığı (okçu sağ tık ve boşluk)
   if(h.cast){
     if(settings.aimMode==='track') h.cast.aim=cmd.aim;
-    h.cast.t-=dt;
-    if(h.cast.t<=0){ const c=h.cast; h.cast=null; fireCast(h,c); }
+    if(h.cast.wind && (st.silence>0 || (st.root>0 && h.def.skills[h.cast.k].type==='duel'))) windCancel(h);   // susturma, Meydan Okuma'da kök de iptal eder
+    else h.cast.t-=dt;
+    if(h.cast && h.cast.t<=0){ const c=h.cast; h.cast=null; fireCast(h,c); }
   }
 
   // Kilitli Yaylım kanallaması: hareket komutu, sersemleme, hedefin ölmesi ya da leash'ten uzaklaşması bitirir
@@ -1634,7 +1820,8 @@ function tetherTick(h, dt){
   h.ic.tether=null;
   damage(u, T.dmg, h, { type:'magic', skill:true });
   if(!u.dead && !(u.stasis>0)){
-    u.st.root=Math.max(u.st.root||0, T.root); ccHit(u);
+    if(u.kind==='hero'){ u.st.root=Math.max(u.st.root||0, T.root); ccHit(u); }
+    else u.st.freeze=Math.max(u.st.freeze||0, T.root);   // minyon/canavarda kök yok: aynı süre durur
     fx({ type:'ring', owner:u, r0:u.r, r1:u.r+30, color:'#9a7bff', lw:5, life:0.4 });
   }
 }
@@ -1644,7 +1831,7 @@ function ringTick(h, dt){
   for(const u of foes(h.team,false)){
     if(u.stasis>0 || dist(u,h)-u.r>R.radius) continue;
     damage(u, R.dps*dt, h, { dot:true, noSplash:true, type:'magic' });
-    if(!u.dead && u.st) applySlow(u, R.slow, 0.3);
+    if(!u.dead && u.st && R.slow>0) applySlow(u, R.slow, 0.3);
   }
 }
 
@@ -1771,6 +1958,12 @@ function rollLand(h, d){
   fx({ type:'boom', x:h.x, y:h.y, r0:20, r1:sk.radius, color:'#ffd27a', life:0.4 });
 }
 /* Bilardo: sürekli ileri giden top; imlece yavaşça döner, duvar/sınır/yapıdan seker, değdiği rakibi iter ve vurur */
+/* Bilardo çarpması: wallR içindeki rakiplere topun hasarının wallPct'i (duvar/sınır/yapıya çarpınca ve elle durdurunca) */
+function ballBurst(h, B){
+  const sk=B.sk, x=B.dmg*sk.wallPct;
+  for(const u of foes(h.team,false)) if(!u.dead && Math.hypot(u.x-h.x,u.y-h.y)<=sk.wallR+u.r) damage(u, x, h, { type:'phys', skill:true });
+  fx({ type:'boom', x:h.x, y:h.y, r0:h.r*0.6, r1:sk.wallR, color:'#ffe08a', life:0.35 });
+}
 function ballStep(h, cmd, dt){
   const B=h.st.ball, sk=B.sk;
   const cur=Math.atan2(B.dy,B.dx), mt=sk.turn*dt, da=Math.max(-mt, Math.min(mt, angDiff(cmd.aim, cur))), a=cur+da;
@@ -1786,8 +1979,8 @@ function ballStep(h, cmd, dt){
     const dx=nx-s.x, dy=ny-s.y, dd=Math.hypot(dx,dy)||1, min=h.r+s.r;
     if(dd<min){ refl(dx,dy); nx=s.x+dx/dd*min; ny=s.y+dy/dd*min; }
   }
-  if(bounced) fx({ type:'boom', x:nx, y:ny, r0:h.r*0.6, r1:h.r+26, color:'#ffe08a', life:0.25 });
-  h.x=nx; h.y=ny; h.vx=B.dx*sk.speed; h.vy=B.dy*sk.speed; h.kx=0; h.ky=0;
+  h.x=nx; h.y=ny;
+  if(bounced){ if(S.time-(B.wallT??-9)>=sk.wallCd){ B.wallT=S.time; ballBurst(h, B); } else fx({ type:'boom', x:nx, y:ny, r0:h.r*0.6, r1:h.r+26, color:'#ffe08a', life:0.25 }); }   // duvara çarpma: alan hasarı h.vx=B.dx*sk.speed; h.vy=B.dy*sk.speed; h.kx=0; h.ky=0;
   fx({ type:'ghost', x:ox, y:oy, r:h.r, team:h.team, life:0.2 });
   for(const u of foes(h.team,false)){
     if(u.dead || dist(u,h)>h.r+u.r+sk.hitR) continue;
@@ -1801,6 +1994,7 @@ function ballStep(h, cmd, dt){
     fx({ type:'hit', x:u.x, y:u.y, big:true, life:0.2 });
   }
   B.t-=dt;
+  if(cmd.space && B.total-B.t>=sk.stopMin){ ballBurst(h, B); B.t=0; }   // Boşluk'a tekrar basmak topu durdurur, çarpma gibi alan hasarı
   if(B.t<=0){ h.st.ball=null; h.ic.mom=100; h.ic.mhx=B.dx; h.ic.mhy=B.dy; h.vx=B.dx*stat(h,'spd'); h.vy=B.dy*stat(h,'spd'); }
 }
 
@@ -1823,7 +2017,7 @@ export function clampToWorld(h){
 /* Dalga Şarkısı: 600 içinde eşyayı taşıyan dost kahraman varsa minyonun saldırı süreleri kısalır (birden çok taşıyıcı birikmez) */
 function minionAsF(m){
   let best=0;
-  for(const h of S.heroes) if(!h.dead && h.team===m.team && h.bonus && h.bonus.minionAs>best && Math.hypot(h.x-m.x,h.y-m.y)<=600) best=h.bonus.minionAs;
+  for(const h of S.heroes) if(!h.dead && h.team===m.team && h.bonus && h.bonus.minionAs>best && Math.hypot(h.x-m.x,h.y-m.y)<=ITEM_RULES.minionAsR) best=h.bonus.minionAs;
   return best>0 ? 1/(1+best) : 1;
 }
 export function updateMinion(m, dt){
@@ -1846,7 +2040,7 @@ export function updateMinion(m, dt){
     const L = pi===0 ? S.heroes : pi===1 ? S.minions : S.structs;
     for(let ui=0; ui<L.length; ui++){
       const u=L[ui];
-      if(u.dead || u.team===m.team || (pi===2 && u.prot)) continue;
+      if(u.dead || u.team===m.team || (pi===2 && u.prot) || u.stasis>0) continue;   // Kum Saati heykeli hedeflenemez
       const ex=u.x-m.x, ey=u.y-m.y, rs=u.r+m.r+d.aggro+1;
       if((ex<0?-ex:ex)>rs || (ey<0?-ey:ey)>rs) continue;   // ucuz kutu elemesi: kesin menzil dışı
       const dd=Math.hypot(ex, ey)-u.r-m.r;
@@ -1863,7 +2057,7 @@ export function updateMinion(m, dt){
     if(v.dead || v.team!==m.team || Math.hypot(v.x-m.x,v.y-m.y)>MINION_CALL_R) continue;
     for(let hj=0; hj<S.heroes.length; hj++){
       const h=S.heroes[hj];
-      if(h.dead || h.team===m.team || (v.dmgBy[h.id] ?? -1e9) < S.time-MINION_CALL) continue;
+      if(h.dead || h.team===m.team || h.stasis>0 || (v.dmgBy[h.id] ?? -1e9) < S.time-MINION_CALL) continue;
       const dd=Math.hypot(h.x-m.x,h.y-m.y)-h.r-m.r;
       if(dd<=d.aggro+120 && dd<callD && canSee(m.team,h)){ callD=dd; call=h; }   // çağrı: saldırgan minyonun yakınındaysa (uzağa kovalamaz)
     }
@@ -2113,7 +2307,8 @@ function killMonster(e, src){
     const g=Math.floor(d.gold*JUNGLE.goldMult*(e.rewM||1)*jmMult(k)); k.gold+=g; k.jGold=(k.jGold||0)+g;
     if(e.camp.mobs.every(m=>m.dead || m===e)) S.jstats.camps[k.team]++;
   }
-  if(d.buff){ giveBuff(k, d.buff, BUFFS[d.buff].dur); S.jstats.buffs[k.team]++; }
+  if(d.buff){ giveBuff(k, d.buff, BUFFS[d.buff].dur); S.jstats.buffs[k.team]++; scaleRush(k); }   // Çağ Kitabı: güçlendirme kampı
+  if(d.big) for(const h of S.heroes) if(h.team===k.team) scaleRush(h);                                     // Çağ Kitabı: Titan (takım)
 }
 export function giveBuff(h, key, dur){
   const jb=h.jb||(h.jb={});
@@ -2136,8 +2331,7 @@ function burnHit(src, e){
   if(e.st && e.kind!=='struct') applySlow(e, B.slow, B.slowDur);
   if(e.kind==='struct') return;
   const dps=B.dpsBase+B.dpsPer*((src.level||1)-1);
-  const o=S.dots.find(x=>x.tgt===e && x.src===src);
-  if(o){ o.t=B.dotDur; o.dps=dps; } else S.dots.push({ tgt:e, src, dps, t:B.dotDur });
+  addDot(e, src, 'burnbuff', dps, B.dotDur);
 }
 
 /* ---- kule ve yapılar ---- */
@@ -2154,22 +2348,31 @@ export function updateTower(s, dt){
   s.cd=Math.max(0,s.cd-dt);
   if(s.aggro){
     const u=s.aggro.target;
-    if(u.dead || dist(s,u)>s.range+u.r || !canSee(s.team,u)) s.aggro=null;
+    if(u.dead || u.stasis>0 || dist(s,u)>s.range+u.r || !canSee(s.team,u)) s.aggro=null;
   }
   let tgt=null;
-  if(s.aggro){ const u=s.aggro.target; if(dist(s,u)<=s.range+u.r) tgt=u; }
+  // Minyon önceliği (22.10.2026): menzilde görünen rakip minyon varsa kule önce en yakın minyona vurur (kahraman aggro'su dahil); yoksa saldıran şampiyona, yoksa en yakın kahramana
+  {
+    let bd=1e9;
+    for(let ui=0; ui<S.minions.length; ui++){
+      const u=S.minions[ui];
+      if(u.dead || u.team===s.team) continue;
+      const ex=s.x-u.x, ey=s.y-u.y, rs=s.range+u.r+1;
+      if((ex<0?-ex:ex)>rs || (ey<0?-ey:ey)>rs) continue;   // ucuz kutu elemesi
+      const dd=Math.hypot(ex, ey)-u.r;
+      if(dd<=s.range && dd<bd && canSee(s.team,u)){ bd=dd; tgt=u; }
+    }
+  }
+  if(!tgt && s.aggro){ const u=s.aggro.target; if(dist(s,u)<=s.range+u.r) tgt=u; }
   if(!tgt){
     let bd=1e9;
-    for(let pi=0; pi<2; pi++){   // foes(team,false) ile aynı sıra: kahramanlar, minyonlar
-      const L = pi===0 ? S.heroes : S.minions;
-      for(let ui=0; ui<L.length; ui++){
-        const u=L[ui];
-        if(u.dead || u.team===s.team) continue;
-        const ex=s.x-u.x, ey=s.y-u.y, rs=s.range+u.r+1;
-        if((ex<0?-ex:ex)>rs || (ey<0?-ey:ey)>rs) continue;   // ucuz kutu elemesi
-        const dd=Math.hypot(ex, ey)-u.r;
-        if(dd<=s.range && dd<bd && canSee(s.team,u)){ bd=dd; tgt=u; }
-      }
+    for(let ui=0; ui<S.heroes.length; ui++){
+      const u=S.heroes[ui];
+      if(u.dead || u.team===s.team || u.stasis>0) continue;   // Kum Saati heykeli hedeflenemez
+      const ex=s.x-u.x, ey=s.y-u.y, rs=s.range+u.r+1;
+      if((ex<0?-ex:ex)>rs || (ey<0?-ey:ey)>rs) continue;   // ucuz kutu elemesi
+      const dd=Math.hypot(ex, ey)-u.r;
+      if(dd<=s.range && dd<bd && canSee(s.team,u)){ bd=dd; tgt=u; }
     }
   }
   s.tgt=tgt;
@@ -2446,8 +2649,8 @@ export function updateProjectiles(dt){
         p.dead=true;
         continue;
       }
-      if(p.tether){   // Zincir: minyon durdurur (hasar ve bağ yok); kahramana hasar + bağ (dokunulmaz hedefe bağ yok)
-        if(hit.kind==='hero' && !(hit.stasis>0) && !p.owner.dead){
+      if(p.tether){   // Zincir: değdiği ilk rakibe (kahraman, minyon, canavar; 17.10.2026'dan beri minyon da) hasar + bağ (dokunulmaz hedefe bağ yok)
+        if(!(hit.stasis>0) && !p.owner.dead){
           damage(hit, p.dmg, p.owner, { type:'magic', skill:true });
           if(!hit.dead && !p.owner.dead) p.owner.ic.tether={ target:hit, t:p.tether.bind, total:p.tether.bind, range:p.tether.range, dmg:p.dmg, root:p.tether.root };
         }

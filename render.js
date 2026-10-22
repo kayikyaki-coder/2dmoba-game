@@ -1,13 +1,15 @@
 /* Çizim: durumu sadece okur. Tarayıcıya bağımlı. */
-import { TEAM_COLORS as DATA_TEAM, MAX_LEVEL, FOUNTAIN, XP_NEED, KEY_LABELS, VISION, FORMS, JUNGLE, BUFFS, BIG_BUFF, JUNGLE_MASTERY } from './data.js';
+import { TEAM_COLORS as DATA_TEAM, MAX_LEVEL, FOUNTAIN, XP_NEED, KEY_LABELS, VISION, FORMS, JUNGLE, BUFFS, BIG_BUFF, JUNGLE_MASTERY, GOLD } from './data.js';
 import { PAL, rgba, mix } from './palette.js';
 import { drawToken, drawUnitToken, unitImg, drawGlow, drawCrystal, paintMap, bushLights, texReady, drawIcon, CAMP_ICON } from './art.js';
 texReady.then(()=>{ fieldCache=null; });   // dokular gelince zemini bir kez yeniden çiz
 const TEAM_COLORS=PAL.team, TEAM_DARK=PAL.teamDark, TAU=Math.PI*2;   // takım renkleri görsel dilden (data.js'teki mavi/kırmızı yalnız sim'e)
 import { ITEMS, PARTS, SLOTS } from './items.js';
+import { itemInfo } from './itemdesc.js';
 import { MAP_W, MAP_H, LANES, WALLS, BUSHES, BASES, rayDist, wallsNear, bushAt } from './map.js';
 import { HERO_NAMES } from './names.js';
-import { S, settings, stat, dist, atkDef, atkDmg, attackSpeed, timings, canLearn, passiveText, visiblePos, canSee, arenaOf, campIntel, seenItems, itemsValue } from './sim.js';
+import { juiceInit, juiceFrame, juiceUnder, juiceOver, juiceScreen, juiceToken, juiceCamLead, juiceShake } from './juice.js';
+import { S, settings, stat, dist, atkDef, atkDmg, attackSpeed, timings, canLearn, passiveText, visiblePos, canSee, arenaOf, campIntel, seenItems, itemsValue, catchupGoldPeek, DEATH_RECAP } from './sim.js';
 
 export const cam={ x:0, y:0 };
 export const uiState={ hold:null, aimTgt:null, mx:0, my:0 };   // girdiden gelen çizim bilgisi (basılı yetenek tuşu, nişan hedefi)
@@ -21,6 +23,7 @@ export function shopSpot(team){
 export const view={ s:1, oy:0, dpr:1, W:800, H:600, availH:500, visW:1000, visH:600, zoom:1 };
 export const canvas=document.getElementById('c'), ctx=canvas.getContext('2d');
 const fogCanvas=document.createElement('canvas'), fctx=fogCanvas.getContext('2d');
+juiceInit({ cam, view });   // oyun hissi efektleri (juice.js): kamera ve görünüm bilgisi
 
 export function resize(){
   const uiH=document.getElementById('ui').offsetHeight, W=innerWidth, H=innerHeight-uiH;
@@ -42,7 +45,7 @@ export function resize(){
 /* Kamera: oyuncuyu ortada tutar, harita sınırında durur (görüş haritadan büyükse haritayı ortalar) */
 function camTarget(pos, vis, size){ return vis>=size ? (size-vis)/2 : Math.max(0, Math.min(size-vis, pos-vis/2)); }
 export function updateCamera(){
-  const p=S.player, px=p.dead?p.spawnX:p.x, py=p.dead?p.spawnY:p.y;
+  const p=S.player, L=juiceCamLead(), px=(p.dead?p.spawnX:p.x)+L.x, py=(p.dead?p.spawnY:p.y)+L.y;   // L: kendi atılışımızda kamera öne geçer (juice.js)
   if(!isFinite(cam.x)) cam.x=0;
   if(!isFinite(cam.y)) cam.y=0;
   // Alttaki HUD paneli haritanın altını kapatmasın: kamera haritanın altından panel yüksekliği kadar aşağı inebilir, oyuncu panelin üstündeki alanda ortalanır
@@ -87,8 +90,8 @@ function buildFieldCache(){
 }
 function drawField(){
   if(!fieldCache) buildFieldCache();
-  const x0=Math.max(0,Math.floor(cam.x)-8), y0=Math.max(0,Math.floor(cam.y)-8);
-  const x1=Math.min(MAP_W,Math.ceil(cam.x+view.visW)+8), y1=Math.min(MAP_H,Math.ceil(cam.y+view.visH)+8);
+  const x0=Math.max(0,Math.floor(cam.x)-32), y0=Math.max(0,Math.floor(cam.y)-32);   // pay 32: ekran tekmesinde kenar boş görünmesin
+  const x1=Math.min(MAP_W,Math.ceil(cam.x+view.visW)+32), y1=Math.min(MAP_H,Math.ceil(cam.y+view.visH)+32);
   if(x1>x0 && y1>y0) ctx.drawImage(fieldCache,x0,y0,x1-x0,y1-y0,x0,y0,x1-x0,y1-y0);
   const t=S.time;
   // çeşmeler: nefes alan ışık ve dönen kesikli halka
@@ -192,6 +195,39 @@ function hpBar(u,x,y,w,col,h,shield,unit){
   }
   ctx.restore();
 }
+/* Karşı oyun (20.10.2026): görünmez eşikleri ve gizli birikimleri görünür yapar (yalnız çizim).
+   Can çubuğunda çentik: rakibin hazır Fırsatçı pasifi (Gölge) ya da İnfaz eşyası bu kahramana ek hasar verecekse o can oranında.
+   Yalnız çizimi yapan oyuncunun gördüğü (ya da dostu olan) kaynaklar sayılır. */
+function threatMarks(h,x,y,w,bh,shield){
+  const ths=[];
+  for(const g of S.heroes){
+    if(g.dead || g.team===h.team || (g.team!==S.player.team && !canSee(S.player.team,g))) continue;
+    const op=g.def.skills.p;
+    if(op.oppCd!==undefined && (g.ic.oppAt||0)<=S.time) ths.push(op.oppHp);
+    if(g.bonus && g.bonus.execDmg) ths.push(g.bonus.execDmg.hp);
+  }
+  if(ths.length){
+    const sc=w/Math.max(h.maxHp, Math.max(0,h.hp)+shield);
+    ctx.save(); ctx.fillStyle=PAL.passive; ctx.strokeStyle='rgba(6,4,22,0.9)'; ctx.lineWidth=1;
+    for(const t of new Set(ths)){ const tx=Math.round(x+h.maxHp*t*sc); ctx.beginPath(); ctx.moveTo(tx-3.5,y-5); ctx.lineTo(tx+3.5,y-5); ctx.lineTo(tx,y+1); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.fillRect(tx-0.75,y,1.5,bh); }
+    ctx.restore();
+  }
+  const B=h.bonus;
+  if(B && B.kor && h.ic.korN>0){   // Kor Maskesi: birikmiş Kor noktaları (token altında yay)
+    const n=h.ic.korN, full=n>=B.kor.max;
+    ctx.save(); for(let i=0;i<n;i++){ const a=Math.PI/2+(i-(n-1)/2)*0.32; ctx.beginPath(); ctx.arc(h.x+Math.cos(a)*(h.r+7),h.y+Math.sin(a)*(h.r+7),full?3.4:2.6,0,TAU); ctx.fillStyle=full?'#ffb347':'#ff7a3a'; ctx.fill(); } ctx.restore();
+  }
+  { let cu=0; for(const g of S.heroes) if(!g.dead && g.team!==h.team && g.team<2) cu=Math.max(cu, catchupGoldPeek(g));   // görünür geri dönüş ödülü: rakibi gerideyse bu kahramanı öldüren ek altın alır
+    if(cu>0){
+      const k=0.6+0.4*Math.sin(S.time*TAU*1.2);
+      ctx.save(); ctx.setLineDash([4,4]); ctx.beginPath(); ctx.arc(h.x,h.y,h.r+14,0,TAU); ctx.strokeStyle=`rgba(255,207,90,${0.55+0.35*k})`; ctx.lineWidth=2.5; ctx.stroke(); ctx.setLineDash([]);
+      ctx.font='bold 11px system-ui'; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.lineWidth=3; ctx.strokeStyle='rgba(6,4,22,0.85)';
+      const tx=x+w+6, ty=y+bh/2, t='+'+(GOLD.heroKill+cu); ctx.strokeText(t,tx,ty); ctx.fillStyle=PAL.gold; ctx.fillText(t,tx,ty); ctx.restore();
+    } }
+  if(h.ic.drT>S.time){   // Tanrı Kalkanı: hasar azaltma sürerken ince altın halka
+    ctx.save(); ctx.beginPath(); ctx.arc(h.x,h.y,h.r+10,0,TAU); ctx.strokeStyle='rgba(255,226,140,0.85)'; ctx.lineWidth=2.5; ctx.stroke(); ctx.restore();
+  }
+}
 function teamRing(x,y,r,team){ ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.lineWidth=2; ctx.strokeStyle=TEAM_COLORS[team]; ctx.stroke(); }
 const projTeam=p=>p.owner?p.owner.team:(p.team!==undefined?p.team:0);
 function drawStruct(s){
@@ -294,37 +330,58 @@ function drawTelegraph(h){
     ctx.beginPath(); ctx.moveTo(h.x,h.y); ctx.lineTo(T.x,T.y); ctx.stroke();
     ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(T.x,T.y,T.r+9,0,Math.PI*2); ctx.stroke(); ctx.restore();
   }
-  // LoL gibi: rakibin hazırlıkları (düz vuruş, yetenek önizlemeleri) çizilmez. İstisnalar görünür kalır:
-  // Uzun Işın hazırlığı (burada), Kilitli Yaylım çizgisi (yukarıda), Meteor/Şok Bombası/Kök Sal alanları, Kan Laneti işareti (başka yerde)
+  // Düz vuruş hazırlıkları rakipte çizilmez (LoL gibi). Yetenek hazırlıkları (16.10.2026) rakibe de görünür: kendi takımımızda eski beyaz
+  // önizleme, rakipte takım renginde dış hat + dolan iç alan (kaçılabilsin). Bot kaçınması (ai.js dodgeVec) bundan etkilenmez.
   const mine = h.team===S.player.team;
   if(h.cast){
     const c=h.cast, sk=h.def.skills[c.k], p=1-Math.max(0,c.t)/c.total;
-    if(!mine && sk.type!=='beam') return;
+    const tc=PAL.team[h.team], blink=0.75+0.25*Math.sin(S.time*TAU*8);
+    const fillA=a=>mine?`rgba(255,255,255,${a})`:rgba(tc,a*0.9), lineC=mine?'rgba(255,255,255,0.5)':rgba(tc,0.95*blink), lw=mine?2:3;
     ctx.save();
-    if(sk.type==='volley'){
+    if(!mine) ctx.setLineDash([12,7]);
+    if(c.wind && sk.type==='duel' && c.tgt){   // Meydan Okuma hazırlığı: hedefe dolan çizgi (sersem/susturma/kök iptal eder)
+      const T=c.tgt; ctx.lineCap='round';
+      ctx.strokeStyle=lineC; ctx.lineWidth=lw+1; ctx.beginPath(); ctx.moveTo(h.x,h.y); ctx.lineTo(T.x,T.y); ctx.stroke();
+      ctx.setLineDash([]); ctx.strokeStyle=mine?`rgba(255,235,200,${0.4+0.5*p})`:rgba(tc,0.5+0.5*p); ctx.lineWidth=lw+2;
+      ctx.beginPath(); ctx.moveTo(h.x,h.y); ctx.lineTo(h.x+(T.x-h.x)*p,h.y+(T.y-h.y)*p); ctx.stroke();
+      ctx.beginPath(); ctx.arc(T.x,T.y,T.r+8,0,TAU); ctx.stroke();
+    } else if(c.wind && sk.type==='shockwave'){   // Şok Dalgası hazırlığı: alan halkası, içi dolar
+      ctx.beginPath(); ctx.arc(h.x,h.y,sk.radius,0,TAU); ctx.fillStyle=fillA(0.06+0.1*p); ctx.fill();
+      ctx.strokeStyle=lineC; ctx.lineWidth=lw; ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(h.x,h.y,h.r+(sk.radius-h.r)*p,0,TAU); ctx.strokeStyle=mine?`rgba(217,194,255,${0.4+0.5*p})`:rgba(tc,0.5+0.5*p); ctx.lineWidth=lw+1; ctx.stroke();
+    } else if(sk.type==='volley'){
       const reach=h.r+sk.range, half=sk.spread/2+0.04;
       wedge(h.x,h.y,reach,c.aim,half);
-      ctx.fillStyle=`rgba(255,255,255,${0.08+0.12*p})`; ctx.fill();
-      ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle=fillA(0.08+0.12*p); ctx.fill();
+      ctx.strokeStyle=lineC; ctx.lineWidth=lw; ctx.stroke();
     } else if(sk.type==='slam' || sk.type==='breath'){
       const reach=h.r+sk.range, half=sk.angle*Math.PI/360;
       wedge(h.x,h.y,reach,c.aim,half);
-      ctx.fillStyle=`rgba(255,255,255,${0.08+0.12*p})`; ctx.fill();
-      ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle=fillA(0.08+0.12*p); ctx.fill();
+      ctx.strokeStyle=lineC; ctx.lineWidth=lw; ctx.stroke();
+      ctx.setLineDash([]);
       wedge(h.x,h.y,h.r+(reach-h.r)*p,c.aim,half);
-      ctx.fillStyle=`rgba(255,235,200,${0.15+0.25*p})`; ctx.fill();
+      ctx.fillStyle=mine?`rgba(255,235,200,${0.15+0.25*p})`:rgba(tc,0.18+0.3*p); ctx.fill();
     } else if(sk.type==='beam'){   // Uzun Işın: kahramanın merkezinden range uzunlukta şerit önizlemesi (rakip de görür), hazırlıkla dolar
-      const cx=Math.cos(c.aim), cy=Math.sin(c.aim);
+      ctx.setLineDash([]);
       ctx.translate(h.x,h.y); ctx.rotate(c.aim);
       ctx.fillStyle=`rgba(160,120,255,${0.10+0.14*p})`; ctx.fillRect(0,-sk.radius,sk.range,sk.radius*2);
-      ctx.strokeStyle=`rgba(200,170,255,${0.45+0.4*p})`; ctx.lineWidth=2; ctx.strokeRect(0,-sk.radius,sk.range,sk.radius*2);
+      ctx.strokeStyle=mine?`rgba(200,170,255,${0.45+0.4*p})`:rgba(tc,0.6+0.35*p); ctx.lineWidth=mine?2:3; ctx.strokeRect(0,-sk.radius,sk.range,sk.radius*2);
       ctx.fillStyle=`rgba(230,215,255,${0.15+0.3*p})`; ctx.fillRect(0,-sk.radius*p,sk.range,sk.radius*2*p);
     } else if(sk.type==='bigarrow' || sk.type==='fireball' || sk.type==='boomerang' || sk.type==='hook' || sk.type==='stunorb' || sk.type==='tether' || sk.type==='spiritburst' || sk.type==='groworb'){
       const cx=Math.cos(c.aim), cy=Math.sin(c.aim), sx=h.x+cx*h.r, sy=h.y+cy*h.r;
-      ctx.lineCap='butt'; ctx.strokeStyle=`rgba(160,225,255,${0.15+0.2*p})`; ctx.lineWidth=sk.radius*2;
-      ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(sx+cx*sk.range,sy+cy*sk.range); ctx.stroke();
-      ctx.strokeStyle=`rgba(200,240,255,${0.4+0.5*p})`; ctx.lineWidth=2;
-      ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(sx+cx*sk.range*p,sy+cy*sk.range*p); ctx.stroke();
+      const len=Math.min(sk.range, sk.type==='bigarrow' ? 1400 : sk.range), w=Math.max(sk.radius||10, 8);   // Kalın Ok harita boyu: uyarı 1400'de kesilir
+      if(mine){
+        ctx.lineCap='butt'; ctx.strokeStyle=`rgba(160,225,255,${0.15+0.2*p})`; ctx.lineWidth=w*2;
+        ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(sx+cx*len,sy+cy*len); ctx.stroke();
+      } else {   // rakip: mermi yolunun dış hattı (iki kenar + uç) ve hafif dolgu
+        ctx.save(); ctx.translate(sx,sy); ctx.rotate(c.aim);
+        ctx.fillStyle=rgba(tc,0.07+0.13*p); ctx.fillRect(0,-w,len,w*2);
+        ctx.strokeStyle=lineC; ctx.lineWidth=lw; ctx.strokeRect(0,-w,len,w*2);
+        ctx.restore(); ctx.setLineDash([]);
+      }
+      ctx.strokeStyle=mine?`rgba(200,240,255,${0.4+0.5*p})`:rgba(tc,0.5+0.5*p); ctx.lineWidth=mine?2:3;
+      ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(sx+cx*len*p,sy+cy*len*p); ctx.stroke();
     }
     ctx.restore();
     if(at.type==='projectile') drawBow(h,c.aim,p);
@@ -376,8 +433,14 @@ function drawHero(h){
   }
   ctx.beginPath(); ctx.ellipse(h.x+3,h.y+6,h.r,h.r*0.88,0,0,TAU); ctx.fillStyle='rgba(4,2,16,0.34)'; ctx.fill();
   if(st.giant){ ctx.beginPath(); ctx.arc(h.x,h.y,h.r+7,0,TAU); ctx.strokeStyle='rgba(255,207,90,0.85)'; ctx.lineWidth=4; ctx.stroke(); }
-  drawToken(ctx,h.type,h.x,h.y,h.r,{ team:h.team, aim:h.aim, flash:h.flash>0?h.flash/0.12:0 });
+  juiceToken(ctx,h,()=>drawToken(ctx,h.type,h.x,h.y,h.r,{ team:h.team, aim:h.aim, flash:h.flash>0?h.flash/0.12:0 }));   // atılışta sıkış-uza (juice.js)
   if(st.slow){ ctx.beginPath(); ctx.arc(h.x,h.y,h.r,0,TAU); ctx.fillStyle='rgba(92,200,255,0.3)'; ctx.fill(); }
+  if(h.stasis>0){   // Kum Saati heykeli: kum rengi örtü, çatlak halka ve kalkışa kalan süre yayı
+    const k=Math.min(1,h.stasis/1.5);
+    ctx.save(); ctx.beginPath(); ctx.arc(h.x,h.y,h.r,0,TAU); ctx.fillStyle='rgba(214,180,110,0.72)'; ctx.fill();
+    ctx.strokeStyle='#f3dc9a'; ctx.lineWidth=3; ctx.setLineDash([6,4]); ctx.beginPath(); ctx.arc(h.x,h.y,h.r+4,0,TAU); ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle='#fff3c4'; ctx.lineWidth=4; ctx.beginPath(); ctx.arc(h.x,h.y,h.r+9,-Math.PI/2,-Math.PI/2+TAU*(1-k)); ctx.stroke(); ctx.restore();
+  }
   if(st.shell){   // Gülle Kabuk: kalın altıgen zırh plakaları
     const fade=Math.min(1,st.shell.t/0.3);
     ctx.save(); ctx.globalAlpha=fade; ctx.strokeStyle='#e8d9a0'; ctx.lineWidth=5; ctx.beginPath();
@@ -480,6 +543,7 @@ function drawHero(h){
   ctx.fillStyle='#fff'; ctx.font='bold 11px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(h.level,bx-11,by+4.5);
   heroBuffMarks(h);
   hpBar(h,bx,by,bw,TEAM_COLORS[h.team],9,st.shield?st.shield.amt:0);
+  threatMarks(h,bx,by,bw,9,st.shield?st.shield.amt:0);
   if(S.heroes.length>2 && h!==S.player){   // 2v2: dost ve rakip kahraman isimleri
     ctx.save(); ctx.font='bold 11px system-ui'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.lineJoin='round'; ctx.lineWidth=3; ctx.strokeStyle='rgba(6,4,22,0.85)';
     const nm=HERO_NAMES[h.type]||h.def.name, ny=h.y+h.r+6;
@@ -1266,7 +1330,7 @@ const TYPE_DESC={
   fireball:'Düz giden, ilk değdiğine çarpan ateş topu.', ignite:'Hedefi yakar; yanarken daha fazla hasar alır.', meteor:'Seçilen alana gecikmeli büyük top düşer.',
   boomerang:'Gidip geri dönen bumerang; gidiş ve dönüşte ayrı vurur.', cleanse:'Yavaşlatma ve kontrolleri temizler, kısa hız verir.',
   frenzy:'Bumerang ve Arınma beklemesi sıfırlanır; güçlenir, sekme sayısı artar.', hook:'Kanca fırlatır; vurduğunu önüne çeker.',
-  slam:'Önündeki koniye vurur, yavaşlatır.', shockwave:'Çevredeki kahramanları susturur ve yavaşlatır.', breath:'Dar koni içine ateş üfler.',
+  slam:'Önündeki koniye vurur, yavaşlatır.', shockwave:'Kısa bir hazırlıktan sonra (alan halkası görünür) çevredeki kahramanları susturur ve yavaşlatır; hazırlıkta sersemletilir ya da susturulursan iptal olur, beklemenin yarısı döner.', breath:'Dar koni içine ateş üfler.',
   flameleap:'İleri sıçrarsın; arkanda yanan şerit kalır.', firering:'Çevrende yanan halka açılır; zırh ve BD artar.',
   bloodbolt:'Güdümlü kan oku; verdiği hasarın bir kısmı seni iyileştirir.', bloodnova:'Canının bir kısmını harcayıp etrafa mermi saçarsın.',
   bloodcurse:'Alanı lanetler; hasar artar, süre bitince patlar ve iyileştirir.', beam:'Önündeki şeride anlık ışın.',
@@ -1279,8 +1343,8 @@ const TYPE_DESC={
   shell:'Kabuğa çekilirsin: ağırlaşır, itilemez ve çekilemezsin, hasar azalır; düz vuruş menzili artar, vuruşların yavaşlatır.',
   heavy:'Düz vuruş menzilindeki, imlece en yakın rakibe anında güçlü bir vuruş: düz vuruş hasarı + ek hasar, rakibi azalan biçimde yavaşlatır ve seni iyileştirir. Menzilde rakip yoksa harcanmaz.',
   arena:'Bulunduğun yerde, çevrende kısa süre arena açarsın (kimseyi engellemez, girip çıkılabilir); içindeyken saldırı gücün, saldırı hızın ve hareket hızın artar.',
-  duel:'Yakındaki rakip kahramana atılırsın; süre boyunca zırhının ve büyü direncinin bir kısmını çalar, canını yakar ve verdiğin hasarla iyileşirsin.',
-  billiard:'Durdurulamaz top olursun: hızla ileri gider, duvarlardan seker, değdiğin rakipleri itip vurursun. İmleçle hafifçe yönlendirilir.'
+  duel:'Kısa bir hazırlıktan sonra (hedefe çizgi görünür) yakındaki rakip kahramana atılırsın; hazırlıkta sersemletilir, susturulur ya da köklenirsen iptal olur, beklemenin yarısı döner. Değince süre boyunca zırhının ve büyü direncinin bir kısmını çalar, canını yakar ve verdiğin hasarla iyileşirsin.',
+  billiard:'Durdurulamaz top olursun: hızla ileri gider, duvarlardan seker, değdiğin rakipleri itip vurursun. İmleçle hafifçe yönlendirilir. Duvara her çarpışta etrafına küçük alan hasarı verirsin; Boşluk\'a tekrar basınca top durur ve etrafına aynı küçük hasarı verir.'
 };
 const PASS_DESC={
   archer:'Düz vuruşların rakibi yavaşlatır.', warrior:'Hasarın bir kısmı yakındaki rakiplere yayılır.', mage:'Rakip kahramanı her vuruşta yakar.',
@@ -1290,7 +1354,6 @@ const PASS_DESC={
   gladiator:'Her düz vuruş isabeti saldırı hızını artıran bir yığın verir (4 sn, en fazla 5).',
   roller:'Düz giderken momentum biriktirip hızlanırsın; ani dönüş bozar. İsabet momentumu harcar: ek hasar, yüksekse rakibi iter.'
 };
-const HUD_STATS=[ ['dmg','SG'], ['asPct','Saldırı hızı'], ['crit','Kritik'], ['ls','Can çalma'], ['ap','YG'], ['ah','YH'], ['hp','Can'], ['armor','Zırh'], ['mr','Büyü direnci'], ['msPct','Hareket hızı'], ['lethal','Zırh delme'], ['regen','Yenileme'] ];
 
 function hudNum(v){ return String(Math.round(v*100)/100).replace('.',','); }
 function hudFmt(kind,v){
@@ -1345,17 +1408,19 @@ function hudSkillTip(p,k){
   if(k==='p'){ const pt=passiveText(p); if(pt) lines.unshift({ t:'Şu an: '+pt, c:'#9fd6ff' }); }
   return { title:sk.name, sub:subs.join(' · '), desc, lines };
 }
+/* Eşya tooltip'i: mağazayla aynı açıklama (itemdesc.js): statlar alt alta renkli, pasif adı kalın + tam cümle */
 function hudItemTip(id){
-  const it=ITEMS[id]||PARTS[id]; if(!it) return null;
-  const st=HUD_STATS.filter(([k])=>it.stats[k]).map(([k,n])=>'+'+(k==='asPct'||k==='crit'||k==='ls'||k==='msPct'?Math.round(it.stats[k]*100)+'%':it.stats[k])+' '+n).join(', ');
-  return { title:it.name, sub:ITEMS[id]?'Eşya':'Temel parça', desc:it.desc||'', lines:st?[{ t:st, c:'#9fd6ff' }]:[] };
+  const inf=itemInfo(id); if(!inf) return null;
+  const lines=inf.stats.map(l=>({ t:l.text, c:l.color }));
+  for(const p of inf.passives){ lines.push({ t:p.n, c:PAL.passive, b:true, gap:true }); lines.push({ t:p.t, c:'#e2e0f6' }); }
+  return { title:inf.name, sub:(inf.part?'Temel parça':'Eşya')+' · '+inf.cost+' altın', desc:'', lines };
 }
 function hudDrawTip(tip,lx,ly,zone,bounds){
   ctx.font='12px system-ui';
   const MAXW=270, descL=tip.desc?hudWrap(tip.desc,MAXW):[];
   const lines=[];
-  for(const l of tip.lines){ for(const w of hudWrap(l.t,MAXW)) lines.push({ t:w, c:l.c }); }
-  const lh=16, h=10+20+(tip.sub?15:0)+descL.length*lh+(descL.length&&lines.length?4:0)+lines.length*lh+8;
+  for(const l of tip.lines){ hudWrap(l.t,MAXW).forEach((w,i)=>lines.push({ t:w, c:l.c, b:l.b, gap:l.gap&&i===0 })); }
+  const lh=16, h=10+20+(tip.sub?15:0)+descL.length*lh+(descL.length&&lines.length?4:0)+lines.length*lh+lines.filter(l=>l.gap).length*5+8;
   let w=MAXW+20;
   let x=zone.x+zone.w/2-w/2, y=zone.y-h-8;
   x=Math.max(bounds.l+6,Math.min(bounds.r-w-6,x));
@@ -1369,7 +1434,7 @@ function hudDrawTip(tip,lx,ly,zone,bounds){
   ctx.font='12px system-ui';
   for(const d of descL){ hudText(d,x+10,yy,12,'#cfd5e3','left',false,'top'); yy+=lh; }
   if(descL.length&&lines.length) yy+=4;
-  for(const l of lines){ hudText(l.t,x+10,yy,12,l.c,'left',false,'top'); yy+=lh; }
+  for(const l of lines){ if(l.gap) yy+=5; hudText(l.t,x+10,yy,12,l.c,'left',!!l.b,'top'); yy+=lh; }
 }
 function hudLock(cx,cy,c){
   ctx.strokeStyle=c; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx,cy-3,4.5,Math.PI,0); ctx.stroke();
@@ -1459,12 +1524,50 @@ function hudFlashOf(p,k,cd,sk){
   return d>=0 && d<0.4 ? 1-d/0.4 : 0;
 }
 
+/* Ölüm özeti: ölümden önceki son DEATH_RECAP.window sn'de kim, nasıl, ne kadar hasar verdi (sim.js e.ic.dmgLog) */
+const RECAP_KIND={ basic:'Düz vuruş', skill:'Yetenek', dot:'Süreli', item:'Eşya' };
+function recapName(u){
+  if(u.kind==='hero') return HERO_NAMES[u.type]||u.def.name;
+  if(u.kind==='struct') return u.sub==='nexus' ? 'Nexus' : 'Kule';
+  if(u.kind==='minion') return 'Minyon';
+  return (u.def && u.def.name) || 'Canavar';
+}
+function drawDeathRecap(p,W,H){
+  const dt=p.ic.deathAt; if(dt===undefined) return;
+  const rows=new Map(); let total=0, last=null;
+  for(const x of p.ic.dmgLog||[]){
+    if(x.t<dt-DEATH_RECAP.window || x.t>dt+0.001) continue;
+    let r=rows.get(x.src); if(!r){ r={ u:x.src, sum:0, phys:0, magic:0, kinds:{} }; rows.set(x.src,r); }
+    r.sum+=x.a; total+=x.a; if(x.type==='magic') r.magic+=x.a; else r.phys+=x.a;
+    r.kinds[x.kind]=(r.kinds[x.kind]||0)+x.a; last=x.src;
+  }
+  if(!rows.size) return;
+  const list=[...rows.values()].sort((a,b)=>b.sum-a.sum).slice(0,5);
+  const bw=Math.min(380, W-32), lh=34, bh=48+list.length*lh, bx=(W-bw)/2, by=Math.max(70, H*0.22);
+  ctx.save();
+  ctx.fillStyle='rgba(10,8,28,0.88)'; rrect(bx,by,bw,bh,10); ctx.fill(); ctx.strokeStyle='rgba(255,106,88,0.6)'; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.textBaseline='middle'; ctx.textAlign='left'; ctx.font='bold 14px system-ui'; ctx.fillStyle='#ffd0c8';
+  ctx.fillText('Son '+DEATH_RECAP.window+' saniye: '+Math.round(total)+' hasar', bx+14, by+18);
+  ctx.textAlign='right'; ctx.font='12px system-ui'; ctx.fillStyle='#c9cfdd'; ctx.fillText('Yeniden doğuş '+Math.ceil(Math.max(0,p.respawn))+' sn', bx+bw-14, by+18);
+  list.forEach((r,i)=>{
+    const y=by+40+i*lh, tc=r.u.team<2 ? PAL.team[r.u.team] : '#d9b56a';
+    ctx.textAlign='left'; ctx.font='bold 13px system-ui'; ctx.fillStyle=tc;
+    ctx.fillText(recapName(r.u)+(r.u===last?'  (son vuruş)':''), bx+14, y+6);
+    ctx.font='11px system-ui'; ctx.fillStyle='#b9bcd6';
+    ctx.fillText(Object.entries(r.kinds).sort((a,b)=>b[1]-a[1]).map(([k,v])=>(RECAP_KIND[k]||k)+' '+Math.round(v)).join(' · '), bx+14, y+22);
+    ctx.textAlign='right'; ctx.font='bold 13px system-ui'; ctx.fillStyle='#fff'; ctx.fillText(Math.round(r.sum), bx+bw-14, y+6);
+    const sw=90, sx=bx+bw-14-sw, sy=y+18, f=r.sum>0?r.phys/r.sum:1;   // fiziksel (turuncu) / büyü (mavi) payı
+    ctx.fillStyle='#ff9a5a'; ctx.fillRect(sx,sy,sw*f,5); ctx.fillStyle='#7fb4ff'; ctx.fillRect(sx+sw*f,sy,sw*(1-f),5);
+  });
+  ctx.restore();
+}
 function hudChips(p,x,y,maxW){
   const list=[], st=p.st;
   if(p.dead) list.push({ t:'Öldün, '+Math.ceil(Math.max(0,p.respawn))+' sn', c:'#ffb3b3', bg:'#58232a' });
+  { const cu=catchupGoldPeek(p); if(cu>0 && !p.dead) list.push({ t:'Geri dönüş: öldürme +'+cu+' altın', c:'#ffe9a8', bg:'#5a4a1a' }); }
   if(st.silence>0) list.push({ t:'Susturuldu '+st.silence.toFixed(1)+' sn', c:'#e3d1ff', bg:'#4a2f7a' });
   if(st.freeze>0 && !p.dead) list.push({ t:'Kontrol altında', c:'#bfeaff', bg:'#2c4a66' });
-  if(p.stasis>0) list.push({ t:'Dokunulmaz '+p.stasis.toFixed(1)+' sn', c:'#fff1b0', bg:'#5a4a1a' });
+  if(p.stasis>0) list.push({ t:'Kum Heykeli '+p.stasis.toFixed(1)+' sn', c:'#fff1b0', bg:'#5a4a1a' });
   if(p.recallCh) list.push({ t:'Üsse dönüş '+Math.max(0,p.recallCh.t).toFixed(1)+' sn', c:'#b8d8ff', bg:'#26406a' });
   if(p.jm) list.push({ t:'Orman '+p.jm+' (+%'+Math.round(Math.min(JUNGLE_MASTERY.max,p.jm)*JUNGLE_MASTERY.per*100)+')', c:'#d8f7c0', bg:'#2f4a22' });   // orman hakimiyeti
   if(p.jb){ for(const k of ['regen','burn']) if(p.jb[k]>S.time) list.push({ t:BUFFS[k].name+' '+Math.ceil(p.jb[k]-S.time)+' sn', c:k==='regen'?'#c8fff2':'#ffd9b8', bg:k==='regen'?'#1d5a4e':'#6a3416' }); }
@@ -1580,8 +1683,6 @@ function hudPanel(p,W,H){
         ctx.font='bold 18px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineWidth=3; ctx.strokeStyle='rgba(0,0,0,0.8)';
         ctx.strokeText(tx,x+IS/2,y+IS/2); ctx.fillStyle='#fff'; ctx.fillText(tx,x+IS/2,y+IS/2);
       }
-      ctx.fillStyle='#ffd24d'; rrect(x+3,y+3,14,14,4); ctx.fill();
-      hudText('1',x+10,y+11,11,'#222','center',true,'middle');
     }
     if(it) hudZones.push({ x, y, w:IS, h:IS, tip:()=>{ const t=hudItemTip(id); if(t && act) t.lines.push({ t:'Aktif eşya: 1 tuşu', c:'#ffd24d' }); return t; } });
   }
@@ -1627,6 +1728,7 @@ function drawHud(){
     lines.forEach((l,i)=>{ ctx.fillStyle=i?'#c9cfdd':'#fff'; ctx.fillText(l,16,13+i*15); }); }
 
   hudPanel(p,W,H);
+  if(p.dead) drawDeathRecap(p,W,H);
   drawMinimap(W,H);
   if(uiState.showScore) drawScoreboard(W,H);
 
@@ -1636,6 +1738,7 @@ function drawHud(){
 /* Oyuncunun takımının göremediği şeyler çizilmez */
 /* Çalıdaki birim yarı saydam çizilir (gizli olduğu belli olsun) */
 function inBushAlpha(u, draw){
+  if(!u.dead && u.ic && u.ic.invisUntil>S.time){ ctx.save(); ctx.globalAlpha=0.35; draw(); ctx.restore(); return; }   // Gölge Hançeri görünmezliği (yalnız dost görür)
   if(!BUSHES.length || u.dead || bushAt(u.x,u.y)<0){ draw(); return; }
   ctx.save(); ctx.globalAlpha=0.55; draw(); ctx.restore();
 }
@@ -1680,7 +1783,7 @@ function drawFog(){
   for(const g of S.sights) if(g.team===team) hole(g,g.r);   // Kök Sal atış yeri geçici görüş
   fctx.globalCompositeOperation='source-over';
   ctx.setTransform(1,0,0,1,0,0);
-  ctx.drawImage(fogCanvas,0,0);
+  ctx.drawImage(fogCanvas,shkX*view.dpr,shkY*view.dpr);   // ekran sarsıntısıyla birlikte kayar
 }
 
 /* Vuruş geri tepmesi: isabet efektindeki hedef kısa süre vuruş yönünde kayar (yalnız çizim) */
@@ -1691,12 +1794,16 @@ function recoilDraw(u, fn){
   const ox=Math.cos(r.a)*r.d, oy=Math.sin(r.a)*r.d;
   u.x+=ox; u.y+=oy; try{ fn(); } finally { u.x-=ox; u.y-=oy; }
 }
+let shkX=0, shkY=0;
 export function render(){
+  juiceFrame();
   recoil.clear();
   for(const f of S.fx) if(f.type==='impact' && f.tgt && !f.tgt.dead){ const k=f.t/f.life; recoil.set(f.tgt,{ a:f.ang, d:(f.crit?7:4)*Math.sin(Math.PI*Math.min(1,(1-k)*1.6)) }); }
   // kendi isabetimizde çok hafif ekran sarsıntısı (S.shake sim'de damage() koyar, burada sönümlenir)
   let shx=0, shy=0;
   if(S.shake>0.05){ shx=(Math.random()-0.5)*2*S.shake; shy=(Math.random()-0.5)*2*S.shake; S.shake*=0.82; } else S.shake=0;
+  { const J=juiceShake(); shx+=J.x; shy+=J.y; }   // patlama tekmesi (juice.js)
+  shkX=shx; shkY=shy;
   ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle=PAL.void; ctx.fillRect(0,0,canvas.width,canvas.height);
   ctx.setTransform(view.dpr*view.s,0,0,view.dpr*view.s,-view.dpr*cam.x*view.s+shx*view.dpr,view.dpr*(view.oy-cam.y*view.s)+shy*view.dpr);
   drawField();
@@ -1708,12 +1815,15 @@ export function render(){
   S.minions.forEach(m=>{ if(unitSeen(m)) inBushAlpha(m, ()=>recoilDraw(m, ()=>drawMinion(m))); });
   S.monsters.forEach(m=>{ if(unitSeen(m)) inBushAlpha(m, ()=>recoilDraw(m, ()=>drawMonster(m))); });
   drawBackMarks();
+  juiceUnder(ctx);
   drawProjectiles();
   S.heroes.forEach(h=>{ if(h.dead ? h.team===S.player.team : unitSeen(h)) inBushAlpha(h, ()=>recoilDraw(h, ()=>drawHero(h))); });
   trackGold();
   drawFx();
+  juiceOver(ctx);
   drawGoldPops();
   drawFog();
+  juiceScreen(ctx, canvas.width, canvas.height);   // 1 karelik siyah-beyaz darbe karesi (büyük patlamalar)
   ctx.setTransform(view.dpr*view.s,0,0,view.dpr*view.s,-view.dpr*cam.x*view.s,view.dpr*(view.oy-cam.y*view.s));   // sis ekran koordinatına geçti, dünyaya dön
   drawCampMarks();
   drawAttackRange();

@@ -3,8 +3,8 @@
    Mantık: tik t'yi ancak bütün insanların t komutu geldiyse ilerletiriz. Komut, `delay` tik önceden gönderilir (girdi gecikmesi = delay/60 sn).
    Ağ ortamı send(obj) ile gelir; karşıdan gelen mesajlar receive(slot, obj) ile verilir. */
 import { TICK } from './data.js';
-import { S, settings, resetGame, step, learnSkill, buySmart, sell, simHash } from './sim.js';
-import { ITEMS, PARTS } from './items.js';
+import { S, settings, resetGame, step, learnSkill, buySmart, sell, buyRune, simHash } from './sim.js';
+import { ITEMS, PARTS, RUNES } from './items.js';
 import { botCommand, setBotLevel } from './ai.js';
 import { HERO_NAMES } from './names.js';
 
@@ -37,7 +37,8 @@ function applyAct(h, a){
     if(a[0]==='learn' && (a[1]==='r'||a[1]==='e'||a[1]==='s')) learnSkill(h, a[1]);
     else if(a[0]==='buy' && typeof a[1]==='string' && (ITEMS[a[1]]||PARTS[a[1]])) buySmart(h, a[1]);
     else if(a[0]==='sell' && Number.isInteger(a[1])) sell(h, a[1]);
-    else if(a[0]==='auto' && Array.isArray(a[2]) && a[2].length<=8 && a[2].every(x=>typeof x==='string' && (x==='DEF' || ITEMS[x] || PARTS[x]))){ h.autoBuy=!!a[1]; h.build=[...a[2]]; }   // otomatik alım: açık/kapalı + eşya sırası
+    else if(a[0]==='rune' && typeof a[1]==='string' && RUNES[a[1]]) buyRune(h, a[1]);
+    else if(a[0]==='auto' && Array.isArray(a[2]) && a[2].length<=8 && a[2].every(x=>typeof x==='string' && (x==='DEF' || x==='BURN' || ITEMS[x] || PARTS[x]))){ h.autoBuy=!!a[1]; h.build=[...a[2]]; }   // otomatik alım: açık/kapalı + eşya sırası
   }catch(e){ /* geçersiz eylem: iki tarafta da aynı şekilde yok sayılır */ }
 }
 

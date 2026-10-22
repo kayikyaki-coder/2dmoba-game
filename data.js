@@ -295,7 +295,7 @@ export const HEROES = {
       r:{ name:'Yan Atılış', max:7, type:'tumble', cd:[8,7,6,5,4.5,4,3.5], dist:120, speed:1100, window:4 },
       // E: imlece (menzile kırpılır) bomba atılır, delay sn sonra radius yarıçapta patlar: fiziksel hasar + sersemletme (minyonlara da)
       //    hasar = dmg + ad * ek SG + ap * YG
-      e:{ name:'Şok Bombası', max:7, type:'bomb', cd:[15,14,13,12,11.5,11,10.5],   /* denge F4: cd 14-11 idi */ range:480, radius:100, delay:0.35, stun:0.5,
+      e:{ name:'Şok Bombası', max:7, type:'bomb', cd:[15,14,13,12,11.5,11,10.5],   /* denge F4: cd 14-11 idi */ range:480, radius:100, delay:0.5, stun:0.5,   /* karşı oyun 20.10.2026: delay 0.35 idi */
           dmg:[45,68,90,113,127,140,154], ad:0.30, ap:0.30 },   // denge F1 (11.10.2026, zırh sonrası): Şok Bombası dmg 50-125 idi
       // boşluk: imlece en yakın görünen rakip kahramana kilitlenir; dur sn yerinde kanallar, gap sn arayla count güdümlü mermi.
       //    mermi = dmg + ad * ek SG, hedefin eksik canına göre en fazla +missing; yoldaki rakip kahraman/kule mermiyi alır.
@@ -367,7 +367,7 @@ export const HEROES = {
           dmg:[60,95,130,165,186,207,228], ad:0.60, hpPct:0.03, slow:[.30,.35,.40,.45,.48,.51,.54], slowDur:1.5 },
       // boşluk: anında; radius içindeki yalnız rakip kahramanlara büyü hasarı (dmg + ap * YG + hpPct * ek can), silence sn susturma
       //         (yetenek kullanamaz; yürüme ve düz vuruş serbest), slow oranında yavaşlatma slowDur sn boyunca doğrusal azalır
-      s:{ name:'Şok Dalgası', max:3, type:'shockwave', cd:[35,28,24.5], radius:450, dmg:[150,250,310], ap:0.80, hpPct:0.05,
+      s:{ name:'Şok Dalgası', max:3, type:'shockwave', windup:0.2,   /* karşı oyun 20.10.2026: anlıktı, şimdi görünür halka hazırlığı */ cd:[35,28,24.5], radius:450, dmg:[150,250,310], ap:0.80, hpPct:0.05,
           silence:[1.5,2,2.3], slow:0.60, slowDur:2 }
     }
   },
@@ -387,7 +387,7 @@ export const HEROES = {
           dmg:[60,90,120,150,168,186,204], ap:0.65, slow:0.25, slowDur:1 },   /* denge T1: ap 0.70 idi */
       // boşluk: anında; dur sn kahramanla hareket eden radius yarıçaplı halka: içindekilere saniyede dps + ap * YG büyü hasarı ve
       //         slow yavaşlatma; süre boyunca kendisi res + resAp * YG zırh ve büyü direnci kazanır
-      s:{ name:'Alev Halkası', max:3, type:'firering', cd:[40,35,30], radius:250, dur:4, dps:[30,50,70], ap:0.15, slow:0.25,
+      s:{ name:'Alev Halkası', max:3, type:'firering', cd:[40,35,30], radius:250, dur:4, dps:[30,50,70], ap:0.15,   /* karşı oyun 20.10.2026: slow 0.25 kalktı */
           res:10, resAp:0.10 }   /* denge T1: cd 30/24/21, dps 40/65/80, ap 0.20, resAp 0.15 idi */
     }
   },
@@ -492,7 +492,7 @@ export const HEROES = {
       // sağ tık: basılı tutuldukça mesafe dMin'den dMax'a (charge sn'de) artar (bot imleç noktasına göre seçer); bırakınca o yöne speed hızıyla yuvarlanır
       //          (birimlerin içinden geçer, duvarda ve yapıda durur, kök engeller). İnişte radius yarıçapta rakiplere (kule hariç) fiziksel hasar
       //          dmg + hpPct * ek can, kahraman ve minyonlar stun sn sersemler (havaya atılır).
-      r:{ name:'Yuvarlan', max:7, type:'roll', cd:[12.5,11.5,10.5,9.5,9,8.5,8],   /* denge C2: cd 12-7.5 idi */   /* denge F2: cd 13-10 idi */ dMin:300, dMax:900, charge:1, speed:1300, radius:130,
+      r:{ name:'Yuvarlan', max:7, type:'roll', cd:[12.5,11.5,10.5,9.5,9,8.5,8],   /* denge C2: cd 12-7.5 idi */   /* denge F2: cd 13-10 idi */ dMin:0, dMax:900,   /* 17.10.2026: dMin 300 idi (basılı tutma 0'dan başlar) */ charge:1, speed:1300, radius:130,
           dmg:[70,105,140,175,196,217,238], hpPct:0.05, stun:[0.6,0.65,0.7,0.75,.78,.81,.84] },
       // E: anında, dur sn kabuk: kütle massMult katı, itilemez/çekilemez (kanca, Darbe, momentum itmesi, geri tepme), dr hasar azaltma,
       //    düz vuruş menzili +range, düz vuruşlar rakiplere ek dmg + hpPct * ek can fiziksel hasar ve slowDur sn slow yavaşlatma
@@ -503,7 +503,8 @@ export const HEROES = {
       //         dmg + hpPct * ek can ve push birim itme (pushT sn); itilen duvara çarparsa stun sn sersemler. Topken sersemletme, itme, çekme işlemez;
       //         düz vuruş ve yetenek yok. Bitince momentum dolu.
       s:{ name:'Bilardo', max:3, type:'billiard', cd:[45,36,31.5], dur:3, speed:620, turn:1.6, hitR:8, rehit:0.8,
-          dmg:[120,180,216], hpPct:0.05, push:160, pushT:0.2, stun:0.6 }
+          dmg:[120,180,216], hpPct:0.05, push:160, pushT:0.2, stun:0.6,
+          wallPct:0.25, wallR:150, wallCd:0.25, stopMin:0.25 }   // 17.10.2026: duvara/sınıra/yapıya çarpınca ve Boşluk'a tekrar basıp durdurunca wallR içine topun hasarının wallPct'i (çarpma en sık wallCd sn'de bir); stopMin sn'den önce durdurulamaz
     }
   },
   gladiator: {
@@ -525,7 +526,7 @@ export const HEROES = {
       // boşluk: range içindeki görünen rakip KAHRAMANA (imlece en yakın) atılır (hedefe yapışır, kök engeller, duvar/yapıda durur);
       //         değince dur sn: rakibin zırh ve BD'sinin steal oranını çalar, rakibe azami canının hpPct'i kadar büyü hasarını
       //         eşit dilimlerle verir, verdiği bu hasarın healPct'i kadar iyileşir. Süre bitince (ya da biri ölünce) çalınanlar döner.
-      s:{ name:'Meydan Okuma', max:3, type:'duel', cd:[34,28,25],   /* denge F2: cd 40,32 idi */ range:400, speed:1100, dur:8, steal:[.30,.40,.46], hpPct:[.20,.30,.36], healPct:0.5 }
+      s:{ name:'Meydan Okuma', max:3, type:'duel', windup:0.25,   /* karşı oyun 20.10.2026: hedefe çizgi; sersem/susturma/kök iptal eder, beklemenin yarısı döner */ cd:[34,28,25],   /* denge F2: cd 40,32 idi */ range:400, speed:1100, dur:8, steal:[.30,.40,.46], hpPct:[.20,.30,.36], healPct:0.5 }
     }
   },
   dual: {
@@ -595,7 +596,8 @@ export const MINIONS = {
   ranged:{ name:'Menzilli', r:14, hp:250, speed:130, mass:0.5, dmg:25, kind:'proj', xp:20, range:210, projSpeed:600, projR:5, wind:0.3, period:1.3, aggro:320 }
 };
 /* Minyonlar zamanla güçlenir: dakika başına can ve hasar artışı, en fazla cap katı */
-export const MINION_SCALE = { hpPerMin:0.04, dmgPerMin:0.08, cap:3.0 };   // 15.10.2026 (güçlü kule sonrası maç süresi): 0.06/2.5 idi; 14.10.2026: dmgPerMin 0.03, cap 2.0 idi
+export const MINION_SCALE = { hpPerMin:0.05, dmgPerMin:0.10, cap:3.5 };   // 21.10.2026: 0.04/0.08/3.0 idi (ölüm süresi 30 sn sonrası oyun sonu, minyonlar güçlü element)
+//   // 15.10.2026 (güçlü kule sonrası maç süresi): 0.06/2.5 idi; 14.10.2026: dmgPerMin 0.03, cap 2.0 idi
 /* Altın (şimdilik sadece minyonlar). Minyon değeri 15'ten başlar, 20. dakikaya kadar doğrusal artıp 20'de sabitlenir.
    Son vuruşu yapan kahraman tam altın alır. Yakındaki (XP_RADIUS) diğer kahramanlar, son vuruş yokmuş gibi kendi sayılarına
    göre kişi başı esas altının share[n-1] katını alır (örn. 3 kişi yakın, biri son vurdu: o %100, diğer ikisi %40'ar). */
@@ -617,10 +619,12 @@ export const MINION_CALL = 1.5, MINION_CALL_R = 450;   // minyon çağrısı: 45
 /* Yeniden doğma: 10 sn + dakika başına 1,5 sn, en fazla 40 sn (20. dakikada). */
 /* Üsse dönüş (B): sabit 8 sn kanallanır; hareket, saldırı, yetenek ya da hasar keser */
 export const RECALL = { time:8 };   // sabit 8 sn kanallama (her yerden)
-/* Yeniden doğma: başta kısa, sonra hızla uzar (karesel): base + k*dakika², en fazla cap.
-   6 sn (0. dk), ~9 (5), ~17 (10), ~31 (15), 50 (20+). (Eski: 10 sn'den 20. dakikada 40'a doğrusal.) */
-export const RESPAWN = { base:6, k:0.25, cap:50 };   // 15.10.2026: k 0.2 idi (14.10.2026: 0.11 idi) (10. dk 26 sn, 15. dk 50 sn)
-export const respawnTime = t => Math.min(RESPAWN.cap, RESPAWN.base+RESPAWN.k*(t/60)**2);
+/* Yeniden doğma (21.10.2026, iki parça): erken oyun karesel ve mid'de durur (base + k*dakika², en fazla mid),
+   lateStart dakikasından sonra küp ek terim (late*(dakika-lateStart)³) ile giderek hızlanan artış, en fazla cap.
+   6 sn (0. dk), ~12 (5), ~30 (10-15), ~32 (20), ~45 (25), ~81 (30), ~150 (35+). Amaç: uzun maçlar bitsin. */
+export const RESPAWN = { base:6, k:0.25, mid:30, lateStart:15, late:0.015, cap:150 };   // 21.10.2026: { base:6, k:0.25, cap:30 } idi (10. dk'dan sonra düz 30 sn)
+//   cap 50 idi; 15.10.2026: k 0.2 idi (14.10.2026: 0.11 idi)
+export const respawnTime = t => { const m=t/60; return Math.min(RESPAWN.cap, Math.min(RESPAWN.mid, RESPAWN.base+RESPAWN.k*m*m) + RESPAWN.late*Math.max(0,m-RESPAWN.lateStart)**3); };
 export const XP_NEED = lvl => 140 + 38*(lvl-1);         // seviyeden sonrakine gereken XP (14.10.2026, azami seviye 15: 180 + 54*(lvl-1) idi)
 export const HERO_KILL_XP = 150, STRUCT_XP = 100, XP_RADIUS = 600;
 export const KEY_LABELS = { p:'Pasif', r:'Sağ Tık', e:'E', s:'Boşluk' };
@@ -673,7 +677,7 @@ export const BUFFS = {
 };
 /* Büyük canavar gücü: öldüren takımın bütün kahramanlarına (ölüler dahil) dur sn; takımın minyonları minionDmg/minionHp katı,
    kahraman ve minyonların yapılara hasarı structMult katı. Altın: takımın her üyesine gold. */
-export const BIG_BUFF = { name:'Titan Gücü', dur:120, minionDmg:1.4, minionHp:1.3, structMult:2.0,   /* 15.10.2026: 1.5 idi (14.10.2026: 1.25 idi) */ gold:120, color:'#ffd24d' };
+export const BIG_BUFF = { name:'Titan Gücü', dur:150, minionDmg:1.4, minionHp:1.4,   /* 21.10.2026: dur 120, minionHp 1.3 idi (ölüm süresi 30 sn'ye inince oyun sonunu hızlandırmak için) */ structMult:2.0,   /* 15.10.2026: 1.5 idi (14.10.2026: 1.25 idi) */ gold:120, color:'#ffd24d' };
 
 /* ---- Geri kalma telafisi ve orman hakimiyeti (12.10.2026) ----
    CATCHUP_XP: kahramanın toplam XP'si rakip takım ortalamasından en az gap oranı kadar düşükse bütün XP kazancı +bonus (ilk eşleşen, tavan %40).

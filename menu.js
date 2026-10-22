@@ -6,6 +6,7 @@ import { GAME_TITLE, HERO_NAMES, HERO_INFO } from './names.js';
 import { drawToken } from './art.js';
 import { applyCssVars } from './palette.js';
 import { openBuildEditor, autoBuyOn, isCustom } from './autobuy.js';
+import { jset, setJuice } from './juice.js';
 applyCssVars();
 
 /* Modlar: takım başına yuva sayısı (2v2: sen + dost bot, rakip 2 bot). */
@@ -75,6 +76,13 @@ export function settingsBlock() {
     l.append(c, $('span', '', label)); return l;
   };
   box.append(chk('fog', 'Savaş sisi'), chk('waves', 'Minyon dalgaları'), chk('showHit', 'Menzil ve hitbox'));
+  // oyun hissi (juice.js): efektler ve ses ayrı açılıp kapanır, localStorage moba2d_juice_v1
+  const jchk = (key, label) => {
+    const l = $('label', 'chk'), c = $('input'); c.type = 'checkbox'; c.checked = !!jset[key];
+    c.addEventListener('change', () => setJuice(key, c.checked));
+    l.append(c, $('span', '', label)); return l;
+  };
+  box.append(jchk('fx', 'Efektler (patlama, atılış, sarsıntı)'), jchk('sound', 'Ses'));
   const sel = (label, opts, get, set) => {
     const l = $('label', 'sel'); l.append($('span', '', label));
     const s = $('select');

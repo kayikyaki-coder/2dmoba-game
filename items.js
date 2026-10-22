@@ -10,6 +10,14 @@ export const START_GOLD = 250;     // başlangıçta tek bir temel parça alına
 export const SLOTS = 5;
 export const CRIT_MULT = 1.5;          // kritik vuruş normal vuruşun %150'si
 
+/* Rünler (17.10.2026): yuva kaplamayan, istiflenen küçük stat alımları. Her zaman alınabilir ama verimsiz
+   (500 altına parça fiyatıyla ~170-200 altınlık stat); asıl kullanım: 5 yuva dolunca kalan altın. Satılmaz. */
+export const RUNES = {
+  rad:{ name:'Güç Rünü',  cost:500, max:10, stats:{ dmg:5 } },
+  rap:{ name:'Büyü Rünü', cost:500, max:10, stats:{ ap:10 } },
+  rhp:{ name:'Can Rünü',  cost:500, max:10, stats:{ hp:50 } }
+};
+
 export const PARTS = {
   longsword:{ name:'Uzun Kılıç',    cost:225, stats:{ dmg:6 } },
   dagger:   { name:'Hançer',        cost:225, stats:{ asPct:0.07 } },
@@ -37,21 +45,23 @@ export const ITEMS = {
   ldr:      { cat:'Nişancı', name:'Zırh Yaran',        cost:1225,  parts:['longsword','longsword','cloak'], stats:{ dmg:26, crit:0.19 }, basicArmorPen:0.30, desc:'Düz vuruşlar rakibin zırhının %30\'unu yok sayar' },
   // Dövüşçü
   cleaver:  { cat:'Dövüşçü', name:'Kara Balta',        cost:1175,  parts:['longsword','ruby','focus'],      stats:{ dmg:26, hp:225, ah:11 }, shred:{ pct:0.05, max:6, dur:4 }, desc:'Fiziksel vuruş rakibin zırhını %5 azaltır (6 kata kadar, 4 sn)' },
-  spear:    { cat:'Dövüşçü', name:'Yontulmuş Mızrak',  cost:1175,  parts:['longsword','longsword','ruby'],  stats:{ dmg:23, hp:188, ah:11 }, champMaxHp:{ pct:0.10, cd:10 }, desc:'Rakip şampiyona düz vuruş ek olarak onun azami canının %10\'u kadar fiziksel hasar verir. 10 sn bekleme, sadece şampiyonlarda' },
   titanic:  { cat:'Dövüşçü', name:'Dev Avcısı',        cost:1150,  parts:['longsword','ruby','ruby'],       stats:{ dmg:19, hp:225 }, onHitOwnHp:0.03, desc:'Düz vuruşlar ek olarak kendi azami canının %3\'ü kadar fiziksel hasar verir' },
   vengeance:{ cat:'Dövüşçü', name:'Öç Zırhı',          cost:1100,  parts:['longsword','ruby','cloth'],      stats:{ dmg:19, hp:263 }, store:{ pct:0.20, cap:120, decay:8 }, desc:'Alınan hasarın %20\'si birikir (en fazla 120, 8 sn\'de kullanılmazsa söner). Hasar veren sonraki yetenek bunu ek fiziksel hasar olarak verir' },
   sheen:    { cat:'Dövüşçü', name:'Tılsımlı Kılıç',    cost:1225,  parts:['longsword','ruby','focus'],      stats:{ dmg:19, hp:150, ah:11, asPct:0.11 }, spellblade:{ base:50, bonusAd:0.5, window:2, cd:1, type:'phys' }, desc:'Yetenek kullandıktan sonraki 2 sn içinde yapılan ilk saldırı ek 50 + ilave SG\'nin %50\'si kadar fiziksel hasar verir. 1 sn bekleme' },
   mace:     { cat:'Dövüşçü', name:'Kanlı Gürz',        cost:1225,  parts:['longsword','ruby','focus'],      stats:{ dmg:23, hp:188, ah:11 }, armorPen:0.30, desc:'Düz vuruşlar ve yetenekler rakibin zırhının %30\'unu yok sayar' },
   // Büyücü
-  dcap:     { cat:'Büyücü', name:'Büyücü Şapkası',    cost:1300, parts:['tome','tome','tome'],            stats:{ ap:83 }, apMult:1.3, desc:'Toplam YG %30 artar' },
-  void:     { cat:'Büyücü', name:'Boşluk Asası',      cost:1175,  parts:['tome','tome','mantle'],          stats:{ ap:53 }, magicPenPct:0.35, desc:'%35 büyü delme (rakibin büyü direncinin %35\'ini yok sayar)' },
-  blackflame:{cat:'Büyücü', name:'Kara Alev',         cost:1175,  parts:['tome','tome','ruby'],            stats:{ ap:60, hp:150 }, skillBurn:{ pct:0.04, dur:3 } },
-  time:     { cat:'Büyücü', name:'Zaman Asası',       cost:1150,  parts:['tome','focus','focus'],          stats:{ ap:56, ah:19, msPct:0.04 } },
-  hourglass:{ cat:'Büyücü', name:'Kum Saati',         cost:1175,  parts:['tome','cloth','cloth'],          stats:{ ap:45, armor:30 }, stasis:{ dur:2, cd:90 }, desc:'Aktif: 2 sn dokunulmaz ve hareketsiz, 90 sn bekleme' },
-  echo:     { cat:'Büyücü', name:'Yankı Asası',       cost:1175,  parts:['tome','tome','focus'],           stats:{ ap:49, ah:11 }, echo:{ base:60, ap:0.20, cd:10 }, desc:'Bir sonraki yetenek ek 60 + YG\'nin %20\'si kadar büyü hasarı verir. 10 sn bekleme' },
-  lich:     { cat:'Büyücü', name:'Büyü Kılıcı',       cost:1225,  parts:['tome','tome','focus'],           stats:{ ap:60, ah:8, msPct:0.06 }, spellblade:{ base:50, apRatio:0.75, window:10, cd:1.5, type:'magic' }, desc:'Yetenek kullandıktan sonraki 10 sn içinde ilk düz vuruş ek 60 + YG\'nin %75\'i kadar büyü hasarı verir. 1,5 sn bekleme' },
-  magpen:   { cat:'Büyücü', name:'Büyü Nüfuzu',       cost:1175,  parts:['tome','tome','mantle'],          stats:{ ap:53 }, magicPenFlat:15, desc:'+15 sabit büyü delme (rakibin büyü direncinden 15 düşülür, yüzdelikten önce uygulanır)' },
-  fang2:    { cat:'Büyücü', name:'Ateş Dişi',         cost:1175,  parts:['tome','tome','focus'],           stats:{ ap:53, ah:11 }, onHitAp:0.20, desc:'Düz vuruşlar ek olarak YG\'nin %20\'si kadar büyü hasarı verir' },
+  /* YG eşyaları (16.10.2026, docs/esya_ap_plan.md; eski hali old/esya_ap_yedek/items.js). Kural: eşya pasif hasarı kahramanın
+     yetenek hasarına yaklaşmaz (metayı kahramanlar belirler). Büyü Nüfuzu ve Ateş Dişi kalktı (Akkor Asası, Cam Kırıcı). */
+  dcap:     { cat:'Büyücü', name:'Büyücü Şapkası',    cost:1300, parts:['tome','tome','tome'],            stats:{ ap:70, hp:150 }, apAmp:{ base:0.15, per:0.05, max:0.35 }, desc:'Toplam YG %15 artar, elindeki her başka YG eşyası için +%5 (en fazla %35)' },   // 83 YG, YG x1,3 idi
+  void:     { cat:'Büyücü', name:'Boşluk Asası',      cost:1200,  parts:['tome','tome','mantle'],          stats:{ ap:65 }, magicPenPct:0.35, desc:'%35 büyü delme (rakibin büyü direncinin %35\'ini yok sayar)' },   // 53 YG, 1175 idi
+  blackflame:{cat:'Büyücü', name:'Kara Alev',         cost:1225,  parts:['tome','tome','ruby'],            stats:{ ap:40, hp:225 }, skillBurn:{ pct:0.03, dur:3, wound:0.25 }, desc:'Yetenek isabeti rakip şampiyonu 3 sn boyunca azami canının %3\'ü kadar yakar, yanarken iyileşmesi %25 azalır' },   // 60 YG 150 can, %4, 1175 idi
+  emberrod: { cat:'Büyücü', name:'Akkor Asası',       cost:1200,  parts:['tome','tome','focus'],           stats:{ ap:60, ah:8 }, ember:{ base:20, ap:0.15, dur:4, jump:300 }, desc:'Yetenek isabeti hedefi 4 sn boyunca 20 + YG\'nin %15\'i kadar yakar; yanan ölürse yanma yakındaki rakibe sıçrar' },
+  time:     { cat:'Büyücü', name:'Zaman Asası',       cost:1150,  parts:['tome','focus','focus'],          stats:{ ap:26, ah:25 }, rhythm:{ win:4, cut:0.15, recall:2 }, desc:'Sağ tık ve E\'yi art arda kullanınca ikincinin beklemesi %15 kısalır; üsse dönerken beklemeler 2 kat hızlı akar' },   // 56 YG 19 YH %4 hız, pasifsiz idi
+  hourglass:{ cat:'Büyücü', name:'Kum Saati',         cost:1275,  parts:['tome','cloth','cloth'],          stats:{ ap:45, armor:30 }, stasis:{ dur:1.5, hp:0.05, cd:150 }, desc:'Ölümcül hasarda ölmezsin: 1,5 sn kum heykeli olursun, sonra azami canının %5\'iyle kalkarsın. 150 sn bekleme' },   // aktif 2 sn stasis 90 sn, 1175 idi
+  echo:     { cat:'Büyücü', name:'Yankı Asası',       cost:1175,  parts:['tome','tome','focus'],           stats:{ ap:49, ah:11 }, echo:{ base:40, ap:0.20, cd:10, bounce:0.5, range:300 }, desc:'10 sn\'de bir yetenek isabeti rakip şampiyona ek 40 + YG\'nin %20\'si kadar büyü hasarı verir ve yarısı yakındaki rakibe seker' },   // 60 + %20, ilk isabet (minyon dahil) idi
+  lich:     { cat:'Büyücü', name:'Büyü Kılıcı',       cost:1225,  parts:['tome','tome','focus'],           stats:{ ap:53, ah:8, msPct:0.05 }, spellbladeM:{ base:30, apRatio:0.4, window:10, cd:1.5, dual:{ mult:1.3, push:80, pushT:0.2, stun:0.5 } }, desc:'Yetenek sonrası ilk düz vuruş ek büyü hasarı verir; iki farklı yetenekten sonra güçlenir ve iter' },   // 60 YG %6 hız, 50 + %75 YG idi
+  horizon:  { cat:'Büyücü', name:'Ufuk Merceği',      cost:1100,  parts:['tome','focus','boots'],          stats:{ ap:38, ah:10, msPct:0.04 }, horizon:{ range:600, pct:0.10, reveal:2 }, desc:'600 birimden uzaktaki rakip şampiyona yetenek hasarın %10 fazla' },
+  embermask:{ cat:'Büyücü', name:'Kor Maskesi',       cost:1200,  parts:['tome','tome','ruby'],            stats:{ ap:50, hp:150 }, kor:{ range:500, max:5, per:0.02, ally:0.04, fade:3 }, desc:'Yakındaki rakip şampiyonla Kor biriktirirsin; Kor başına büyü hasarın %2 artar' },
   // Savaşçı büyücü
   bloodtome:{ cat:'Savaşçı büyücü', name:'Kanlı Kitap',       cost:1225,  parts:['tome','ruby','focus'],           stats:{ hp:188, ap:23, ah:11 }, hpToAp:0.02, desc:'Azami canının %2\'si kadar YG kazanırsın' },
   spring:   { cat:'Savaşçı büyücü', name:'Can Pınarı',        cost:1175,  parts:['tome','ruby','ruby'],            stats:{ hp:225, ap:30 }, castHeal:{ base:25, pctMax:0.02, cd:5 }, desc:'Yetenek kullanmak 25 + azami canının %2\'si kadar can yeniler. 5 sn bekleme' },
@@ -69,24 +79,23 @@ export const ITEMS = {
   nightfang:{ cat:'Nişancı', name:'Gece Avcısı',     cost:1225, parts:['longsword','knife','cloak'],     stats:{ dmg:20, crit:0.14, lethal:10 }, onHitAd:0.06, desc:'Düz vuruşlar SG\'nin %6\'sı kadar ek fiziksel hasar verir' },
   bloodbow: { cat:'Nişancı', name:'Kanlı Yay',       cost:1175, parts:['dagger','cloak','fang'],         stats:{ asPct:0.20, crit:0.15, ls:0.07 }, lsLow:{ hp:0.5, mult:2 }, desc:'Canın %50 altındayken can çalma iki katına çıkar' },
   runbow:   { cat:'Nişancı', name:'Kaçak Yayı',      cost:1150, parts:['dagger','dagger','boots'],       stats:{ dmg:12, asPct:0.28, msPct:0.07 }, onHitMs:{ amt:0.10, dur:1 }, desc:'Düz vuruşlar 1 sn %10 hareket hızı verir' },
-  pierce:   { cat:'Nişancı', name:'Delici Ok',       cost:1200, parts:['longsword','knife','dagger'],    stats:{ dmg:19, asPct:0.17, lethal:14 }, basicArmorPen:0.12, desc:'Düz vuruşlar rakibin zırhının %12\'sini yok sayar' },
-  redhunt:  { cat:'Nişancı', name:'Kızıl Av',        cost:1175, parts:['longsword','dagger','fang'],     stats:{ dmg:17, asPct:0.14, ls:0.06 }, champMaxHp:{ pct:0.06, cd:6 }, desc:'Rakip şampiyona düz vuruş ek olarak onun azami canının %6\'sı kadar fiziksel hasar verir. 6 sn bekleme, sadece şampiyonlarda' },
+  pierce:   { cat:'Nişancı', name:'Delici Ok',       cost:1175, parts:['longsword','ruby','focus'],      stats:{ dmg:22, hp:150, ah:10 }, armorPen:0.25 },   // 17.10.2026: SG 19, SH %17, delme 14, düz vuruş %12 zırh yarma, 1200 idi
   // Dövüşçü
   typhoon:  { cat:'Dövüşçü', name:'Kasırga Baltası', cost:1225, parts:['longsword','ruby','focus'],      stats:{ dmg:19, hp:170, ah:11 }, castAs:{ amt:0.25, dur:3 }, desc:'Yetenek kullanınca 3 sn boyunca saldırı hızın %25 artar' },
   bullstr:  { cat:'Dövüşçü', name:'Boğa Gücü',       cost:1175, parts:['longsword','ruby','ruby'],       stats:{ dmg:10, hp:250 }, hpToAd:0.015, desc:'Azami canının %1,5\'i kadar SG kazanırsın' },
   bloodclaw:{ cat:'Dövüşçü', name:'Kanlı Pençe',     cost:1175, parts:['longsword','fang','ruby'],       stats:{ dmg:19, hp:188, ls:0.05 }, spellVamp:0.15, desc:'Yetenek hasarının %15\'i kadar can yenilenir' },
-  predator: { cat:'Dövüşçü', name:'Yırtıcı Pençe',   cost:1200, parts:['longsword','ruby','boots'],      stats:{ dmg:19, hp:188, msPct:0.05 }, champMaxHp:{ pct:0.05, cd:8 }, desc:'Rakip şampiyona düz vuruş ek olarak onun azami canının %5\'i kadar fiziksel hasar verir. 8 sn bekleme, sadece şampiyonlarda' },
+  predator: { cat:'Dövüşçü', name:'Yırtıcı Pençe',   cost:1200, parts:['longsword','ruby','boots'],      stats:{ dmg:19, hp:188, msPct:0.05 }, skillMaxHp:{ pct:0.05, cd:5 } },   // 17.10.2026: düz vuruş %5/8 sn idi
   ironheart:{ cat:'Dövüşçü', name:'Demir Yürek',     cost:1175, parts:['longsword','cloth','mantle'],    stats:{ dmg:13, hp:150, armor:13, mr:13 }, onHitOwnHp:0.02, desc:'Düz vuruşlar ek olarak kendi azami canının %2\'si kadar fiziksel hasar verir' },
   // Suikastçı / vur-kaç
-  duskknife:{ cat:'Suikastçı', name:'Gölge Hançeri', cost:1200, parts:['longsword','knife','boots'],     stats:{ dmg:24, lethal:12, msPct:0.06 }, execDmg:{ hp:0.30, pct:0.08 }, desc:'Canı %30 altındaki rakip şampiyona %8 ek hasar verirsin' },
+  duskknife:{ cat:'Suikastçı', name:'Gölge Hançeri', cost:1200, parts:['longsword','knife','boots'],     stats:{ dmg:24, lethal:12, msPct:0.06 }, killInvis:{ dur:1 } },   // 17.10.2026: İnfaz (%30 altına %8) idi
   quietblade:{cat:'Suikastçı', name:'Sessiz Bıçak',  cost:1150, parts:['longsword','knife','dagger'],    stats:{ dmg:19, asPct:0.14, lethal:10 }, hurtMs:{ amt:0.12, dur:2 }, desc:'Hasar alınca 2 sn %12 hareket hızı kazanırsın' },
   reaper:   { cat:'Suikastçı', name:'Hasat Kılıcı',  cost:1300, parts:['longsword','longsword','knife'], stats:{ dmg:32, lethal:15 }, execDmg:{ hp:0.35, pct:0.10 }, desc:'Canı %35 altındaki rakip şampiyona %10 ek hasar verirsin' },
   windwalk: { cat:'Suikastçı', name:'Rüzgar Yürüyüşü', cost:1150, parts:['boots','knife','longsword'],   stats:{ dmg:19, lethal:11, msPct:0.10 }, castMs:{ amt:0.15, dur:1.5 }, desc:'Yetenek kullanınca 1,5 sn %15 hareket hızı kazanırsın' },
   nightmask:{ cat:'Suikastçı', name:'Gece Maskesi',  cost:1175, parts:['cloak','knife','boots'],         stats:{ dmg:12, crit:0.12, lethal:10, msPct:0.06 }, skillSlow:{ amt:0.15, dur:1 }, desc:'Yetenek isabeti rakibi 1 sn %15 yavaşlatır' },
   // Büyücü
-  frostrod: { cat:'Büyücü', name:'Buz Asası',        cost:1175, parts:['tome','tome','focus'],           stats:{ ap:53, ah:11 }, skillSlow:{ amt:0.15, dur:1 }, desc:'Yetenek isabeti rakibi 1 sn %15 yavaşlatır' },
-  glassbreak:{cat:'Büyücü', name:'Cam Kırıcı',       cost:1175, parts:['tome','tome','boots'],           stats:{ ap:49, msPct:0.06 }, magicPenFlat:12, desc:'+12 sabit büyü delme (rakibin büyü direncinden 12 düşülür, yüzdelikten önce uygulanır)' },
-  witchblade:{cat:'Büyücü', name:'Cadı Bıçağı',      cost:1200, parts:['tome','dagger','tome'],          stats:{ ap:43, asPct:0.17 }, onHitAp:0.25, desc:'Düz vuruşlar ek olarak YG\'nin %25\'i kadar büyü hasarı verir' },
+  frostrod: { cat:'Büyücü', name:'Buz Asası',        cost:1200, parts:['tome','ruby','ruby'],            stats:{ ap:34, hp:250 }, frost:{ amt:0.20, step:0.05, max:0.30, dur:1, win:2 }, desc:'Yetenek isabeti rakibi 1 sn %20 yavaşlatır, art arda isabetlerde %30\'a kadar artar' },   // 53 YG 11 YH, Kitap+Kitap+Odak, skillSlow %15 idi
+  glassbreak:{cat:'Büyücü', name:'Cam Kırıcı',       cost:1150, parts:['tome','mantle','focus'],         stats:{ ap:40, ah:10 }, mrBreak:{ pen:0.25, pct:0.25, dur:2 }, desc:'%25 büyü delme; büyü hasarın rakip şampiyonun büyü direncini 2 sn %25 düşürür (takımın da yararlanır)' },   // 49 YG %6 hız 12 sabit delme (Kitap+Kitap+Çizme) idi
+  witchblade:{cat:'Büyücü', name:'Cadı Bıçağı',      cost:1200, parts:['tome','dagger','tome'],          stats:{ ap:43, asPct:0.17 }, witch:{ base:0.18, step:0.04, max:0.30 }, desc:'Düz vuruşlar YG\'nin %18\'i kadar büyü hasarı verir, aynı hedefe art arda %30\'a kadar artar' },   // onHitAp %25 idi
   finalrod: { cat:'Büyücü', name:'Son Darbe Asası',  cost:1225, parts:['tome','tome','focus'],           stats:{ ap:53, ah:11 }, execDmg:{ hp:0.30, pct:0.10 }, desc:'Canı %30 altındaki rakip şampiyona %10 ek hasar verirsin' },
   // Savaşçı büyücü
   bloodcup: { cat:'Savaşçı büyücü', name:'Kan Kasesi', cost:1175, parts:['tome','ruby','fang'],           stats:{ hp:200, ap:34 }, spellVamp:0.12, desc:'Yetenek hasarının %12\'si kadar can yenilenir' },
@@ -110,10 +119,10 @@ export const ITEMS = {
   // ---- Eşya turu 2 (20 eşya, aktifsiz; esya-plani.md) ----
   // Nişancı
   fury:     { cat:'Nişancı', name:'Hız Çarkı',        cost:1175, parts:['longsword','dagger','cloak'],    stats:{ dmg:12, asPct:0.14, crit:0.10 }, asStack:{ amt:0.04, max:5, dur:3 }, desc:'Düz vuruş isabeti saldırı hızını %4 artırır (5 kata kadar, 3 sn vurmazsan söner)' },
-  luck:     { cat:'Nişancı', name:'Talih Kılıcı',     cost:1175, parts:['longsword','longsword','cloak'], stats:{ dmg:24, crit:0.12 }, critStack:{ step:0.05, max:0.35 }, desc:'Kritik vurmayan her düz vuruş +%5 ilave kritik şansı biriktirir (en fazla %35). Kritik vuruş gerçekleşince bu bonus sıfırlanır' },
+  luck:     { cat:'Nişancı', name:'Talih Kılıcı',     cost:1100, parts:['longsword','longsword','cloak'], stats:{ dmg:30 }, critStack:{ step:0.05, max:0.40 } },   // 17.10.2026: SG 24, kritik %12, en fazla %35, 1175 idi
   coil:     { cat:'Nişancı', name:'Yük Bobini',       cost:1200, parts:['longsword','dagger','cloak'],    stats:{ dmg:14, asPct:0.12, crit:0.10 }, coil:{ perDist:15, perHit:10, max:100, base:55, ad:0.20 }, desc:'Hareket etmek ve düz vurmak yük biriktirir. Yük 100\'e ulaşınca sonraki düz vuruş 55 + SG\'nin %20\'si kadar ek büyü hasarı verir' },
   crystal:  { cat:'Nişancı', name:'Kristal Hançer',   cost:1150, parts:['longsword','longsword','cloak'], stats:{ dmg:20, crit:0.15 }, critSlow:{ amt:0.10, dur:1 }, desc:'Kritik vuruşlar hedefi 1 sn %10 yavaşlatır' },
-  thornboot:{ cat:'Nişancı', name:'Dikenli Çizme',    cost:1100, parts:['boots','dagger','dagger'],       stats:{ asPct:0.23, msPct:0.10 }, hitMsStack:{ amt:0.03, max:3, dur:2 }, desc:'Rakip kahramana düz vurdukça %3 hareket hızı birikir (3 kata kadar, 2 sn sürer)' },
+  thornboot:{ cat:'Nişancı', name:'Dikenli Çizme',    cost:1100, parts:['boots','dagger','dagger'],       stats:{ asPct:0.23, msPct:0.05 }, hitAsStack:{ amt:0.06, max:3, dur:3 } },   // 17.10.2026: hız %10, vuruşta %3 hareket hızı x3 (2 sn) idi
   bloodbond:{ cat:'Nişancı', name:'Kan Bağı',         cost:1100, parts:['longsword','fang','fang'],       stats:{ dmg:19, ls:0.08 }, lsShare:0.20, desc:'Can çalmayla kazandığın canın %20\'si kadarı yakındaki dost kahramana da gider (700 menzil)' },
   // Dövüşçü
   skillblade:{cat:'Dövüşçü', name:'Hüner Bıçağı',     cost:1175, parts:['longsword','longsword','focus'], stats:{ dmg:24, ah:11 }, skillAd:0.10, desc:'Yetenek hasarı toplam SG\'nin %10\'u kadar ek hasar verir' },
@@ -125,9 +134,9 @@ export const ITEMS = {
   deathmap: { cat:'Suikastçı', name:'Ölüm Haritası',   cost:1100, parts:['longsword','longsword','longsword'], stats:{ dmg:34 }, shredFlat:{ amt:8, dur:5 }, desc:'Düz vuruş hedefin zırhını 5 sn boyunca 8 azaltır (birikmez)' },
   // Büyücü
   collapse: { cat:'Büyücü', name:'Çöküş Asası',       cost:1175, parts:['tome','tome','focus'],           stats:{ ap:49, ah:11 }, lowBoom:{ hp:0.30, base:60, ap:0.40, radius:220, cd:30 }, desc:'Canı %30 altındaki rakip şampiyona büyü hasarı vermek onun çevresinde 60 + YG\'nin %40\'ı kadar büyü hasarlı patlama yaratır. 30 sn bekleme' },
-  timeglass:{ cat:'Büyücü', name:'Zaman Kumu',        cost:1150, parts:['tome','focus','focus'],          stats:{ ap:41, ah:11 }, takedownCd:0.50, desc:'Rakip şampiyonu öldürmek ya da asist yapmak sağ tık ve E\'nin kalan bekleme süresini %50 azaltır (Boşluk hariç)' },
+  timeglass:{ cat:'Büyücü', name:'Ganimet Mührü',        cost:1150, parts:['tome','focus','focus'],          stats:{ ap:41, ah:11 }, takedownCd:0.50, desc:'Rakip şampiyonu öldürmek ya da asist yapmak sağ tık ve E\'nin kalan bekleme süresini %50 azaltır (Boşluk hariç)' },   // adı Zaman Kumu idi (Zaman Asası ile karışıyordu)
   // Savaşçı büyücü
-  agetome:  { cat:'Savaşçı büyücü', name:'Çağ Kitabı', cost:1175, parts:['tome','tome','ruby'],            stats:{ ap:38, hp:113 }, scale:{ ap:4, hp:18, max:10 }, desc:'Satın aldıktan sonra her dakika +4 YG ve +18 can kazanırsın (10 kata kadar)' },
+  agetome:  { cat:'Savaşçı büyücü', name:'Çağ Kitabı', cost:1175, parts:['tome','tome','ruby'],            stats:{ ap:38, hp:113 }, scale:{ ap:4, hp:18, max:10 }, desc:'Satın aldıktan sonra her dakika +4 YG ve +18 can kazanırsın (10 kata kadar); öldürme, asist, güçlendirme kampı ve Titan sıradaki katı hemen verir' },
   // Tank
   shockplate:{cat:'Tank', name:'Şok Zırhı',             cost:1150, parts:['herb','cloth','mantle'],         stats:{ hp:150, armor:15, mr:15, regen:12 }, quake:{ base:30, hpPct:0.03, radius:250, cd:6 }, desc:'Düz vuruş yapmak etrafındaki düşmanlara 30 + azami canının %3\'ü kadar büyü hasarı vurur. 6 sn bekleme' },
   godshield:{ cat:'Tank', name:'Tanrı Kalkanı',         cost:1175, parts:['cloth','mantle','ruby'],         stats:{ hp:75, armor:26, mr:26 }, ccShield:{ pct:0.15, dur:3 }, desc:'Kitle kontrolü (sersemleme, kök, susturma, yavaşlatma) yiyince 3 sn boyunca aldığın hasar %15 azalır' },
@@ -144,18 +153,18 @@ for (const it of Object.values(ITEMS)) if (!it.stats.hp) it.stats.hp = ITEM_BASE
 /* Mağazada ortada gösterilen önerilen 8 eşya (kahraman başına) */
 export const RECOMMENDED = {
   archer:  ['kraken','botrk','windbow','bt','ldr','pd','fury','luck'],
-  warrior: ['cleaver','spear','randuin','titanic','visage','stonebelt','ironheart','godshield'],
-  mage:    ['blackflame','echo','dcap','void','finalrod','frostrod','collapse','hourglass'],
+  warrior: ['cleaver','predator','randuin','titanic','visage','stonebelt','ironheart','godshield'],
+  mage:    ['emberrod','blackflame','dcap','void','echo','frostrod','hourglass','horizon'],
   twin:    ['kraken','botrk','pd','ie','ldr','bt','runbow','fury'],
   bounce:  ['ie','pd','botrk','ldr','bt','bloodbow','nightfang','luck'],
   hook:    ['sunfire','warmog','randuin','visage','spellwall','ironwall','lastshield','godshield'],
-  gladiator:['cleaver','botrk','spear','titanic','randuin','visage','typhoon','godshield'],
+  gladiator:['cleaver','botrk','predator','titanic','randuin','visage','typhoon','godshield'],
   roller:  ['sunfire','warmog','randuin','visage','titanic','stonebelt','godshield','fortress'],
-  flame:   ['lich','spring','abyss','bloodtome','bloodcup','emberward','silverguard','agetome'],
-  blood:   ['spring','blackflame','dcap','void','bloodcup','lifestone','abyss','agetome'],
-  artillery:['blackflame','echo','dcap','void','glassbreak','frostrod','time','hourglass'],
-  shadow:  ['echo','blackflame','dcap','finalrod','glassbreak','void','timeglass','breeze'],
-  spirit:  ['echo','amulet','breeze','healbell','dcap','timeglass','void','wingward'],
+  flame:   ['lich','spring','embermask','blackflame','bloodtome','bloodcup','emberward','agetome'],
+  blood:   ['spring','blackflame','dcap','void','bloodcup','embermask','abyss','agetome'],
+  artillery:['emberrod','echo','dcap','horizon','void','glassbreak','time','hourglass'],
+  shadow:  ['echo','lich','witchblade','dcap','blackflame','void','timeglass','hourglass'],
+  spirit:  ['echo','amulet','breeze','healbell','dcap','time','glassbreak','wingward'],
   dual:    ['sheen','cleaver','typhoon','predator','mace','nightfang','ie','skillblade']
 };
 
@@ -164,6 +173,10 @@ export const RECOMMENDED = {
    büyü direnci eşyasına çözülür (sim.js defPick). Fiziksel oran > %60: zırh eşyası, < %40: BD eşyası, arada: karışık
    (ikisini de veren), karışık kalmadıysa elde az olan direnç. */
 export const DEF = 'DEF';
+/* Esnek yakma yuvası (16.10.2026): alım anında Kara Alev ya da Akkor Asası'na çözülür (sim.js burnPick). Rakiplerin ortalama
+   azami canından Kara Alev'in yakması (pct x can), kendi YG'nden Akkor'un yakması (base + ap x YG) hesaplanır, büyüğü alınır:
+   canlı rakip ve az YG -> Kara Alev, çok YG ve az canlı rakip -> Akkor. */
+export const BURN = 'BURN';
 /* Kahramanın savunma havuzu: 'tank' (can ağırlıklı, dövüşçü/tank) ya da 'caster' (menzilli/büyücü) */
 export const DEF_CLASS = { hook:'tank', roller:'tank', gladiator:'tank', warrior:'tank', dual:'tank', flame:'tank' };   // diğerleri 'caster'
 export const DEF_POOLS = {
@@ -189,10 +202,10 @@ export const BUILDS = {
     yikik:  ['botrk','kraken','ie','pd','ldr','bt']
   },
   warrior: {
-    default:['cleaver',DEF,'spear',DEF,DEF,'titanic'],   // dayanıklı: yuvaların çoğu esnek savunma
-    hasar:  ['cleaver','spear','mace','titanic','sheen','bt'],
+    default:['cleaver',DEF,'predator',DEF,DEF,'titanic'],   // dayanıklı: yuvaların çoğu esnek savunma
+    hasar:  ['cleaver','predator','mace','titanic','sheen','bt'],
     tank:   ['cleaver',DEF,DEF,DEF,DEF,'fortress'],
-    tilsim: ['sheen','cleaver','spear','randuin','visage','titanic']
+    tilsim: ['sheen','cleaver','predator','randuin','visage','titanic']
   },
   twin: {
     default:['kraken','botrk','pd','ie',DEF,'ldr'],   // her ok vuruş etkisi taşıdığı için okçuya benzer nişancı eşyaları (denenmedi)
@@ -211,7 +224,7 @@ export const BUILDS = {
   },
   gladiator: {
     default:['cleaver',DEF,'botrk',DEF,DEF,'titanic'],   // Gladyatör: Savaşçı gibi dövüşçü çekirdeği; saldırı hızı Kızışma ile katlanır (3 esnek)
-    tank:   ['cleaver',DEF,DEF,DEF,DEF,'spear']
+    tank:   ['cleaver',DEF,DEF,DEF,DEF,'predator']
   },
   roller: {
     default:['sunfire',DEF,'warmog',DEF,DEF,'titanic'],   // Gülle: Zincirli gibi can çekirdeği + esnek direnç yuvaları (3 esnek)
@@ -219,27 +232,27 @@ export const BUILDS = {
   },
   flame: {
     default:['lich','spring',DEF,'bloodtome',DEF,'dcap'],   // yetenek sonrası vuruşlar, can ve YG ağırlıklı yakın dövüş büyücüsü (denenmedi)
-    buyu:   ['lich','blackflame','dcap','void','abyss','hourglass'],
+    buyu:   ['lich',BURN,'dcap','void','abyss','hourglass'],
     savas:  ['spring','abyss','bloodtome','lich','hourglass','void']
   },
   blood: {
-    default:['spring','blackflame','dcap','void',DEF,'hourglass'],   // can, YG ve direnç ağırlıklı büyücü (can harcayan E, can çalan yetenekler; denenmedi)
-    buyu:   ['blackflame','echo','dcap','void','magpen','time'],
+    default:['spring',BURN,'dcap','void',DEF,'hourglass'],   // 16.10.2026: Kara Alev -> esnek yakma. can, YG ve direnç ağırlıklı büyücü (can harcayan E, can çalan yetenekler; denenmedi)
+    buyu:   [BURN,'echo','dcap','void','glassbreak','time'],
     savas:  ['spring','abyss','bloodtome','dcap','void','hourglass']
   },
   artillery: {
-    default:['blackflame','echo','dcap','void',DEF,'magpen'],   // uzak menzilli büyücü eşyaları, Büyücü ile aynı (denenmedi)
+    default:['emberrod','echo','dcap','void',DEF,'horizon'],   // 16.10.2026: Kara Alev -> Akkor Asası (uzaktan dürtme), Büyü Nüfuzu -> Ufuk Merceği (eski: ['blackflame','echo','dcap','void',DEF,'glassbreak'])
     hp1:    ['spring','blackflame','dcap','void',DEF,'hourglass'],   // denge: can ağırlıklı deneme
     hp2:    ['bloodtome','spring','dcap','void',DEF,'hourglass'],   // denge: can ağırlıklı deneme
-    sg1:    ['spring','witchblade','fang2','dcap',DEF,'hourglass'],   // denge: düz vuruş (kuşatma) ağırlıklı deneme
+    sg1:    ['spring','witchblade','lich','dcap',DEF,'hourglass'],   // denge: düz vuruş (kuşatma) ağırlıklı deneme (Ateş Dişi -> Büyü Kılıcı)
     hiz:    ['time','echo','dcap','void','blackflame','hourglass']
   },
   shadow: {
-    default:['spring','witchblade','fang2','dcap',DEF,'hourglass'],   // denge: kuşatma için düz vuruş etkili AP eşyaları, 6%->15% (testte) (eski: ['echo','blackflame','dcap','void',DEF,'magpen'])
-    eski:   ['echo','blackflame','dcap','void',DEF,'magpen'],
+    default:['spring','witchblade','lich','dcap',DEF,'hourglass'],   // 16.10.2026: Ateş Dişi kalktı (Cadı Bıçağı ile aynı pasifti, biri boşa gidiyordu) -> Büyü Kılıcı. denge: kuşatma için düz vuruş etkili AP eşyaları, 6%->15% (testte) (eski: ['echo','blackflame','dcap','void',DEF,'glassbreak'])
+    eski:   ['echo','blackflame','dcap','void',DEF,'glassbreak'],
     hp1:    ['spring','blackflame','dcap','void',DEF,'hourglass'],   // denge: can ağırlıklı deneme
     hp2:    ['bloodtome','spring','dcap','void',DEF,'hourglass'],   // denge: can ağırlıklı deneme
-    sg1:    ['spring','witchblade','fang2','dcap',DEF,'hourglass'],   // denge: düz vuruş (kuşatma) ağırlıklı deneme
+    sg1:    ['spring','witchblade','lich','dcap',DEF,'hourglass'],   // denge: düz vuruş (kuşatma) ağırlıklı deneme (Ateş Dişi -> Büyü Kılıcı)
     hiz:    ['time','echo','blackflame','dcap','void','hourglass']
   },
   spirit: {
@@ -247,20 +260,20 @@ export const BUILDS = {
     eski:   ['echo','blackflame','dcap','void',DEF,'time'],
     hp1:    ['spring','blackflame','dcap','void',DEF,'hourglass'],   // denge: can ağırlıklı deneme
     hp2:    ['bloodtome','spring','dcap','void',DEF,'hourglass'],   // denge: can ağırlıklı deneme
-    sg1:    ['spring','witchblade','fang2','dcap',DEF,'hourglass'],   // denge: düz vuruş (kuşatma) ağırlıklı deneme
+    sg1:    ['spring','witchblade','lich','dcap',DEF,'hourglass'],   // denge: düz vuruş (kuşatma) ağırlıklı deneme (Ateş Dişi -> Büyü Kılıcı)
     hiz:    ['time','echo','dcap','blackflame','void','hourglass']
   },
   dual: {
-    default:['sheen','cleaver',DEF,'mace',DEF,'spear'],   // iki biçimde de ek SG ile büyüyen yetenekler (Enerji Küresi %110, Sıçrayış %100), vuruş/yetenek sonrası Tılsımlı Kılıç, can ve yetenek hızı (denenmedi)
+    default:['sheen','cleaver',DEF,'mace',DEF,'predator'],   // iki biçimde de ek SG ile büyüyen yetenekler (Enerji Küresi %110, Sıçrayış %100), vuruş/yetenek sonrası Tılsımlı Kılıç, can ve yetenek hızı (denenmedi)
     nisanci:['ie','pd','ldr','bt','botrk','kraken'],
-    dovuscu:['cleaver','spear','mace','sheen','randuin','bt']
+    dovuscu:['cleaver','predator','mace','sheen','randuin','bt']
   },
   mage: {
-    default:['spring','blackflame','dcap','void',DEF,'hourglass'],   // denge: can ağırlıklı, 27%->36% (testte) (eski: ['blackflame','echo','dcap','void',DEF,'magpen'])
-    eski:   ['blackflame','echo','dcap','void',DEF,'magpen'],
+    default:['spring',BURN,'dcap','void',DEF,'hourglass'],   // 16.10.2026: Kara Alev -> esnek yakma. denge: can ağırlıklı, 27%->36% (testte) (eski: ['blackflame','echo','dcap','void',DEF,'glassbreak'])
+    eski:   ['blackflame','echo','dcap','void',DEF,'glassbreak'],
     hp1:    ['spring','blackflame','dcap','void',DEF,'hourglass'],   // denge: can ağırlıklı deneme
     hp2:    ['bloodtome','spring','dcap','void',DEF,'hourglass'],   // denge: can ağırlıklı deneme
-    sg1:    ['spring','witchblade','fang2','dcap',DEF,'hourglass'],   // denge: düz vuruş (kuşatma) ağırlıklı deneme
+    sg1:    ['spring','witchblade','lich','dcap',DEF,'hourglass'],   // denge: düz vuruş (kuşatma) ağırlıklı deneme (Ateş Dişi -> Büyü Kılıcı)
     yanki:  ['echo','dcap','void','blackflame','time','hourglass'],
     hiz:    ['time','echo','dcap','void','blackflame','hourglass'],
     savas:  ['spring','abyss','bloodtome','dcap','visage','hourglass']
