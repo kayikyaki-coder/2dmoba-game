@@ -717,7 +717,7 @@ function laneMove(b, e, eVis, M, ev){
   // rakiplerin hepsi ölüyse (en az birkaç sn) kuleye yürü ve vur: öldürmeyi yapıya çevir
   let foesDown=true; for(const u of S.heroes) if(u.team!==b.team && !(u.dead && u.respawn>3)) { foesDown=false; break; }
   M.foesDown=foesDown;
-  const pushAdv = !foesDown && LVP(b).numAdv && numEdge(b)>0 && alliesAround(b,b.x,b.y,LVP(b).numAllyR)>0;   // sayı üstünlüğü: dostla birlikte kuleye
+  const pushAdv = !foesDown && ((LVP(b).numAdv && numEdge(b)>0) || (LVP(b).lateSiege && S.time/60>=LVP(b).lateSiege && numEdge(b)>=0)) && alliesAround(b,b.x,b.y,LVP(b).numAllyR)>0;   // sayı üstünlüğü: dostla birlikte kuleye
   M.pushAdv=pushAdv;
   if(st && !st.prot && dist(b,st)<((foesDown || pushAdv) && LVP(b).siege ? 4200 : 1600) && !outn){
     const sp=findStand(b, st, reachTo(b,st)-15);
@@ -1438,7 +1438,7 @@ export function outnumbered(b){
 }
 /* Sayı üstünlüğü (13.10.2026): yaşayan dostlar - yaşayan rakipler (yeniden doğuşuna AI.numResp sn'den az kalan ölü rakip yaşıyor sayılır) */
 AI.numResp=7; AI.numAllyR=1400;
-AI.lateK=0;
+AI.lateK=0; AI.lateSiege=0;   // lateSiege (bot L2): dakika eşiği; geç oyunda eşit sayıda bile dostla birlikte kuleye (0 kapalı)
 function numEdge(b){ let n=0; for(const u of S.heroes){ const alive=!u.dead || u.respawn<=LVP(b).numResp; if(alive) n+= u.team===b.team ? 1 : -1; } return n; }
 function foesInLane(b){ let n=0, all=0; for(const u of S.heroes) if(u.team!==b.team){ all++; if(!u.dead && canSee(b.team,u) && u.y>1450) n++; } return all>=2 && n>=all; }
 function frontTower(team){ return S.lane[team].find(s=>!s.dead && s.sub!=='nexus') || S.lane[team][3]; }
