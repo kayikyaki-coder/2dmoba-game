@@ -1448,9 +1448,9 @@ function defendSpot(b){
   const ft=frontTower(b.team);
   for(const a of S.heroes){
     if(a===b || a.dead || a.team!==b.team) continue;
-    if(foesAround(b,a.x,a.y,AI.outnumR)>=2 && a.hp/a.maxHp<AI.jgDefendHp && dist(a,b)<AI.jgDefendR) return { x:a.x, y:a.y };
+    if(foesAround(b,a.x,a.y,AI.outnumR)>=2 && a.hp/a.maxHp<LVP(b).jgDefendHp && dist(a,b)<LVP(b).jgDefendR) return { x:a.x, y:a.y };
   }
-  for(const st of S.lane[b.team]) if(!st.dead && !st.prot && foesAround(b,st.x,st.y,AI.jgDefendTowerR)>=1 && dist(st,b)<AI.jgDefendR+800) return { x:st.x, y:st.y };
+  for(const st of S.lane[b.team]) if(!st.dead && !st.prot && foesAround(b,st.x,st.y,LVP(b).jgDefendTowerR)>=1 && dist(st,b)<LVP(b).jgDefendR+800) return { x:st.x, y:st.y };
   return null;
 }
 function jungleMove(b, e, eVis, M, ev){
