@@ -1,0 +1,2 @@
+{"3":{"mlModel":"v5"}} | A kazanma %48 [41-56] 77/160 | süre 16.0 dk ölüm           A     8.2  B     8.4 10. dk fark (A-B) servet 195 XP 119 (130 maç) 
+DONE
