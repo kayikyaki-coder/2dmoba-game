@@ -122,14 +122,14 @@ function towerHits(s, b, px, py, margin){
   if((ddx<0?-ddx:ddx)-b.r>rr || (ddy<0?-ddy:ddy)-b.r>rr) return false;
   const myD=hyp(ddx, ddy)-b.r;
   if(myD > s.range+margin) return false;
-  if(s.aggro && s.aggro.target===b) return true;
+  // kule menzilindeki rakip (bizim tarafın) minyonu önce hedefler (sim.js updateTower: minyon önceliği): tank varsa kahramana vurmaz
   for(const u of S.minions){
     if(u.dead || u.team!==b.team || u.hp<AI.tankHp) continue;
     const ex=s.x-u.x, ey=s.y-u.y, rs=s.range+u.r+1;
     if((ex<0?-ex:ex)>rs || (ey<0?-ey:ey)>rs) continue;   // ucuz kutu elemesi: menzil dışı
-    const d=hyp(ex,ey)-u.r;
-    if(d<=s.range && d<myD-AI.tankMargin) return false;
+    if(hyp(ex,ey)-u.r<=s.range) return false;
   }
+  if(s.aggro && s.aggro.target===b) return true;
   for(const h of S.heroes){
     if(h===b || h.dead || h.team!==b.team) continue;
     const ex=s.x-h.x, ey=s.y-h.y, rs=s.range+h.r+1;

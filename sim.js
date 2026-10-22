@@ -2351,19 +2351,28 @@ export function updateTower(s, dt){
     if(u.dead || u.stasis>0 || dist(s,u)>s.range+u.r || !canSee(s.team,u)) s.aggro=null;
   }
   let tgt=null;
-  if(s.aggro){ const u=s.aggro.target; if(dist(s,u)<=s.range+u.r) tgt=u; }
+  // Minyon önceliği (22.10.2026): menzilde görünen rakip minyon varsa kule önce en yakın minyona vurur (kahraman aggro'su dahil); yoksa saldıran şampiyona, yoksa en yakın kahramana
+  {
+    let bd=1e9;
+    for(let ui=0; ui<S.minions.length; ui++){
+      const u=S.minions[ui];
+      if(u.dead || u.team===s.team) continue;
+      const ex=s.x-u.x, ey=s.y-u.y, rs=s.range+u.r+1;
+      if((ex<0?-ex:ex)>rs || (ey<0?-ey:ey)>rs) continue;   // ucuz kutu elemesi
+      const dd=Math.hypot(ex, ey)-u.r;
+      if(dd<=s.range && dd<bd && canSee(s.team,u)){ bd=dd; tgt=u; }
+    }
+  }
+  if(!tgt && s.aggro){ const u=s.aggro.target; if(dist(s,u)<=s.range+u.r) tgt=u; }
   if(!tgt){
     let bd=1e9;
-    for(let pi=0; pi<2; pi++){   // foes(team,false) ile aynı sıra: kahramanlar, minyonlar
-      const L = pi===0 ? S.heroes : S.minions;
-      for(let ui=0; ui<L.length; ui++){
-        const u=L[ui];
-        if(u.dead || u.team===s.team || u.stasis>0) continue;   // Kum Saati heykeli hedeflenemez
-        const ex=s.x-u.x, ey=s.y-u.y, rs=s.range+u.r+1;
-        if((ex<0?-ex:ex)>rs || (ey<0?-ey:ey)>rs) continue;   // ucuz kutu elemesi
-        const dd=Math.hypot(ex, ey)-u.r;
-        if(dd<=s.range && dd<bd && canSee(s.team,u)){ bd=dd; tgt=u; }
-      }
+    for(let ui=0; ui<S.heroes.length; ui++){
+      const u=S.heroes[ui];
+      if(u.dead || u.team===s.team || u.stasis>0) continue;   // Kum Saati heykeli hedeflenemez
+      const ex=s.x-u.x, ey=s.y-u.y, rs=s.range+u.r+1;
+      if((ex<0?-ex:ex)>rs || (ey<0?-ey:ey)>rs) continue;   // ucuz kutu elemesi
+      const dd=Math.hypot(ex, ey)-u.r;
+      if(dd<=s.range && dd<bd && canSee(s.team,u)){ bd=dd; tgt=u; }
     }
   }
   s.tgt=tgt;
