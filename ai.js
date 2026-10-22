@@ -6,7 +6,7 @@ import { S, settings, rand, dist, atkDef, atkDmg, attackSpeed, timings, canSee, 
 import { CRIT_MULT } from './items.js';
 import { lanePoint, laneProject, laneDir, inWall, BUSHES, bushAt } from './map.js';
 import { navDir, slideDir } from './nav.js';
-import { FIGHT_MODEL } from './ai_model.js';
+import { FIGHT_MODEL, RISK_MODEL } from './ai_model.js';
 
 /* Ayarlanabilir sabitler */
 export const AI = {
@@ -369,7 +369,7 @@ function teamEval(b, e, M){
    fightFeatures: botun e rakibine karşı dövüş durumu (sabit uzunlukta sayı dizisi). tools/fightdata.js bu özelliklerle veri toplar,
    tools/mltrain.js küçük bir sinir ağı eğitir (hedef: 6 sn dövüş sonunda net sonuç = rakip can kaybı - bizim can kaybımız + ölüm payı),
    ai_model.js'e yazar. mlBlend: ağın tahmini ev.adv ile log uzayında karıştırılır (LP.mlW ağırlığı; 0 kapalı). */
-AI.mlW=0; AI.explore=0; AI.collect=0; AI.sink=null;
+AI.mlW=0; AI.riskT=0; AI.explore=0; AI.collect=0; AI.sink=null;
 const HERO_IDS=Object.keys(HEROES);
 function readyN(h){ let n=0; for(const k of ['r','e','s']) if(h.rank[k]>0 && rdy(h,k)) n++; return n; }
 /* İlk 17 özellik v1 modelle aynı (model W1 genişliği kadarı okunur); 17'den sonrası v2: mutlak can, yakın can oranları, hız farkı, kontrol/kalkan, dalga, rakip kule, kahraman türleri (one-hot b, e) */
@@ -397,6 +397,13 @@ export function mlPredict(f){
   for(let j=0;j<H;j++){ let z=M.b1[j]; const w=M.W1[j]; for(let i=0;i<N;i++) z+=w[i]*f[i]; h[j]=Math.tanh(z); }
   let o=M.b2; for(let j=0;j<H;j++) o+=M.W2[j]*h[j];
   return o;
+}
+/* Ölüm riski modeli (RISK_MODEL, tools/mltrain.js --task cls): 5 sn içinde ölme olasılığı; LP.riskT eşiğini geçerse (öldürme penceresi/savunma yoksa) dövüşü bırak ve geri çekil */
+export function riskPredict(f){
+  const M=RISK_MODEL; if(!M) return 0;
+  const H=M.b1.length, N=M.W1[0].length;
+  let o=M.b2; for(let j=0;j<H;j++){ let z=M.b1[j]; const w=M.W1[j]; for(let i=0;i<N;i++) z+=w[i]*f[i]; o+=M.W2[j]*Math.tanh(z); }
+  return 1/(1+Math.exp(-o));
 }
 function mlBlend(b, e, ev, d, w){
   const p=mlPredict(fightFeatures(b,e,ev,d));
@@ -1747,8 +1754,12 @@ function botCommandCore(b, dt){
         }
       }
     }
+    if(LP.riskT && RISK_MODEL && eVis && ev && !kw && !defend && d<1300 && hpNow(b)<0.9){
+      const pr=riskPredict(fightFeatures(b,e,ev,d)); M.risk=pr;
+      if(pr>LP.riskT){ fight=false; M.tradeBack=Math.max(M.tradeBack||0, S.time+0.8); }
+    }
     M.fight=fight;
-    if(LP.collect && AI.sink && fight && eVis && ev && S.time>=(M.colT||0)){ M.colT=S.time+0.5; AI.sink.push({ id:b.id, eid:e.id, t:S.time, f:fightFeatures(b,e,ev,d), hp:b.hp/b.maxHp, ehp:e.hp/e.maxHp, dth:b.deaths, edth:e.deaths }); }
+    if(LP.collect && AI.sink && eVis && ev && (fight || (LP.collect>1 && d<1300)) && S.time>=(M.colT||0)){ M.colT=S.time+0.5; AI.sink.push({ id:b.id, eid:e.id, t:S.time, f:fightFeatures(b,e,ev,d), hp:b.hp/b.maxHp, ehp:e.hp/e.maxHp, dth:b.deaths, edth:e.deaths, fg:fight?1:0 }); }   // collect 2: dövüşmezken de (ölüm riski modeli)
     M.poking=false;
     if(fight){ tgt=e; mv=fightMove(b,e,M,ev); }
     else {
