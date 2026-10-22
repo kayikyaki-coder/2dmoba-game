@@ -1438,6 +1438,7 @@ export function outnumbered(b){
 }
 /* Sayı üstünlüğü (13.10.2026): yaşayan dostlar - yaşayan rakipler (yeniden doğuşuna AI.numResp sn'den az kalan ölü rakip yaşıyor sayılır) */
 AI.numResp=7; AI.numAllyR=1400;
+AI.lateK=0;
 function numEdge(b){ let n=0; for(const u of S.heroes){ const alive=!u.dead || u.respawn<=LVP(b).numResp; if(alive) n+= u.team===b.team ? 1 : -1; } return n; }
 function foesInLane(b){ let n=0, all=0; for(const u of S.heroes) if(u.team!==b.team){ all++; if(!u.dead && canSee(b.team,u) && u.y>1450) n++; } return all>=2 && n>=all; }
 function frontTower(team){ return S.lane[team].find(s=>!s.dead && s.sub!=='nexus') || S.lane[team][3]; }
@@ -1648,7 +1649,7 @@ function botCommandCore(b, dt){
         let engR = ranged(b) ? reachTo(b,e)+220 : 560;
         if(allyFighting(b,e)) engR+=LP.helpRange;   // dostumuz dövüşüyorsa yardıma gel
         const engBase=engR;
-        const pa=LP.persOn ? M.pers.aggr : 1, engA=LP.engageAdv/pa*(LP.persOn ? (M.engJit||1) : 1);   // kişilik ve anlık yanılma: bazen erken, bazen geç girer
+        const pa=LP.persOn ? M.pers.aggr : 1, engA=LP.engageAdv/pa*(LP.persOn ? (M.engJit||1) : 1)*(LP.lateK ? 1+LP.lateK*Math.max(0,respawnTime(S.time)-30)/60 : 1);   // lateK (bot L1): geç oyunda uzayan ölüm süresiyle girme eşiği artar   // kişilik ve anlık yanılma: bazen erken, bazen geç girer
         if(ev.adv>=(M.fight?LP.stayAdv/pa:engA) && d<engR) fight=true;
         if(M.inDanger && ev.adv<1.6 && !defend) fight=false;
         if(kw){ fight=true; M.killUntil=S.time+1.5; }
