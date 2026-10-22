@@ -1458,7 +1458,7 @@ function jungleMove(b, e, eVis, M, ev){
   const late=b.level>=AI.jgLateLv;   // geç oyun: yalnız Titan, gerisi koridor/itme
   { const d=defendSpot(b); if(d && b.hp/b.maxHp>0.35){ M.jgS='defend'; if(dist(b,d)>700) return { mv:{ x:d.x-b.x, y:d.y-b.y }, tgt:null, dive:false, hold:false }; return null; } }
   const hpF=b.hp/b.maxHp;
-  if(LVP(b).numAdv && hpF>0.4 && numEdge(b)>0 && !(bigCamp() && campLive(bigCamp(),b) && b.level>=AI.jgBigLv)){ M.jgS='push'; return null; }   // sayı üstünlüğü: koridora, itmeye
+  if(LVP(b).numAdv && hpF>0.4 && numEdge(b)>0 && !(bigCamp() && campLive(bigCamp(),b) && b.level>=LVP(b).jgBigLv)){ M.jgS='push'; return null; }   // sayı üstünlüğü: koridora, itmeye
   M.jgGank=null; M.jgS='?';
   if(hpF<0.3 && !(eVis && dist(b,e)<700)){ M.recall=true; }
   // 1) baskın
@@ -1466,12 +1466,12 @@ function jungleMove(b, e, eVis, M, ev){
   if(g){ M.jgGank=g; M.jgS='gank'; return { mv:{ x:g.x-b.x, y:g.y-b.y }, tgt:null, dive:false, hold:false }; }
   // 2) büyük canavar
   const bc=bigCamp();
-  if(bc && campLive(bc,b) && b.level>=AI.jgBigLv && hpF>0.65 && !foeNear(b,bc.x,bc.y,1400)){
+  if(bc && campLive(bc,b) && b.level>=LVP(b).jgBigLv && hpF>0.65 && !foeNear(b,bc.x,bc.y,1400)){
     let ally=null; for(const a of S.heroes) if(a!==b && !a.dead && a.team===b.team && hyp(a.x-bc.x,a.y-bc.y)<700) ally=a;
     const started=bc.mobs.some(m=>m.aggro && m.aggro.team===b.team);
-    if(ally || started || (b.level>=AI.jgBigSolo && campOK(b,bc,0.8))){ M.bigCall=0; M.jgS='big'; return campAttack(b,bc); }
+    if(ally || started || (b.level>=LVP(b).jgBigSolo && campOK(b,bc,0.8))){ M.bigCall=0; M.jgS='big'; return campAttack(b,bc); }
     if(!M.bigWait || S.time<M.bigWait){
-      if(!M.bigWait) M.bigWait=S.time+AI.jgBigWait;
+      if(!M.bigWait) M.bigWait=S.time+LVP(b).jgBigWait;
       M.bigCall=S.time; M.jgS='bigwait';   // koridorcu dostu çağır
       const dx=bc.x-b.x, dy=bc.y+260-b.y;   // çukurun koridor tarafında bekle
       return { mv: hyp(dx,dy)>40 ? { x:dx, y:dy } : { x:0, y:0 }, tgt:null, dive:false, hold:false };
@@ -1516,13 +1516,13 @@ function bigHelp(b, eVis, e){
   return null;
 }
 /* Sayı üstünlüğünde Titan (Uzman/Zor titanAdv): rakiplerden biri uzun süre ölü, dost da çukura yakınsa koridorcu da Titan'a gider */
-AI.titanAdvR=2600;
+AI.titanAdvR=2600; AI.titanTeam=0;   // titanTeam (bot L4): sayı üstünlüğü aranmadan, dost de çukura yakınsa ve rakip yakında değilse koridorcu da Titan'a gider
 function titanAdv(b, eVis, e){
-  if(!LVP(b).titanAdv || b.noJungle || b.role==='jungle' || hpNow(b)<0.5 || b.level<AI.jgBigLv) return null;
+  if(!(LVP(b).titanAdv || LVP(b).titanTeam) || b.noJungle || b.role==='jungle' || hpNow(b)<0.5 || b.level<LVP(b).jgBigLv) return null;
   const bc=bigCamp(); if(!bc || !campLive(bc,b)) return null;
   const started=bc.mobs.some(m=>m.aggro && m.aggro.team===b.team);
   if(!started){
-    if(numEdge(b)<=0 || dist(b,bc)>AI.titanAdvR || foeNear(b,bc.x,bc.y,1400)) return null;
+    if((!LVP(b).titanTeam && numEdge(b)<=0) || dist(b,bc)>AI.titanAdvR || foeNear(b,bc.x,bc.y,1400)) return null;
     if(!S.heroes.some(a=>a!==b && a.team===b.team && !a.dead && hyp(a.x-bc.x,a.y-bc.y)<AI.titanAdvR && a.hp>a.maxHp*0.5)) return null;
   } else if(foeNear(b,bc.x,bc.y,900) || dist(b,bc)>AI.titanAdvR) return null;
   return campAttack(b,bc);
