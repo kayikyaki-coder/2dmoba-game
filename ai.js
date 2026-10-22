@@ -163,7 +163,7 @@ function towerDmgOver(T){
    (Yeniden doğma kısa olduğu için ölüm ucuz: kuleye ciddi hasar vermek çoğu zaman ölmeye değer.) */
 function canDive(b, st, e, M){
   if(st.sub==='nexus') return true;
-  if(e && !e.dead && dist(e,st)<AI.diveEnemyDist) return false;
+  if(e && !e.dead && dist(e,st)<LVP(b).diveEnemyDist) return false;
   // ölüm ucuzsa (yeniden doğma kısa) ölene kadar vur, pahalıysa canı koru
   const cheap=respawnTime(S.time)<=LVP(b).cheapDeath;
   let floor=b.maxHp*(cheap?0:LVP(b).diveFloor), start=cheap?0.2:LVP(b).diveStart;
@@ -1438,7 +1438,8 @@ export function outnumbered(b){
 }
 /* Sayı üstünlüğü (13.10.2026): yaşayan dostlar - yaşayan rakipler (yeniden doğuşuna AI.numResp sn'den az kalan ölü rakip yaşıyor sayılır) */
 AI.numResp=7; AI.numAllyR=1400;
-AI.lateK=0; AI.lateSiege=0;   // lateSiege (bot L2): dakika eşiği; geç oyunda eşit sayıda bile dostla birlikte kuleye (0 kapalı)
+AI.lateK=0; AI.recallBuf=0;   // recallBuf (bot L3): eşya için üsse dönüş altın payı
+ AI.lateSiege=0;   // lateSiege (bot L2): dakika eşiği; geç oyunda eşit sayıda bile dostla birlikte kuleye (0 kapalı)
 function numEdge(b){ let n=0; for(const u of S.heroes){ const alive=!u.dead || u.respawn<=LVP(b).numResp; if(alive) n+= u.team===b.team ? 1 : -1; } return n; }
 function foesInLane(b){ let n=0, all=0; for(const u of S.heroes) if(u.team!==b.team){ all++; if(!u.dead && canSee(b.team,u) && u.y>1450) n++; } return all>=2 && n>=all; }
 function frontTower(team){ return S.lane[team].find(s=>!s.dead && s.sub!=='nexus') || S.lane[team][3]; }
@@ -1595,7 +1596,7 @@ function botCommandCore(b, dt){
   let waveNear=false, ownN=0, foeN=0;
   for(const m of S.minions) if(!m.dead && dist(m,b)<800){ if(m.team!==b.team){ waveNear=true; foeN++; } else ownN++; }
   // Zor: dalgayı itiyorsak (bizim minyon sayısı belirgin üstünse) dalga kendi başına itmeye devam ederken üsse dönüp eşya al
-  if(!M.recall && mode!=='duel' && nb && !canShop(b) && b.gold>=itemCostFor(b,nb) && !(eVis && d<1000) && (!waveNear || hpNow(b)<0.5 || (LP.wave && ownN>=foeN+2))) { M.recall=true; M.shop=true; }
+  if(!M.recall && mode!=='duel' && nb && !canShop(b) && b.gold>=itemCostFor(b,nb)*(1+LP.recallBuf) && !(eVis && d<1000) && (!waveNear || hpNow(b)<0.5 || (LP.wave && ownN>=foeN+2))) { M.recall=true; M.shop=true; }
 
   // Rakiplerin hepsi uzun süre ölüyse: kuşatamayacak kadar yaralıysak ya da eşya alacaksak şimdi dön (cezası yok)
   if(LP.deadRecall && !M.recall && mode!=='duel' && !canShop(b)){
