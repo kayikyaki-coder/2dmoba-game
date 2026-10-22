@@ -1,7 +1,7 @@
 /* Bot yapay zekası (v2): tarayıcıya bağımlı değil, iki takımı da oynayabilir.
    Akış: algı -> karar (geri çekil / dövüş / koridor) -> hareket (konum + kaçınma + kule güvenliği) -> saldırı ve yetenekler.
    Eski bot karşılaştırma için ai_v1.js içinde. */
-import { JUNGLE, WORLD, LANE_Y, TOWER, towerChampHit, towerScale, towerMinionHit, FOUNTAIN, respawnTime, RECALL } from './data.js';
+import { HEROES, JUNGLE, WORLD, LANE_Y, TOWER, towerChampHit, towerScale, towerMinionHit, FOUNTAIN, respawnTime, RECALL } from './data.js';
 import { S, settings, rand, dist, atkDef, atkDmg, attackSpeed, timings, canSee, canAct, stat, burnDps, apOf, canShop, botShop, nextBuild, itemCostFor, attackTarget, inAttackRange, bonusAd, bonusHp, inCone, waveNear, campIntel } from "./sim.js";
 import { CRIT_MULT } from './items.js';
 import { lanePoint, laneProject, laneDir, inWall, BUSHES, bushAt } from './map.js';
@@ -370,23 +370,31 @@ function teamEval(b, e, M){
    tools/mltrain.js küçük bir sinir ağı eğitir (hedef: 6 sn dövüş sonunda net sonuç = rakip can kaybı - bizim can kaybımız + ölüm payı),
    ai_model.js'e yazar. mlBlend: ağın tahmini ev.adv ile log uzayında karıştırılır (LP.mlW ağırlığı; 0 kapalı). */
 AI.mlW=0; AI.explore=0; AI.collect=0; AI.sink=null;
-const ML_N=17;
+const HERO_IDS=Object.keys(HEROES);
 function readyN(h){ let n=0; for(const k of ['r','e','s']) if(h.rank[k]>0 && rdy(h,k)) n++; return n; }
+/* İlk 17 özellik v1 modelle aynı (model W1 genişliği kadarı okunur); 17'den sonrası v2: mutlak can, yakın can oranları, hız farkı, kontrol/kalkan, dalga, rakip kule, kahraman türleri (one-hot b, e) */
 export function fightFeatures(b, e, ev, d){
-  let al=0, fo=0;
-  for(const u of S.heroes){ if(u===b||u===e||u.dead) continue; if(u.team===b.team){ if(dist(u,e)<AI.teamR || dist(u,b)<AI.teamR*0.6) al++; } else if(dist(u,e)<AI.teamR || dist(u,b)<AI.teamR) fo++; }
+  let al=0, fo=0, alHp=0, foHp=0;
+  for(const u of S.heroes){ if(u===b||u===e||u.dead) continue; if(u.team===b.team){ if(dist(u,e)<AI.teamR || dist(u,b)<AI.teamR*0.6){ al++; alHp+=hpNow(u); } } else if(dist(u,e)<AI.teamR || dist(u,b)<AI.teamR){ fo++; foHp+=hpNow(u); } }
   const ft=frontTower(b.team), em=S.lane[e.team].find(s=>!s.dead);
-  return [
+  let om=0, fm=0; for(const m of S.minions){ if(m.dead) continue; const dd=dist(m,b); if(dd<650){ if(m.team===b.team) om++; else fm++; } }
+  const f=[
     Math.log(Math.min(10,Math.max(0.1,ev.adv))), Math.min(15,ev.tKill)/5, Math.min(15,ev.tDie)/5,
     hpNow(b), hpNow(e), Math.min(2500,d)/1000, al, fo, (b.level-e.level)/5,
     ranged(b)?1:0, ranged(e)?1:0, unsafeAt(b,b.x,b.y)?1:0, (ft && dist(b,ft)<TOWER.range+150)?1:0,
-    readyN(b)/3, readyN(e)/3, S.time-(b.dmgBy[e.id]??-99)<2?1:0, Math.min(2,S.time/1200)
+    readyN(b)/3, readyN(e)/3, S.time-(b.dmgBy[e.id]??-99)<2?1:0, Math.min(2,S.time/1200),
+    b.maxHp/1000, e.maxHp/1000, al?alHp/al:0, fo?foHp/fo:0, (stat(b,'spd')-stat(e,'spd'))/100,
+    (b.st.freeze>0||b.st.root||b.st.silence)?1:0, (e.st.freeze>0||e.st.root||e.st.silence)?1:0, b.st.shield?Math.min(1,b.st.shield.amt/b.maxHp):0, e.st.shield?Math.min(1,e.st.shield.amt/e.maxHp):0,
+    Math.min(8,om)/4, Math.min(8,fm)/4, em?Math.min(3000,dist(e,em))/1000:3, em&&dist(e,em)<em.range+e.r+60?1:0
   ];
+  for(const t of HERO_IDS) f.push(b.type===t?1:0);
+  for(const t of HERO_IDS) f.push(e.type===t?1:0);
+  return f;
 }
 export function mlPredict(f){
   const M=FIGHT_MODEL; if(!M) return 0;
-  const H=M.b1.length, h=new Array(H);
-  for(let j=0;j<H;j++){ let z=M.b1[j]; for(let i=0;i<ML_N;i++) z+=M.W1[j][i]*f[i]; h[j]=Math.tanh(z); }
+  const H=M.b1.length, N=M.W1[0].length, h=new Array(H);
+  for(let j=0;j<H;j++){ let z=M.b1[j]; const w=M.W1[j]; for(let i=0;i<N;i++) z+=w[i]*f[i]; h[j]=Math.tanh(z); }
   let o=M.b2; for(let j=0;j<H;j++) o+=M.W2[j]*h[j];
   return o;
 }
