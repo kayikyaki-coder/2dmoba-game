@@ -31,7 +31,7 @@ export const STATS = {
     ah:{ base:0, per:0 },           // yetenek hızı: bekleme süresi 100/(100+yh) ile çarpılır
     ap:{ base:0, per:0 },           // yetenek gücü (YG): eşyalardan gelir, yetenek oranlarıyla çarpılır
     dmg:{ base:28, per:2.8 },   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Okçu %61): 29 idi //   // denge O2: 32 idi //   // denge O1: 35 idi //   // zırh sistemi (11.10.2026): 31 (+2.8) idi
-    as:{ base:1.16, per:0.06 },     // saniyedeki saldırı sayısı (denge: 1.28, sonra 1.22 idi; 2v2 tur 7: %66)
+    as:{ base:1.1, per:0.06 },   // denge ML2 (22.10.2026, tarama ML2: Okçu %61): 1.16 idi //     // saniyedeki saldırı sayısı (denge: 1.28, sonra 1.22 idi; 2v2 tur 7: %66)
     spd:{ base:200, per:3 },        // hareket hızı
     range:{ base:310, per:0 },      // düz vuruş menzili
     size:{ base:27, per:0 },        // yarıçap
@@ -42,13 +42,13 @@ export const STATS = {
     projRadius:{ base:6, per:0 }    // ok kalınlığı
   },
   warrior: {
-    hp:{ base:880, per:32 },   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Savaşçı %37): 840 idi //   // denge A1 (13.10.2026): 870 idi // denge F4: 820 idi //   // zırh sistemi (11.10.2026): 940 (+40) idi
+    hp:{ base:920, per:32 },   // denge ML2 (22.10.2026, tarama ML2: Savaşçı %39): 880 idi //   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Savaşçı %37): 840 idi //   // denge A1 (13.10.2026): 870 idi // denge F4: 820 idi //   // zırh sistemi (11.10.2026): 940 (+40) idi
     regen:{ base:10, per:0.9 },       // denge: 5 idi, seviye başına: 0 idi
     armor:{ base:40, per:5 },   // denge F2: 36 (+4.5) idi //   // denge F1 (11.10.2026, zırh sonrası): 32 (+4) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:34, per:1.8 },   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },           // yetenek hızı: bekleme süresi 100/(100+yh) ile çarpılır
     ap:{ base:0, per:0 },           // yetenek gücü (YG): eşyalardan gelir, yetenek oranlarıyla çarpılır
-    dmg:{ base:69, per:4 },   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Savaşçı %37): 66 idi //   // denge O2: 68 idi //   // zırh sistemi (11.10.2026): 75 (+4) idi
+    dmg:{ base:71, per:4 },   // denge ML2 (22.10.2026, tarama ML2: Savaşçı %39): 69 idi //   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Savaşçı %37): 66 idi //   // denge O2: 68 idi //   // zırh sistemi (11.10.2026): 75 (+4) idi
     as:{ base:1.00, per:0.04 },
     spd:{ base:200, per:3 },
     range:{ base:110, per:0 },
@@ -101,7 +101,7 @@ export const STATS = {
     mr:{ base:25, per:1 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:29, per:2.8 },   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Seken %64): 31 idi //   // denge O3: 33 idi //   // denge O2: 35 idi //   // denge O1: 37 idi //   // denge F5: 44 idi //   // zırh sistemi (11.10.2026): 39 (+2.8) idi
+    dmg:{ base:27, per:2.8 },   // denge ML2 (22.10.2026, tarama ML2: Seken %61): 29 idi //   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Seken %64): 31 idi //   // denge O3: 33 idi //   // denge O2: 35 idi //   // denge O1: 37 idi //   // denge F5: 44 idi //   // zırh sistemi (11.10.2026): 39 (+2.8) idi
     as:{ base:1.00, per:0.05 },     // denge: 1.15 idi
     spd:{ base:200, per:3 },
     range:{ base:310, per:0 },    // 450 idi, denge için 400
@@ -147,7 +147,7 @@ export const STATS = {
     angle:{ base:90, per:0 }
   },
   gladiator: {   // Gladyatör: yakın dövüşçü. Savaşçı'dan az can, Kızışma yığınlarıyla saldırı hızı tırmanır
-    hp:{ base:890, per:37 },   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Gladyatör %41): 860 idi //   // denge O1: 900 idi //   // denge F5: 860 idi //   // zırh sistemi (11.10.2026): 980 (+46) idi
+    hp:{ base:910, per:37 },   // denge ML2 (22.10.2026, tarama ML2: Gladyatör %43): 890 idi //   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Gladyatör %41): 860 idi //   // denge O1: 900 idi //   // denge F5: 860 idi //   // zırh sistemi (11.10.2026): 980 (+46) idi
     regen:{ base:9, per:0.9 },
     armor:{ base:40, per:5 },   // denge F2: 36 (+4.5) idi //   // denge F1 (11.10.2026, zırh sonrası): 32 (+4) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:34, per:1.8 },   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -164,7 +164,7 @@ export const STATS = {
     angle:{ base:90, per:0 }
   },
   flame: {
-    hp:{ base:700, per:21 },   // denge T1 (16.10.2026, Uzman %74): 730 (+24) idi // denge O2: 680 idi //   // denge O1: 640 idi //   // zırh sistemi (11.10.2026): 680 (+30) idi
+    hp:{ base:720, per:21 },   // denge ML2 (22.10.2026, tarama ML2: Alev %43): 700 idi //   // denge T1 (16.10.2026, Uzman %74): 730 (+24) idi // denge O2: 680 idi //   // denge O1: 640 idi //   // zırh sistemi (11.10.2026): 680 (+30) idi
     regen:{ base:8, per:0.9 },        // denge: 4 idi, seviye başına: 0 idi
     armor:{ base:30, per:3.33 },   // denge T1: 32 (+4) idi // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:30, per:1.67 },   // denge T1: 33 (+1.7) idi //   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -181,7 +181,7 @@ export const STATS = {
     angle:{ base:90, per:0 }
   },
   blood: {
-    hp:{ base:610, per:28 },   // denge O3: 580 idi //   // zırh sistemi (11.10.2026): 490 (+28) idi
+    hp:{ base:630, per:28 },   // denge ML2 (22.10.2026, tarama ML2: Kan Lordu %43): 610 idi //   // denge O3: 580 idi //   // zırh sistemi (11.10.2026): 490 (+28) idi
     regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
