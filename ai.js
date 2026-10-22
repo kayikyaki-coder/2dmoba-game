@@ -6,6 +6,7 @@ import { S, settings, rand, dist, atkDef, atkDmg, attackSpeed, timings, canSee, 
 import { CRIT_MULT } from './items.js';
 import { lanePoint, laneProject, laneDir, inWall, BUSHES, bushAt } from './map.js';
 import { navDir, slideDir } from './nav.js';
+import { FIGHT_MODEL } from './ai_model.js';
 
 /* Ayarlanabilir sabitler */
 export const AI = {
@@ -362,6 +363,36 @@ function teamEval(b, e, M){
   const myD=Math.max(1, m.D-n.heal), enD=Math.max(1, n.D-m.heal);
   const tKill=Math.max(0.2, n.hp+n.ehp-m.dmg)/myD, tDie=Math.max(0.2, m.hp+m.ehp-n.dmg)/enD;
   return { adv:Math.pow(tDie/tKill, P.k), tKill, tDie };
+}
+
+/* ---- Öğrenilmiş dövüş modeli (makine öğrenmesi, 22.10.2026) ----
+   fightFeatures: botun e rakibine karşı dövüş durumu (sabit uzunlukta sayı dizisi). tools/fightdata.js bu özelliklerle veri toplar,
+   tools/mltrain.js küçük bir sinir ağı eğitir (hedef: 6 sn dövüş sonunda net sonuç = rakip can kaybı - bizim can kaybımız + ölüm payı),
+   ai_model.js'e yazar. mlBlend: ağın tahmini ev.adv ile log uzayında karıştırılır (LP.mlW ağırlığı; 0 kapalı). */
+AI.mlW=0; AI.explore=0; AI.collect=0; AI.sink=null;
+const ML_N=17;
+function readyN(h){ let n=0; for(const k of ['r','e','s']) if(h.rank[k]>0 && rdy(h,k)) n++; return n; }
+export function fightFeatures(b, e, ev, d){
+  let al=0, fo=0;
+  for(const u of S.heroes){ if(u===b||u===e||u.dead) continue; if(u.team===b.team){ if(dist(u,e)<AI.teamR || dist(u,b)<AI.teamR*0.6) al++; } else if(dist(u,e)<AI.teamR || dist(u,b)<AI.teamR) fo++; }
+  const ft=frontTower(b.team), em=S.lane[e.team].find(s=>!s.dead);
+  return [
+    Math.log(Math.min(10,Math.max(0.1,ev.adv))), Math.min(15,ev.tKill)/5, Math.min(15,ev.tDie)/5,
+    hpNow(b), hpNow(e), Math.min(2500,d)/1000, al, fo, (b.level-e.level)/5,
+    ranged(b)?1:0, ranged(e)?1:0, unsafeAt(b,b.x,b.y)?1:0, (ft && dist(b,ft)<TOWER.range+150)?1:0,
+    readyN(b)/3, readyN(e)/3, S.time-(b.dmgBy[e.id]??-99)<2?1:0, Math.min(2,S.time/1200)
+  ];
+}
+export function mlPredict(f){
+  const M=FIGHT_MODEL; if(!M) return 0;
+  const H=M.b1.length, h=new Array(H);
+  for(let j=0;j<H;j++){ let z=M.b1[j]; for(let i=0;i<ML_N;i++) z+=M.W1[j][i]*f[i]; h[j]=Math.tanh(z); }
+  let o=M.b2; for(let j=0;j<H;j++) o+=M.W2[j]*h[j];
+  return o;
+}
+function mlBlend(b, e, ev, d, w){
+  const p=mlPredict(fightFeatures(b,e,ev,d));
+  return { ...ev, adv: Math.exp((1-w)*Math.log(Math.max(0.05,ev.adv)) + w*FIGHT_MODEL.k*p), ml:p };
 }
 /* Dostumuz (canlı) rakiple dövüşte mi? (o dostun botu M.fight tuttu ve rakip yakında) */
 function allyFighting(b, e){
@@ -1588,6 +1619,7 @@ function botCommandCore(b, dt){
   let ev = eVis ? teamEval(b,e,M) : null;
   const d = eVis ? dist(b,e) : 1e9;
   if(ev && (LP.win || LP.dng)) ev=adjustEv(b,e,ev,d,LP);
+  if(ev && LP.mlW && FIGHT_MODEL) ev=mlBlend(b,e,ev,d,LP.mlW);
   if(eVis) M.eLast={ x:e.x, y:e.y, vx:(e.vx||0)+(e.kx||0), vy:(e.vy||0)+(e.ky||0), t:S.time };   // son görülen yer (Kök Sal)
   // Öldürme penceresi: kendi can eşiğimizden önce gelir (rakip 1-2 vuruşluksa kaçmayız)
   const kw = eVis && mode!=='duel' && !b.chan && !inFountain(b) ? killWindow(b,e,d,M) : false;
@@ -1660,6 +1692,10 @@ function botCommandCore(b, dt){
         const engBase=engR;
         const pa=LP.persOn ? M.pers.aggr : 1, engA=LP.engageAdv/pa*(LP.persOn ? (M.engJit||1) : 1)*(LP.lateK ? 1+LP.lateK*Math.max(0,respawnTime(S.time)-30)/60 : 1);   // lateK (bot L1): geç oyunda uzayan ölüm süresiyle girme eşiği artar   // kişilik ve anlık yanılma: bazen erken, bazen geç girer
         if(ev.adv>=(M.fight?LP.stayAdv/pa:engA) && d<engR) fight=true;
+        if(!fight && LP.explore && ev.adv>=0.5 && d<engR){   // veri toplama: çeşitlilik için bazen eşiğin altında da dövüş (6 sn)
+          if(S.time>=(M.exT||0)){ M.exT=S.time+6; M.exOn=rand()<LP.explore; }
+          if(M.exOn) fight=true;
+        }
         if(M.inDanger && ev.adv<1.6 && !defend) fight=false;
         if(kw){ fight=true; M.killUntil=S.time+1.5; }
         else if(!fight && S.time<(M.killUntil||0) && hpNow(b)>0.12 && ev.adv>=0.6) fight=true;   // öldürmeye girdiysek hemen bırakma
@@ -1704,6 +1740,7 @@ function botCommandCore(b, dt){
       }
     }
     M.fight=fight;
+    if(LP.collect && AI.sink && fight && eVis && ev && S.time>=(M.colT||0)){ M.colT=S.time+0.5; AI.sink.push({ id:b.id, eid:e.id, t:S.time, f:fightFeatures(b,e,ev,d), hp:b.hp/b.maxHp, ehp:e.hp/e.maxHp, dth:b.deaths, edth:e.deaths }); }
     M.poking=false;
     if(fight){ tgt=e; mv=fightMove(b,e,M,ev); }
     else {
