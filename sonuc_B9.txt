@@ -1,0 +1,4 @@
+spirit sg1 | A kazanma %89 [83-93] 142/160 | süre 16.1 dk ölüm           A     4.0  B     6.1 10. dk fark (A-B) servet 271 XP 287 (151 maç) 
+DONE
+spirit sg1 | A kazanma %83 [77-88] 133/160 | süre 17.1 dk ölüm           A     4.8  B     6.3 10. dk fark (A-B) servet 161 XP 166 (149 maç) 
+DONE
