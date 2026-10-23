@@ -214,7 +214,8 @@ export const BUILDS = {
     yikik:  ['botrk','kraken','ie','pd','ldr','bt']
   },
   bounce: {
-    default:['ie','pd','botrk','ldr',DEF,'bt'],   // vuruş etkileri yalnız ilk hedefte işlediği için kritik, saldırı hızı ve SG ağırlıklı nişancı eşyaları (denenmedi)
+    default:['botrk','ie','pd','ldr','bt','kraken'],   // 23.10.2026 (eşya A/B C1/C5, 2v2 Uzman, 160 maç x 3 tohum): yikik eski varsayılana karşı %61/%64/%63 -> varsayılan
+    eskiDef:['ie','pd','botrk','ldr',DEF,'bt'],   // vuruş etkileri yalnız ilk hedefte işlediği için kritik, saldırı hızı ve SG ağırlıklı nişancı eşyaları (denenmedi)
     krit:   ['ie','pd','rfc','ldr','bt','botrk'],
     yikik:  ['botrk','ie','pd','ldr','bt','kraken']
   },
