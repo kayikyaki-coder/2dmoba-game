@@ -24,13 +24,13 @@ export const LEVEL_PER = 9/14;
 /* satır sırası: can, hasar, saldırı hızı, hareket hızı, menzil, boyut, kütle, hazırlık oranı, vuruşta yavaşlama, mermi hızı, mermi boyu, koni açısı */
 export const STATS = {
   archer: {
-    hp:{ base:480, per:25 },   // denge K1 (15.10.2026, kule+sis sonrası %39): 450 idi // denge O1: 470 idi //   // zırh sistemi (11.10.2026): 400 (+25) idi
+    hp:{ base:500, per:25 },   // denge ML13 (23.10.2026, tarama ML12: Okçu %40): 480 idi // denge K1 (15.10.2026, kule+sis sonrası %39): 450 idi // denge O1: 470 idi //   // zırh sistemi (11.10.2026): 400 (+25) idi
     regen:{ base:3, per:0.6 },        // 5 saniyede yenilenen can, seviye başına: 0 idi
     armor:{ base:19, per:2.5 },   // denge F1 (11.10.2026, zırh sonrası): 22 (+3) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:22, per:0.8 },   // denge F2: 25 (+1) idi //   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },           // yetenek hızı: bekleme süresi 100/(100+yh) ile çarpılır
     ap:{ base:0, per:0 },           // yetenek gücü (YG): eşyalardan gelir, yetenek oranlarıyla çarpılır
-    dmg:{ base:28, per:2.8 },   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Okçu %61): 29 idi //   // denge O2: 32 idi //   // denge O1: 35 idi //   // zırh sistemi (11.10.2026): 31 (+2.8) idi
+    dmg:{ base:29, per:2.8 },   // denge ML13 (tarama ML12: Okçu %40): 28 idi // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Okçu %61): 29 idi //   // denge O2: 32 idi //   // denge O1: 35 idi //   // zırh sistemi (11.10.2026): 31 (+2.8) idi
     as:{ base:1.1, per:0.06 },   // denge ML2 (22.10.2026, tarama ML2: Okçu %61): 1.16 idi //     // saniyedeki saldırı sayısı (denge: 1.28, sonra 1.22 idi; 2v2 tur 7: %66)
     spd:{ base:200, per:3 },        // hareket hızı
     range:{ base:310, per:0 },      // düz vuruş menzili
@@ -235,7 +235,7 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   spirit: {
-    hp:{ base:790, per:24 },   // denge ML11 (23.10.2026, tarama EB, eşya turu sonrası: Ruh %69 (sg1 eşya sırası)): 855 idi // denge ML8 (23.10.2026, tarama ML7: Ruh %38): 830 idi // denge ML6 (23.10.2026, tarama ML5: Ruh %33): 800 idi // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Ruh %30): 760 idi // denge L1 (14.10.2026, seviye 15): 700 idi // denge A1 (13.10.2026): 660 idi // denge O2: 620 idi //   // denge O1: 590 idi //   // zırh sistemi (11.10.2026): 500 (+24) idi
+    hp:{ base:765, per:24 },   // denge ML13 (23.10.2026, tarama ML12: Ruh %62): 790 idi // denge ML11 (23.10.2026, tarama EB, eşya turu sonrası: Ruh %69 (sg1 eşya sırası)): 855 idi // denge ML8 (23.10.2026, tarama ML7: Ruh %38): 830 idi // denge ML6 (23.10.2026, tarama ML5: Ruh %33): 800 idi // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Ruh %30): 760 idi // denge L1 (14.10.2026, seviye 15): 700 idi // denge A1 (13.10.2026): 660 idi // denge O2: 620 idi //   // denge O1: 590 idi //   // zırh sistemi (11.10.2026): 500 (+24) idi
     regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
