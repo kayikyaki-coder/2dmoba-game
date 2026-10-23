@@ -516,7 +516,7 @@ export const HEROES = {
       p:{ name:'Kızışma', asMin:0.04, asMax:0.10, stacks:5, dur:4 },
       // sağ tık: anında; düz vuruş beklemesi sıfırlanır, window sn içindeki sonraki düz vuruş ek fiziksel dmg + ad * ek SG,
       //          slowDur sn azalan slow yavaşlatma (applySlow decay), Gladyatör healFlat + healPct * verilen ek hasar iyileşir
-      r:{ name:'Ağır Darbe', max:7, type:'heavy', cd:[7,6.5,6,5.5,5.3,5,4.8],   /* denge F3: cd 8-6.5 idi */ window:5, dmg:[50,78,106,134,151,168,184], ad:0.6,   /* denge F1: dmg 40-115, ad 0.5 idi */
+      r:{ name:'Ağır Darbe', max:7, type:'heavy', cd:[7,6.5,6,5.5,5.3,5,4.8],   /* denge F3: cd 8-6.5 idi */ window:5, dmg:[45,70,95,121,136,151,166], ad:0.6,   /* denge ML10 (23.10.2026, tarama ML9: Gladyatör %64, can kesintilerine tepkisiz): dmg 50-184 idi */   /* denge F1: dmg 40-115, ad 0.5 idi */
           slow:0.40, slowDur:2, healFlat:[20,30,40,50,56,62,68], healPct:0.3 },
       // E: Gladyatör'ün kendi konumunda (Trundle W gibi) radius yarıçaplı alan dur sn onun arenası olur (S.zones kind:'arena');
       //    kimseyi engellemez; o içindeyken +adFlat SG, +as saldırı hızı, +ms hareket hızı. Rakibe doğrudan etkisi yok.
