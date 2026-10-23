@@ -245,7 +245,8 @@ export const BUILDS = {
     savas:  ['spring','abyss','bloodtome','lich','hourglass','void']
   },
   blood: {
-    default:['spring',BURN,'dcap','void',DEF,'hourglass'],   // 16.10.2026: Kara Alev -> esnek yakma. can, YG ve direnç ağırlıklı büyücü (can harcayan E, can çalan yetenekler; denenmedi)
+    default:['spring','witchblade','lich','dcap',DEF,'hourglass'],   // 23.10.2026 (eşya A/B C4/C7, 2v2 Uzman, 160 maç x 3 tohum): sg1 eski varsayılana karşı %61/%58/%56 -> varsayılan
+    eskiDef:['spring',BURN,'dcap','void',DEF,'hourglass'],   // 16.10.2026: Kara Alev -> esnek yakma. can, YG ve direnç ağırlıklı büyücü (can harcayan E, can çalan yetenekler; denenmedi)
     buyu:   [BURN,'echo','dcap','void','glassbreak','time'],
     savas:  ['spring','abyss','bloodtome','dcap','void','hourglass'],
     sg1:    ['spring','witchblade','lich','dcap',DEF,'hourglass']   // 23.10.2026: Büyücü'de en iyi çıkan sıra (deneme)
