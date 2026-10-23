@@ -164,13 +164,13 @@ export const STATS = {
     angle:{ base:90, per:0 }
   },
   flame: {
-    hp:{ base:750, per:21 },   // denge ML7 (23.10.2026, tarama ML6: Alev %38): 720 idi // denge ML2 (22.10.2026, tarama ML2: Alev %43): 700 idi //   // denge T1 (16.10.2026, Uzman %74): 730 (+24) idi // denge O2: 680 idi //   // denge O1: 640 idi //   // zırh sistemi (11.10.2026): 680 (+30) idi
+    hp:{ base:780, per:21 },   // denge ML15 (23.10.2026, tarama ML14: Alev %37): 750 idi // denge ML7 (23.10.2026, tarama ML6: Alev %38): 720 idi // denge ML2 (22.10.2026, tarama ML2: Alev %43): 700 idi //   // denge T1 (16.10.2026, Uzman %74): 730 (+24) idi // denge O2: 680 idi //   // denge O1: 640 idi //   // zırh sistemi (11.10.2026): 680 (+30) idi
     regen:{ base:8, per:0.9 },        // denge: 4 idi, seviye başına: 0 idi
     armor:{ base:30, per:3.33 },   // denge T1: 32 (+4) idi // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:30, per:1.67 },   // denge T1: 33 (+1.7) idi //   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:55, per:2.5 },   // denge T1: 57 idi // denge O2: 53 idi //   // denge O1: 50 idi //   // zırh sistemi (11.10.2026): 56 (+2.5) idi
+    dmg:{ base:57, per:2.5 },   // denge ML15 (tarama ML14: Alev %37): 55 idi // denge T1: 57 idi // denge O2: 53 idi //   // denge O1: 50 idi //   // zırh sistemi (11.10.2026): 56 (+2.5) idi
     as:{ base:0.85, per:0.03 },
     spd:{ base:205, per:3 },
     range:{ base:120, per:0 },
