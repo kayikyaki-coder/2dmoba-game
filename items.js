@@ -226,7 +226,9 @@ export const BUILDS = {
   },
   gladiator: {
     default:['cleaver',DEF,'botrk',DEF,DEF,'titanic'],   // Gladyatör: Savaşçı gibi dövüşçü çekirdeği; saldırı hızı Kızışma ile katlanır (3 esnek)
-    tank:   ['cleaver',DEF,DEF,DEF,DEF,'predator']
+    tank:   ['cleaver',DEF,DEF,DEF,DEF,'predator'],
+    hasar:  ['cleaver','predator','botrk','titanic','sheen','bt'],   // 23.10.2026 deneme: Savaşçı hasar sırası gibi (DEF yok)
+    hasar2: ['cleaver','botrk',DEF,'predator','titanic','bt']   // 23.10.2026 deneme: tek DEF
   },
   roller: {
     default:['sunfire',DEF,'warmog',DEF,DEF,'titanic'],   // Gülle: Zincirli gibi can çekirdeği + esnek direnç yuvaları (3 esnek)
