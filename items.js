@@ -258,7 +258,10 @@ export const BUILDS = {
     default:['lich',BURN,'dcap','void','abyss','hourglass'],   // 23.10.2026 (eşya A/B B2/B8, 2v2 Uzman, 160 maç x 3 tohum): buyu eski varsayılana karşı %67/%63/%59 -> varsayılan
     eskiDef:['lich','spring',DEF,'bloodtome',DEF,'dcap'],   // yetenek sonrası vuruşlar, can ve YG ağırlıklı yakın dövüş büyücüsü (denenmedi)
     buyu:   ['lich',BURN,'dcap','void','abyss','hourglass'],
-    savas:  ['spring','abyss','bloodtome','lich','hourglass','void']
+    savas:  ['spring','abyss','bloodtome','lich','hourglass','void'],
+    c1:     ['lich','witchblade','dcap','void',BURN,'hourglass'],   // 24.10.2026 deneme: Cadı Bıçağı (düz vuruş)
+    c2:     ['lich',BURN,'dcap','embermask','void','abyss'],   // 24.10.2026 deneme: Kum Saati yerine Kor Maskesi
+    c3:     ['lich',BURN,'dcap','void','abyss','sunfire']   // 24.10.2026 deneme: son yuva Güneş Ateşi
   },
   blood: {
     default:['witchblade','lich','dcap','void','spring','hourglass'],   // 23.10.2026: eşya A/B sg4 %66/%63/%61 (DEF yok)
