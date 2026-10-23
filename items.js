@@ -237,7 +237,8 @@ export const BUILDS = {
     hasar:  ['sunfire','cleaver','titanic','warmog','predator','bt']   // 23.10.2026 deneme: DEF yok
   },
   gladiator: {
-    default:['cleaver','predator','botrk','titanic','sheen','bt'],   // 23.10.2026 (eşya A/B, 2v2 Uzman, 160 maç x 3 tohum): hasar (DEF yok) eski varsayılana karşı %64/%64/%61 -> varsayılan
+    default:['botrk','cleaver','kraken','titanic','predator','bt'],   // 24.10.2026 (eşya A/B G, 2v2 Uzman, 160 maç x 3 tohum): c1 (saldırı hızı) eski varsayılana karşı %57/%56/%60 -> varsayılan
+    eskiDef2:['cleaver','predator','botrk','titanic','sheen','bt'],   // 23.10.2026 varsayılanı (hasar)
     eskiDef:['cleaver',DEF,'botrk',DEF,DEF,'titanic'],   // Gladyatör: Savaşçı gibi dövüşçü çekirdeği; saldırı hızı Kızışma ile katlanır (3 esnek)
     tank:   ['cleaver',DEF,DEF,DEF,DEF,'predator'],
     hasar:  ['cleaver','predator','botrk','titanic','sheen','bt'],   // 23.10.2026 deneme: Savaşçı hasar sırası gibi (DEF yok)
