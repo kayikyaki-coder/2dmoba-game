@@ -42,7 +42,7 @@ export const STATS = {
     projRadius:{ base:6, per:0 }    // ok kalınlığı
   },
   warrior: {
-    hp:{ base:880, per:32 },   // denge ML6 (23.10.2026, tarama ML5: Savaşçı %69): 920 idi // denge ML2 (22.10.2026, tarama ML2: Savaşçı %39): 880 idi //   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Savaşçı %37): 840 idi //   // denge A1 (13.10.2026): 870 idi // denge F4: 820 idi //   // zırh sistemi (11.10.2026): 940 (+40) idi
+    hp:{ base:855, per:32 },   // denge ML7 (23.10.2026, tarama ML6: Savaşçı %63): 880 idi // denge ML6 (23.10.2026, tarama ML5: Savaşçı %69): 920 idi // denge ML2 (22.10.2026, tarama ML2: Savaşçı %39): 880 idi //   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Savaşçı %37): 840 idi //   // denge A1 (13.10.2026): 870 idi // denge F4: 820 idi //   // zırh sistemi (11.10.2026): 940 (+40) idi
     regen:{ base:10, per:0.9 },       // denge: 5 idi, seviye başına: 0 idi
     armor:{ base:40, per:5 },   // denge F2: 36 (+4.5) idi //   // denge F1 (11.10.2026, zırh sonrası): 32 (+4) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:34, per:1.8 },   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -130,7 +130,7 @@ export const STATS = {
     angle:{ base:90, per:0 }
   },
   roller: {   // Gülle: hareket eden tank (yakın dövüş). Zincirli/Savaşçı arası can, düşük temel hız (Momentum +%28 verir)
-    hp:{ base:680, per:37 },   // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Gülle %68): 720 idi // denge C9: 750 idi // denge C5: 770 idi // zırh sistemi (11.10.2026): 920 (+46) idi
+    hp:{ base:655, per:37 },   // denge ML7 (23.10.2026, tarama ML6: Gülle %63): 680 idi // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Gülle %68): 720 idi // denge C9: 750 idi // denge C5: 770 idi // zırh sistemi (11.10.2026): 920 (+46) idi
     regen:{ base:8, per:1.0 },
     armor:{ base:42, per:5 },   // denge F2: 38 (+4.5) idi //   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:36, per:1.8 },   // denge F1 (11.10.2026, zırh sonrası): 32 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -164,7 +164,7 @@ export const STATS = {
     angle:{ base:90, per:0 }
   },
   flame: {
-    hp:{ base:720, per:21 },   // denge ML2 (22.10.2026, tarama ML2: Alev %43): 700 idi //   // denge T1 (16.10.2026, Uzman %74): 730 (+24) idi // denge O2: 680 idi //   // denge O1: 640 idi //   // zırh sistemi (11.10.2026): 680 (+30) idi
+    hp:{ base:750, per:21 },   // denge ML7 (23.10.2026, tarama ML6: Alev %38): 720 idi // denge ML2 (22.10.2026, tarama ML2: Alev %43): 700 idi //   // denge T1 (16.10.2026, Uzman %74): 730 (+24) idi // denge O2: 680 idi //   // denge O1: 640 idi //   // zırh sistemi (11.10.2026): 680 (+30) idi
     regen:{ base:8, per:0.9 },        // denge: 4 idi, seviye başına: 0 idi
     armor:{ base:30, per:3.33 },   // denge T1: 32 (+4) idi // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:30, per:1.67 },   // denge T1: 33 (+1.7) idi //   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -217,7 +217,7 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   shadow: {
-    hp:{ base:820, per:26 },   // denge C7: 800 idi // denge O2: 760 idi //   // denge O1: 730 idi //   // zırh sistemi (11.10.2026): 620 (+26) idi
+    hp:{ base:850, per:26 },   // denge ML7 (23.10.2026, tarama ML6: Gölge %39): 820 idi // denge C7: 800 idi // denge O2: 760 idi //   // denge O1: 730 idi //   // zırh sistemi (11.10.2026): 620 (+26) idi
     regen:{ base:3, per:0.7 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
