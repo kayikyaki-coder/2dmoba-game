@@ -449,12 +449,12 @@ export const HEROES = {
       //          düz vuruş ve yetenek serbest).
       r:{ name:'Zincir', max:7, type:'tether', cd:[11,10,9,8.5,8,7.5,7],   /* denge C3: cd 12-7.5 idi */ cast:0.2, castSlow:0.4, range:600, speed:760, radius:22,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; menzil 650, hız 1500, yarıçap 16 idi
          
-          dmg:[67,100,132,166,186,206,226], ap:0.40,   /* denge C10: 64-215 idi */   /* denge C6: 60-204 idi */ bind:2, root:1 },
+          dmg:[70,105,139,174,195,216,237], ap:0.40,   /* denge ML12 (23.10.2026, tarama ML11: Gölge %37): 67-226 idi */   /* denge C10: 64-215 idi */   /* denge C6: 60-204 idi */ bind:2, root:1 },
       // E: anında, imlece en çok range uzağa ışınlanır (duvar içine düşerse en yakın boş noktaya). İndiği yerde radius yarıçapta
       //    rakip birimlere (kule hariç) büyü hasarı. Bekleme ilk kullanımda başlar. back sn içinde aynı tuşa tekrar basılırsa başladığı
       //    yere döner (hasarsız, kullanım sayılmaz, bekleme süresinden bağımsız).
       e:{ name:'Gölge Adımı', max:7, type:'blink', cd:[14,13,12,11,10.5,10,9.5], range:420, radius:140,
-          dmg:[76,113,151,189,212,234,257], ap:0.50, back:3 },   // denge C4: 70-238 idi
+          dmg:[82,122,163,204,229,253,278], ap:0.50, back:3 },   // denge ML12 (tarama ML11: Gölge %37): 76-257 idi   // denge C4: 70-238 idi
       // boşluk: en son kullanılan sağ tık ya da E yeteneğini (dönüşler sayılmaz) bir kez daha kullanır, hasarı bonus oranında fazla;
       //         o yeteneğin bekleme süresini etkilemez. Taklit edilen Gölge Adımı'nın dönüşü Boşluk'a tekrar basılarak yapılır.
       //         Henüz yetenek kullanılmadıysa atılamaz.
