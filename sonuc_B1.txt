@@ -1,0 +1,5 @@
+mage eski | A kazanma %53 [45-60] 84/159 | süre 17.7 dk ölüm           A    10.5  B    10.5 10. dk fark (A-B) servet -150 XP -105 (153 maç) 
+mage hp1 | A kazanma %36 [29-43] 57/160 | süre 17.4 dk ölüm           A     9.9  B     9.2 10. dk fark (A-B) servet -132 XP -66 (146 maç) 
+mage hp2 | A kazanma %42 [35-50] 67/160 | süre 18.2 dk ölüm           A    10.8  B     9.6 10. dk fark (A-B) servet -190 XP -89 (149 maç) 
+mage sg1 | A kazanma %68 [61-75] 109/160 | süre 17.1 dk ölüm           A     9.3  B    10.0 10. dk fark (A-B) servet -1 XP -3 (148 maç) 
+DONE
