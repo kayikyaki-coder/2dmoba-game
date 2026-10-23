@@ -1,0 +1,7 @@
+warrior hasar | A kazanma %77 [70-83] 123/160 | süre 16.8 dk ölüm           A     6.2  B     7.2 10. dk fark (A-B) servet 196 XP 227 (154 maç) 
+DONE
+warrior hasar | A kazanma %75 [68-81] 120/160 | süre 16.3 dk ölüm           A     5.9  B     6.8 10. dk fark (A-B) servet 90 XP 118 (149 maç) 
+DONE
+gladiator hasar | A kazanma %64 [56-71] 102/160 | süre 12.8 dk ölüm           A     5.0  B     5.9 10. dk fark (A-B) servet -60 XP 10 (129 maç) 
+gladiator hasar2 | A kazanma %60 [52-67] 96/160 | süre 13.4 dk ölüm           A     5.4  B     5.9 10. dk fark (A-B) servet 85 XP 155 (131 maç) 
+DONE
