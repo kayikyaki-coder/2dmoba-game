@@ -1,0 +1,9 @@
+hook az | A kazanma %63 [55-70] 101/160 | süre 17.8 dk ölüm           A     6.8  B     6.6 10. dk fark (A-B) servet -20 XP -21 (154 maç) 
+hook hasar | A kazanma %64 [57-71] 103/160 | süre 17.2 dk ölüm           A     7.6  B     7.1 10. dk fark (A-B) servet 80 XP 194 (149 maç) 
+DONE
+roller az | A kazanma %60 [52-67] 96/160 | süre 15.1 dk ölüm           A     7.8  B     8.2 10. dk fark (A-B) servet -37 XP -43 (126 maç) 
+roller hasar | A kazanma %56 [48-63] 89/160 | süre 14.1 dk ölüm           A     8.5  B     7.5 10. dk fark (A-B) servet 21 XP 140 (123 maç) 
+DONE
+dual nisanci | A kazanma %43 [35-50] 68/160 | süre 13.1 dk ölüm           A     8.5  B     6.3 10. dk fark (A-B) servet -93 XP -22 (133 maç) 
+dual dovuscu | A kazanma %54 [47-62] 87/160 | süre 14.3 dk ölüm           A     8.1  B     8.2 10. dk fark (A-B) servet -50 XP -23 (132 maç) 
+DONE
