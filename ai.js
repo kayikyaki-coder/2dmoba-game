@@ -58,7 +58,7 @@ const HARD = { lvl:2, win:1, cmb:1, bait:1, wave:1, misjudge:0.1, pokeP:0.85, ki
 export const LEVEL_PARAMS = [];   // araçlar için (tools/levels.js deney ayarı)
 const LV = [AI,
   Object.assign(Object.create(AI), MED),
-  Object.assign(Object.create(AI), MED, HARD),
+  Object.assign(Object.create(AI), MED, HARD, { mlW:0.8, mlModel:"v4", riskT:0.16, qW:8 }),   // Zor'a ML (23.10.2026, levels 40 maç: Zor>Orta %73 aynı, Uzman>Zor %88 -> %78)
   Object.assign(Object.create(AI), MED, HARD, { lvl:3, mlW:0.8, mlModel:"v4", riskT:0.16, qW:8, blinkGate:1, numAdv:1, kwHit:1, noLimbo:1, selfKw:0, misjudge:0.05, pokeP:0.9, killSense:1, lead:1, dng:1, chain:1, focus:1, react:[0.03,0.08], aimNoise:0.015, humanErr:0, humanRange:0, humanAtkDelay:0, humanMoveHold:[0.02,0.04],
     dodgeW:2.4, dodgeNeed:16, dodgeT:0.6, foeMemory:4, look:2, towerGate:0 })];
 LV.forEach((o,i)=>{ LEVEL_PARAMS[i]=o; });
