@@ -255,14 +255,16 @@ export const BUILDS = {
     eskiDef:['spring',BURN,'dcap','void',DEF,'hourglass'],   // 16.10.2026: Kara Alev -> esnek yakma. can, YG ve direnç ağırlıklı büyücü (can harcayan E, can çalan yetenekler; denenmedi)
     buyu:   [BURN,'echo','dcap','void','glassbreak','time'],
     savas:  ['spring','abyss','bloodtome','dcap','void','hourglass'],
-    sg1:    ['spring','witchblade','lich','dcap',DEF,'hourglass']   // 23.10.2026: Büyücü'de en iyi çıkan sıra (deneme)
+    sg1:    ['spring','witchblade','lich','dcap',DEF,'hourglass'],   // 23.10.2026: Büyücü'de en iyi çıkan sıra (deneme)
+    sg4:    ['witchblade','lich','dcap','void','spring','hourglass']   // deneme: Gölge sg4 (DEF yok)
   },
   artillery: {
     default:['emberrod','echo','dcap','void',DEF,'horizon'],   // 16.10.2026: Kara Alev -> Akkor Asası (uzaktan dürtme), Büyü Nüfuzu -> Ufuk Merceği (eski: ['blackflame','echo','dcap','void',DEF,'glassbreak'])
     hp1:    ['spring','blackflame','dcap','void',DEF,'hourglass'],   // denge: can ağırlıklı deneme
     hp2:    ['bloodtome','spring','dcap','void',DEF,'hourglass'],   // denge: can ağırlıklı deneme
     sg1:    ['spring','witchblade','lich','dcap',DEF,'hourglass'],   // denge: düz vuruş (kuşatma) ağırlıklı deneme (Ateş Dişi -> Büyü Kılıcı)
-    hiz:    ['time','echo','dcap','void','blackflame','hourglass']
+    hiz:    ['time','echo','dcap','void','blackflame','hourglass'],
+    sg4:    ['witchblade','lich','dcap','void','spring','hourglass']   // deneme: Gölge sg4 (DEF yok)
   },
   shadow: {
     default:['witchblade','lich','dcap','void','spring','hourglass'],   // 23.10.2026: eşya A/B sg4 %56/%58/%56 (DEF yok, Cadı Bıçağı önce)
@@ -301,6 +303,7 @@ export const BUILDS = {
     hiz:    ['time','echo','dcap','void','blackflame','hourglass'],
     savas:  ['spring','abyss','bloodtome','dcap','visage','hourglass'],
     sg2:    ['spring','witchblade','lich','dcap','void','hourglass'],   // 23.10.2026 deneme: sg1, DEF yerine Boşluk Asası
-    sg3:    ['witchblade','spring','lich','dcap',DEF,'hourglass']   // 23.10.2026 deneme: sg1, Cadı Bıçağı önce
+    sg3:    ['witchblade','spring','lich','dcap',DEF,'hourglass'],   // 23.10.2026 deneme: sg1, Cadı Bıçağı önce
+    sg4:    ['witchblade','lich','dcap','void','spring','hourglass']   // deneme: Gölge sg4 (DEF yok)
   }
 };
