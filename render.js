@@ -347,7 +347,7 @@ function drawTelegraph(h){
     const c=h.cast, sk=h.def.skills[c.k], p=1-Math.max(0,c.t)/c.total;
     const tc=PAL.team[h.team], blink=0.75+0.25*Math.sin(S.time*TAU*8);
     const fillA=a=>mine?`rgba(255,255,255,${a})`:rgba(tc,a*0.9), lineC=mine?'rgba(255,255,255,0.5)':rgba(tc,0.95*blink), lw=mine?2:3;
-    if(!mine && !(c.wind && sk.type==='shockwave')){ drawCharge(h,p,tc,blink); return; }   // 23.10.2026 (Kayra): rakipte yalnız hazırlık görünür, yön/alan/hedef görünmez
+    if(!mine && !(c.wind && sk.type==='shockwave')){ if(c.wind) drawCharge(h,p,tc,blink); return; }   // 23.10.2026 (Kayra, LoL gibi): rakip yeteneğinde hazırlık/yön/menzil/hedef çizilmez, yalnız atılan mermi görünür; bölünebilen hazırlıkta (Meydan Okuma) yönsüz halka
     ctx.save();
     if(!mine) ctx.setLineDash([12,7]);
     if(c.wind && sk.type==='duel' && c.tgt){   // Meydan Okuma hazırlığı: hedefe dolan çizgi (sersem/susturma/kök iptal eder)
