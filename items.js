@@ -294,7 +294,8 @@ export const BUILDS = {
     hiz:    ['time','echo','dcap','blackflame','void','hourglass']
   },
   dual: {
-    default:['sheen','cleaver',DEF,'mace',DEF,'predator'],   // iki biçimde de ek SG ile büyüyen yetenekler (Enerji Küresi %110, Sıçrayış %100), vuruş/yetenek sonrası Tılsımlı Kılıç, can ve yetenek hızı (denenmedi)
+    default:['botrk','cleaver','sheen','predator','mace','titanic'],   // 23.10.2026: eşya A/B c3 %64/%64/%74 (DEF yok, Yıkık önce)
+    eskiDef:['sheen','cleaver',DEF,'mace',DEF,'predator'],   // iki biçimde de ek SG ile büyüyen yetenekler (Enerji Küresi %110, Sıçrayış %100), vuruş/yetenek sonrası Tılsımlı Kılıç, can ve yetenek hızı (denenmedi)
     nisanci:['ie','pd','ldr','bt','botrk','kraken'],
     dovuscu:['cleaver','predator','mace','sheen','randuin','bt'],
     hasar:  ['sheen','cleaver','predator','mace','titanic','bt'],    // deneme: DEF yok
