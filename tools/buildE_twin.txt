@@ -1,0 +1,4 @@
+twin c1 | A kazanma %43 [35-50] 68/160 | süre 11.4 dk ölüm           A     7.3  B     6.9 10. dk fark (A-B) servet -28 XP -2 (98 maç) 
+twin c2 | A kazanma %52 [44-59] 83/160 | süre 11.5 dk ölüm           A     6.9  B     7.1 10. dk fark (A-B) servet 157 XP 227 (92 maç) 
+twin c3 | A kazanma %52 [44-59] 83/160 | süre 11.7 dk ölüm           A     7.5  B     7.0 10. dk fark (A-B) servet 54 XP 54 (97 maç) 
+DONE
