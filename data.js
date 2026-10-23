@@ -42,13 +42,13 @@ export const STATS = {
     projRadius:{ base:6, per:0 }    // ok kalınlığı
   },
   warrior: {
-    hp:{ base:920, per:32 },   // denge ML2 (22.10.2026, tarama ML2: Savaşçı %39): 880 idi //   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Savaşçı %37): 840 idi //   // denge A1 (13.10.2026): 870 idi // denge F4: 820 idi //   // zırh sistemi (11.10.2026): 940 (+40) idi
+    hp:{ base:880, per:32 },   // denge ML6 (23.10.2026, tarama ML5: Savaşçı %69): 920 idi // denge ML2 (22.10.2026, tarama ML2: Savaşçı %39): 880 idi //   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Savaşçı %37): 840 idi //   // denge A1 (13.10.2026): 870 idi // denge F4: 820 idi //   // zırh sistemi (11.10.2026): 940 (+40) idi
     regen:{ base:10, per:0.9 },       // denge: 5 idi, seviye başına: 0 idi
     armor:{ base:40, per:5 },   // denge F2: 36 (+4.5) idi //   // denge F1 (11.10.2026, zırh sonrası): 32 (+4) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:34, per:1.8 },   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },           // yetenek hızı: bekleme süresi 100/(100+yh) ile çarpılır
     ap:{ base:0, per:0 },           // yetenek gücü (YG): eşyalardan gelir, yetenek oranlarıyla çarpılır
-    dmg:{ base:71, per:4 },   // denge ML2 (22.10.2026, tarama ML2: Savaşçı %39): 69 idi //   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Savaşçı %37): 66 idi //   // denge O2: 68 idi //   // zırh sistemi (11.10.2026): 75 (+4) idi
+    dmg:{ base:68, per:4 },   // denge ML6 (23.10.2026, tarama ML5: Savaşçı %69): 71 idi // denge ML2 (22.10.2026, tarama ML2: Savaşçı %39): 69 idi //   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Savaşçı %37): 66 idi //   // denge O2: 68 idi //   // zırh sistemi (11.10.2026): 75 (+4) idi
     as:{ base:1.00, per:0.04 },
     spd:{ base:200, per:3 },
     range:{ base:110, per:0 },
@@ -147,13 +147,13 @@ export const STATS = {
     angle:{ base:90, per:0 }
   },
   gladiator: {   // Gladyatör: yakın dövüşçü. Savaşçı'dan az can, Kızışma yığınlarıyla saldırı hızı tırmanır
-    hp:{ base:870, per:37 },   // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Gladyatör %65): 910 idi // denge ML2 (22.10.2026, tarama ML2: Gladyatör %43): 890 idi //   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Gladyatör %41): 860 idi //   // denge O1: 900 idi //   // denge F5: 860 idi //   // zırh sistemi (11.10.2026): 980 (+46) idi
+    hp:{ base:840, per:37 },   // denge ML6 (23.10.2026, tarama ML5: Gladyatör %65): 870 idi // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Gladyatör %65): 910 idi // denge ML2 (22.10.2026, tarama ML2: Gladyatör %43): 890 idi //   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Gladyatör %41): 860 idi //   // denge O1: 900 idi //   // denge F5: 860 idi //   // zırh sistemi (11.10.2026): 980 (+46) idi
     regen:{ base:9, per:0.9 },
     armor:{ base:40, per:5 },   // denge F2: 36 (+4.5) idi //   // denge F1 (11.10.2026, zırh sonrası): 32 (+4) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:34, per:1.8 },   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:60, per:3.5 },   // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Gladyatör %65): 62 idi // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Gladyatör %41): 60 idi //   // denge O3: 62 idi //   // denge O2: 65 idi //   // denge F3: 60 idi //   // zırh sistemi (11.10.2026): 67 (+3.5) idi
+    dmg:{ base:58, per:3.5 },   // denge ML6 (23.10.2026, tarama ML5: Gladyatör %65): 60 idi // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Gladyatör %65): 62 idi // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Gladyatör %41): 60 idi //   // denge O3: 62 idi //   // denge O2: 65 idi //   // denge F3: 60 idi //   // zırh sistemi (11.10.2026): 67 (+3.5) idi
     as:{ base:0.90, per:0.025 },
     spd:{ base:200, per:3 },
     range:{ base:115, per:0 },
@@ -235,7 +235,7 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   spirit: {
-    hp:{ base:800, per:24 },   // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Ruh %30): 760 idi // denge L1 (14.10.2026, seviye 15): 700 idi // denge A1 (13.10.2026): 660 idi // denge O2: 620 idi //   // denge O1: 590 idi //   // zırh sistemi (11.10.2026): 500 (+24) idi
+    hp:{ base:830, per:24 },   // denge ML6 (23.10.2026, tarama ML5: Ruh %33): 800 idi // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Ruh %30): 760 idi // denge L1 (14.10.2026, seviye 15): 700 idi // denge A1 (13.10.2026): 660 idi // denge O2: 620 idi //   // denge O1: 590 idi //   // zırh sistemi (11.10.2026): 500 (+24) idi
     regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -471,7 +471,7 @@ export const HEROES = {
       //          (menzil sonuna kadar değmezse orada patlar): büyü hasarı dmg + ap * YG, slowDur sn slow yavaşlatma.
       r:{ name:'Ruh Patlaması', max:7, type:'spiritburst', cd:[7.5,7,6.5,6,5.8,5.5,5.3], cast:0.25, castSlow:0.4, range:420, speed:530, radius:22,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; hız 900, yarıçap 20 idi
          
-          blast:115, dmg:[86,124,163,202,225,248,271],   /* denge C1: 82-258 idi */   /* denge A0 (13.10.2026): Ruh Patlaması patlama yarıçapı 150 idi */ ap:0.45,   /* denge F1: cd 7-5.5, dmg 90-210, ap 0.50 idi */ slow:0.20, slowDur:1 },
+          blast:115, dmg:[93,134,176,218,243,268,293],   /* denge ML6 (23.10.2026, tarama ML5: Ruh %33): 86-271 idi */   /* denge C1: 82-258 idi */   /* denge A0 (13.10.2026): Ruh Patlaması patlama yarıçapı 150 idi */ ap:0.45,   /* denge F1: cd 7-5.5, dmg 90-210, ap 0.50 idi */ slow:0.20, slowDur:1 },
       // E: anında; kendine dur sn kalkan (shield + ap * YG) ve süre boyunca (kalkan kırılsa da) spd hareket hızı
       e:{ name:'Ruh Kalkanı', max:7, type:'spiritshield', cd:[12,11,10,9,8.5,8,7.5], dur:2.5, shield:[80,120,160,200,224,248,272], ap:0.50, spd:0.30 },
       // boşluk: anında; window sn içinde kullanılan sonraki r ya da e güçlenir.
