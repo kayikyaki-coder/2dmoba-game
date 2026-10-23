@@ -217,13 +217,13 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   shadow: {
-    hp:{ base:850, per:26 },   // denge ML7 (23.10.2026, tarama ML6: Gölge %39): 820 idi // denge C7: 800 idi // denge O2: 760 idi //   // denge O1: 730 idi //   // zırh sistemi (11.10.2026): 620 (+26) idi
+    hp:{ base:880, per:26 },   // denge ML11 (23.10.2026, tarama EB, eşya turu sonrası: Gölge %39): 850 idi // denge ML7 (23.10.2026, tarama ML6: Gölge %39): 820 idi // denge C7: 800 idi // denge O2: 760 idi //   // denge O1: 730 idi //   // zırh sistemi (11.10.2026): 620 (+26) idi
     regen:{ base:3, per:0.7 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:59, per:2.5 },   // denge C5: 57 idi // denge O2: 54 idi //   // zırh sistemi (11.10.2026): 54 (+2.5) idi
+    dmg:{ base:61, per:2.5 },   // denge ML11 (23.10.2026, tarama EB, eşya turu sonrası: Gölge %39): 59 idi // denge C5: 57 idi // denge O2: 54 idi //   // zırh sistemi (11.10.2026): 54 (+2.5) idi
     as:{ base:0.80, per:0.03 },
     spd:{ base:210, per:3 },
     range:{ base:270, per:0 },
@@ -235,13 +235,13 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   spirit: {
-    hp:{ base:855, per:24 },   // denge ML8 (23.10.2026, tarama ML7: Ruh %38): 830 idi // denge ML6 (23.10.2026, tarama ML5: Ruh %33): 800 idi // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Ruh %30): 760 idi // denge L1 (14.10.2026, seviye 15): 700 idi // denge A1 (13.10.2026): 660 idi // denge O2: 620 idi //   // denge O1: 590 idi //   // zırh sistemi (11.10.2026): 500 (+24) idi
+    hp:{ base:790, per:24 },   // denge ML11 (23.10.2026, tarama EB, eşya turu sonrası: Ruh %69 (sg1 eşya sırası)): 855 idi // denge ML8 (23.10.2026, tarama ML7: Ruh %38): 830 idi // denge ML6 (23.10.2026, tarama ML5: Ruh %33): 800 idi // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Ruh %30): 760 idi // denge L1 (14.10.2026, seviye 15): 700 idi // denge A1 (13.10.2026): 660 idi // denge O2: 620 idi //   // denge O1: 590 idi //   // zırh sistemi (11.10.2026): 500 (+24) idi
     regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:50, per:2.5 },   // denge ML9 (23.10.2026, tarama ML8: Ruh %39): 47 idi // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Ruh %30): 44 idi // denge O2: 40 idi //   // zırh sistemi (11.10.2026): 40 (+2.5) idi
+    dmg:{ base:45, per:2.5 },   // denge ML11 (23.10.2026, tarama EB, eşya turu sonrası: Ruh %69): 50 idi // denge ML9 (23.10.2026, tarama ML8: Ruh %39): 47 idi // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Ruh %30): 44 idi // denge O2: 40 idi //   // zırh sistemi (11.10.2026): 40 (+2.5) idi
     as:{ base:0.85, per:0.03 },
     spd:{ base:205, per:3 },
     range:{ base:250, per:0 },
@@ -471,7 +471,7 @@ export const HEROES = {
       //          (menzil sonuna kadar değmezse orada patlar): büyü hasarı dmg + ap * YG, slowDur sn slow yavaşlatma.
       r:{ name:'Ruh Patlaması', max:7, type:'spiritburst', cd:[7.5,7,6.5,6,5.8,5.5,5.3], cast:0.25, castSlow:0.4, range:420, speed:530, radius:22,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; hız 900, yarıçap 20 idi
          
-          blast:115, dmg:[93,134,176,218,243,268,293],   /* denge ML6 (23.10.2026, tarama ML5: Ruh %33): 86-271 idi */   /* denge C1: 82-258 idi */   /* denge A0 (13.10.2026): Ruh Patlaması patlama yarıçapı 150 idi */ ap:0.45,   /* denge F1: cd 7-5.5, dmg 90-210, ap 0.50 idi */ slow:0.20, slowDur:1 },
+          blast:115, dmg:[86,124,163,202,225,248,271],   /* denge ML11 (23.10.2026, tarama EB, eşya turu sonrası: Ruh %69): 93-293 idi (ML6 buff'ı geri) */   /* denge ML6 (23.10.2026, tarama ML5: Ruh %33): 86-271 idi */   /* denge C1: 82-258 idi */   /* denge A0 (13.10.2026): Ruh Patlaması patlama yarıçapı 150 idi */ ap:0.45,   /* denge F1: cd 7-5.5, dmg 90-210, ap 0.50 idi */ slow:0.20, slowDur:1 },
       // E: anında; kendine dur sn kalkan (shield + ap * YG) ve süre boyunca (kalkan kırılsa da) spd hareket hızı
       e:{ name:'Ruh Kalkanı', max:7, type:'spiritshield', cd:[12,11,10,9,8.5,8,7.5], dur:2.5, shield:[80,120,160,200,224,248,272], ap:0.50, spd:0.30 },
       // boşluk: anında; window sn içinde kullanılan sonraki r ya da e güçlenir.
