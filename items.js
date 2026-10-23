@@ -258,7 +258,8 @@ export const BUILDS = {
     hiz:    ['time','echo','blackflame','dcap','void','hourglass']
   },
   spirit: {
-    default:['bloodtome','spring','dcap','void',DEF,'hourglass'],   // denge: can ağırlıklı, 42%->54% (testte)
+    default:['spring','witchblade','lich','dcap',DEF,'hourglass'],   // 23.10.2026 (eşya A/B B4, 2v2 Uzman, 160 maç): sg1 eski varsayılana karşı %84/%81 (tohum 1/4) -> varsayılan
+    eskiDef:['bloodtome','spring','dcap','void',DEF,'hourglass'],   // denge: can ağırlıklı, 42%->54% (testte)
     eski:   ['echo','blackflame','dcap','void',DEF,'time'],
     hp1:    ['spring','blackflame','dcap','void',DEF,'hourglass'],   // denge: can ağırlıklı deneme
     hp2:    ['bloodtome','spring','dcap','void',DEF,'hourglass'],   // denge: can ağırlıklı deneme
