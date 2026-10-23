@@ -208,7 +208,8 @@ export const BUILDS = {
     tilsim: ['sheen','cleaver','predator','randuin','visage','titanic']
   },
   twin: {
-    default:['kraken','botrk','pd','ie',DEF,'ldr'],   // her ok vuruş etkisi taşıdığı için okçuya benzer nişancı eşyaları (denenmedi)
+    default:['botrk','kraken','ie','pd','ldr','bt'],   // 23.10.2026 (eşya A/B B5/B7, 2v2 Uzman, 160 maç x 3 tohum): yikik eski varsayılana karşı %59/%59/%63 -> varsayılan
+    eskiDef:['kraken','botrk','pd','ie',DEF,'ldr'],   // her ok vuruş etkisi taşıdığı için okçuya benzer nişancı eşyaları
     krit:   ['ie','pd','rfc','ldr','bt','kraken'],
     yikik:  ['botrk','kraken','ie','pd','ldr','bt']
   },
