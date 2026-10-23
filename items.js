@@ -222,7 +222,9 @@ export const BUILDS = {
   hook: {
     default:['sunfire',DEF,'warmog',DEF,DEF,DEF],   // can ağırlıklı çekirdek + esnek direnç yuvaları
     tank:   [DEF,'warmog',DEF,DEF,DEF,DEF],
-    buyu:   ['abyss','sunfire','visage','warmog','randuin','fortress']
+    buyu:   ['abyss','sunfire','visage','warmog','randuin','fortress'],
+    az:     ['sunfire',DEF,'warmog','titanic','cleaver','predator'],   // 23.10.2026 deneme: tek DEF + hasar
+    hasar:  ['sunfire','cleaver','titanic','warmog','predator','bt']   // 23.10.2026 deneme: DEF yok
   },
   gladiator: {
     default:['cleaver',DEF,'botrk',DEF,DEF,'titanic'],   // Gladyatör: Savaşçı gibi dövüşçü çekirdeği; saldırı hızı Kızışma ile katlanır (3 esnek)
@@ -232,7 +234,9 @@ export const BUILDS = {
   },
   roller: {
     default:['sunfire',DEF,'warmog',DEF,DEF,'titanic'],   // Gülle: Zincirli gibi can çekirdeği + esnek direnç yuvaları (3 esnek)
-    tank:   [DEF,'warmog',DEF,DEF,DEF,'sunfire']
+    tank:   [DEF,'warmog',DEF,DEF,DEF,'sunfire'],
+    az:     ['sunfire',DEF,'warmog','titanic','cleaver','predator'],   // 23.10.2026 deneme: tek DEF + hasar
+    hasar:  ['sunfire','cleaver','titanic','warmog','predator','bt']   // 23.10.2026 deneme: DEF yok
   },
   flame: {
     default:['lich',BURN,'dcap','void','abyss','hourglass'],   // 23.10.2026 (eşya A/B B2/B8, 2v2 Uzman, 160 maç x 3 tohum): buyu eski varsayılana karşı %67/%63/%59 -> varsayılan
