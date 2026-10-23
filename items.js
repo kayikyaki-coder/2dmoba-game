@@ -269,7 +269,8 @@ export const BUILDS = {
     dovuscu:['cleaver','predator','mace','sheen','randuin','bt']
   },
   mage: {
-    default:['spring',BURN,'dcap','void',DEF,'hourglass'],   // 16.10.2026: Kara Alev -> esnek yakma. denge: can ağırlıklı, 27%->36% (testte) (eski: ['blackflame','echo','dcap','void',DEF,'glassbreak'])
+    default:['spring','witchblade','lich','dcap',DEF,'hourglass'],   // 23.10.2026 (eşya A/B B1/B6, 2v2 Uzman, 160 maç x 3 tohum): sg1 eski varsayılana karşı %68/%65/%64 -> varsayılan
+    eskiDef:['spring',BURN,'dcap','void',DEF,'hourglass'],   // 16.10.2026: Kara Alev -> esnek yakma. denge: can ağırlıklı, 27%->36% (testte) (eski: ['blackflame','echo','dcap','void',DEF,'glassbreak'])
     eski:   ['blackflame','echo','dcap','void',DEF,'glassbreak'],
     hp1:    ['spring','blackflame','dcap','void',DEF,'hourglass'],   // denge: can ağırlıklı deneme
     hp2:    ['bloodtome','spring','dcap','void',DEF,'hourglass'],   // denge: can ağırlıklı deneme
