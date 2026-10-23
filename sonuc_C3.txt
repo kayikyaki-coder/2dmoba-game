@@ -1,0 +1,5 @@
+hook tank | A kazanma %16 [11-22] 25/160 | süre 19.8 dk ölüm           A     6.3  B     5.7 10. dk fark (A-B) servet -553 XP -592 (150 maç) 
+hook buyu | A kazanma %49 [42-57] 79/160 | süre 20.2 dk ölüm           A     7.4  B     7.7 10. dk fark (A-B) servet -197 XP -133 (149 maç) 
+DONE
+roller tank | A kazanma %18 [12-24] 28/159 | süre 16.2 dk ölüm           A     7.1  B     7.1 10. dk fark (A-B) servet -543 XP -564 (138 maç) 
+DONE
