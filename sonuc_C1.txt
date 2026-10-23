@@ -1,0 +1,7 @@
+archer kraken | A kazanma %44 [37-52] 71/160 | süre 11.7 dk ölüm           A     7.3  B     7.0 10. dk fark (A-B) servet -126 XP -132 (101 maç) 
+archer krit | A kazanma %29 [22-36] 46/160 | süre 11.8 dk ölüm           A     7.6  B     6.6 10. dk fark (A-B) servet -327 XP -467 (100 maç) 
+archer yikik | A kazanma %51 [43-58] 81/160 | süre 11.8 dk ölüm           A     7.1  B     7.1 10. dk fark (A-B) servet -24 XP 49 (107 maç) 
+DONE
+bounce krit | A kazanma %44 [37-52] 71/160 | süre 13.4 dk ölüm           A     8.0  B     7.7 10. dk fark (A-B) servet -265 XP -331 (131 maç) 
+bounce yikik | A kazanma %61 [53-68] 97/160 | süre 12.8 dk ölüm           A     6.9  B     7.7 10. dk fark (A-B) servet 125 XP 121 (113 maç) 
+DONE
