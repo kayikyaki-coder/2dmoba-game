@@ -1,0 +1,4 @@
+blood sg1 | A kazanma %58 [50-65] 93/160 | süre 17.5 dk ölüm           A     8.7  B     8.4 10. dk fark (A-B) servet -78 XP 19 (151 maç) 
+DONE
+blood sg1 | A kazanma %56 [49-64] 90/160 | süre 16.8 dk ölüm           A     8.1  B     8.1 10. dk fark (A-B) servet 50 XP 155 (146 maç) 
+DONE
