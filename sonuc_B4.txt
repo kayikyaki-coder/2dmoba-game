@@ -1,0 +1,6 @@
+spirit eski | A kazanma %47 [39-54] 74/159 | süre 20.6 dk ölüm           A     8.5  B     8.1 10. dk fark (A-B) servet -94 XP -135 (152 maç) 
+spirit hp1 | A kazanma %46 [38-54] 73/159 | süre 20.3 dk ölüm           A     7.0  B     6.5 10. dk fark (A-B) servet 50 XP 67 (153 maç) 
+spirit hp2 | A kazanma %46 [38-54] 71/155 | süre 21.7 dk ölüm           A     7.3  B     7.2 10. dk fark (A-B) servet -27 XP -2 (152 maç) 
+spirit sg1 | A kazanma %84 [78-89] 135/160 | süre 17.3 dk ölüm           A     5.1  B     7.3 10. dk fark (A-B) servet 414 XP 392 (144 maç) 
+spirit hiz | A kazanma %54 [46-61] 86/160 | süre 20.5 dk ölüm           A     7.7  B     9.0 10. dk fark (A-B) servet 73 XP 7 (150 maç) 
+DONE
