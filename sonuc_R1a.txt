@@ -1,0 +1,3 @@
+{"3":{"recallHp":0.22}} | A kazanma %47 [39-55] 75/160 | süre 15.9 dk ölüm           A     8.7  B     8.0 10. dk fark (A-B) servet -130 XP -72 (131 maç) 
+{"3":{"recallHp":0.38}} | A kazanma %44 [37-52] 70/159 | süre 18.1 dk ölüm           A     8.2  B     8.6 10. dk fark (A-B) servet -24 XP 20 (145 maç) 
+DONE
