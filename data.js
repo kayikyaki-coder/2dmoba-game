@@ -147,7 +147,7 @@ export const STATS = {
     angle:{ base:90, per:0 }
   },
   gladiator: {   // Gladyatör: yakın dövüşçü. Savaşçı'dan az can, Kızışma yığınlarıyla saldırı hızı tırmanır
-    hp:{ base:840, per:37 },   // denge ML6 (23.10.2026, tarama ML5: Gladyatör %65): 870 idi // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Gladyatör %65): 910 idi // denge ML2 (22.10.2026, tarama ML2: Gladyatör %43): 890 idi //   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Gladyatör %41): 860 idi //   // denge O1: 900 idi //   // denge F5: 860 idi //   // zırh sistemi (11.10.2026): 980 (+46) idi
+    hp:{ base:815, per:37 },   // denge ML8 (23.10.2026, tarama ML7: Gladyatör %64): 840 idi // denge ML6 (23.10.2026, tarama ML5: Gladyatör %65): 870 idi // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Gladyatör %65): 910 idi // denge ML2 (22.10.2026, tarama ML2: Gladyatör %43): 890 idi //   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Gladyatör %41): 860 idi //   // denge O1: 900 idi //   // denge F5: 860 idi //   // zırh sistemi (11.10.2026): 980 (+46) idi
     regen:{ base:9, per:0.9 },
     armor:{ base:40, per:5 },   // denge F2: 36 (+4.5) idi //   // denge F1 (11.10.2026, zırh sonrası): 32 (+4) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:34, per:1.8 },   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -235,7 +235,7 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   spirit: {
-    hp:{ base:830, per:24 },   // denge ML6 (23.10.2026, tarama ML5: Ruh %33): 800 idi // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Ruh %30): 760 idi // denge L1 (14.10.2026, seviye 15): 700 idi // denge A1 (13.10.2026): 660 idi // denge O2: 620 idi //   // denge O1: 590 idi //   // zırh sistemi (11.10.2026): 500 (+24) idi
+    hp:{ base:855, per:24 },   // denge ML8 (23.10.2026, tarama ML7: Ruh %38): 830 idi // denge ML6 (23.10.2026, tarama ML5: Ruh %33): 800 idi // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Ruh %30): 760 idi // denge L1 (14.10.2026, seviye 15): 700 idi // denge A1 (13.10.2026): 660 idi // denge O2: 620 idi //   // denge O1: 590 idi //   // zırh sistemi (11.10.2026): 500 (+24) idi
     regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -488,7 +488,7 @@ export const HEROES = {
       //        breakDeg ve üstü ani dönüş sıfırlar; yürümüyorsa (ya da kontrol altında) saniyede decay söner. Momentum ms oranında hareket hızı verir.
       //        Düz vuruş ya da yetenek isabeti ek fiziksel hasar (dmgMin..dmgMax seviyeyle + ad * ek SG) * momentum/100 verir; momentum pushAt üstündeyse
       //        rakibi gidiş yönünde push birim iter (pushT sn). İsabet momentumu harcar (sıfırlar). Kahraman/minyon, kule değil.
-      p:{ name:'Momentum', gain:55, decay:140, turnLoss:0.5, breakDeg:80, ms:0.28, dmgMin:30, dmgMax:70,   /* denge C11: dmgMax 80 idi */   /* denge C8: dmgMax 90 idi */ ad:0.30, pushAt:60, push:100, pushT:0.15 },
+      p:{ name:'Momentum', gain:55, decay:140, turnLoss:0.5, breakDeg:80, ms:0.28, dmgMin:26, dmgMax:62,   /* denge ML8 (23.10.2026, tarama ML7: Gülle %65): dmgMin 30 dmgMax 70 idi */   /* denge C11: dmgMax 80 idi */   /* denge C8: dmgMax 90 idi */ ad:0.30, pushAt:60, push:100, pushT:0.15 },
       // sağ tık: basılı tutuldukça mesafe dMin'den dMax'a (charge sn'de) artar (bot imleç noktasına göre seçer); bırakınca o yöne speed hızıyla yuvarlanır
       //          (birimlerin içinden geçer, duvarda ve yapıda durur, kök engeller). İnişte radius yarıçapta rakiplere (kule hariç) fiziksel hasar
       //          dmg + hpPct * ek can, kahraman ve minyonlar stun sn sersemler (havaya atılır).
