@@ -255,7 +255,8 @@ export const BUILDS = {
     hasar:  ['sunfire','cleaver','titanic','warmog','predator','bt']   // 23.10.2026 deneme: DEF yok
   },
   flame: {
-    default:['lich',BURN,'dcap','void','abyss','hourglass'],   // 23.10.2026 (eşya A/B B2/B8, 2v2 Uzman, 160 maç x 3 tohum): buyu eski varsayılana karşı %67/%63/%59 -> varsayılan
+    default:['lich','witchblade','dcap','void',BURN,'hourglass'],   // 24.10.2026 (eşya A/B F, 2v2 Uzman, 160 maç x 3 tohum): c1 (Cadı Bıçağı) eski varsayılana karşı %56/%63/%61 -> varsayılan
+    eskiDef2:['lich',BURN,'dcap','void','abyss','hourglass'],   // 23.10.2026 varsayılanı (buyu)
     eskiDef:['lich','spring',DEF,'bloodtome',DEF,'dcap'],   // yetenek sonrası vuruşlar, can ve YG ağırlıklı yakın dövüş büyücüsü (denenmedi)
     buyu:   ['lich',BURN,'dcap','void','abyss','hourglass'],
     savas:  ['spring','abyss','bloodtome','lich','hourglass','void'],
