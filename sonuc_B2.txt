@@ -1,0 +1,7 @@
+mage yanki | A kazanma %46 [38-53] 73/160 | süre 18.6 dk ölüm           A    12.7  B    11.5 10. dk fark (A-B) servet -260 XP -299 (151 maç) 
+mage hiz | A kazanma %38 [30-45] 60/160 | süre 17.5 dk ölüm           A    11.4  B    10.4 10. dk fark (A-B) servet -373 XP -278 (142 maç) 
+mage savas | A kazanma %48 [41-56] 77/160 | süre 17.9 dk ölüm           A     9.7  B     9.9 10. dk fark (A-B) servet 59 XP 108 (155 maç) 
+DONE
+flame buyu | A kazanma %67 [59-74] 107/160 | süre 18.7 dk ölüm           A    10.0  B    10.6 10. dk fark (A-B) servet 40 XP -13 (154 maç) 
+flame savas | A kazanma %43 [36-51] 68/158 | süre 20.2 dk ölüm           A    11.6  B     8.7 10. dk fark (A-B) servet -170 XP -126 (147 maç) 
+DONE
