@@ -239,7 +239,8 @@ export const BUILDS = {
   blood: {
     default:['spring',BURN,'dcap','void',DEF,'hourglass'],   // 16.10.2026: Kara Alev -> esnek yakma. can, YG ve direnç ağırlıklı büyücü (can harcayan E, can çalan yetenekler; denenmedi)
     buyu:   [BURN,'echo','dcap','void','glassbreak','time'],
-    savas:  ['spring','abyss','bloodtome','dcap','void','hourglass']
+    savas:  ['spring','abyss','bloodtome','dcap','void','hourglass'],
+    sg1:    ['spring','witchblade','lich','dcap',DEF,'hourglass']   // 23.10.2026: Büyücü'de en iyi çıkan sıra (deneme)
   },
   artillery: {
     default:['emberrod','echo','dcap','void',DEF,'horizon'],   // 16.10.2026: Kara Alev -> Akkor Asası (uzaktan dürtme), Büyü Nüfuzu -> Ufuk Merceği (eski: ['blackflame','echo','dcap','void',DEF,'glassbreak'])
