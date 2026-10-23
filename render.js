@@ -316,6 +316,16 @@ function drawBow(h, ang, p){
   ctx.beginPath(); ctx.arc(h.x-cx*pull*0.3,h.y-cy*pull*0.3,h.r+10,ang-0.9,ang+0.9); ctx.stroke(); ctx.restore();
 }
 
+/* Rakip yetenek hazırlığı: kahramanın çevresinde takım renginde dolan halka + nabız (nereye atılacağını göstermez) */
+function drawCharge(h,p,tc,blink){
+  const R=h.r+9;
+  ctx.save(); ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(h.x,h.y,R,0,TAU); ctx.strokeStyle=rgba(tc,0.25); ctx.lineWidth=3; ctx.stroke();
+  ctx.beginPath(); ctx.arc(h.x,h.y,R,-Math.PI/2,-Math.PI/2+TAU*p); ctx.strokeStyle=rgba(tc,0.6+0.4*blink); ctx.lineWidth=4; ctx.stroke();
+  ctx.globalCompositeOperation='lighter';
+  ctx.beginPath(); ctx.arc(h.x,h.y,R+4+6*p,0,TAU); ctx.strokeStyle=rgba(tc,0.12+0.25*p*blink); ctx.lineWidth=6; ctx.stroke();
+  ctx.restore();
+}
 function drawTelegraph(h){
   if(h.dead) return;
   const at=atkDef(h), a=h.atk;
@@ -337,6 +347,7 @@ function drawTelegraph(h){
     const c=h.cast, sk=h.def.skills[c.k], p=1-Math.max(0,c.t)/c.total;
     const tc=PAL.team[h.team], blink=0.75+0.25*Math.sin(S.time*TAU*8);
     const fillA=a=>mine?`rgba(255,255,255,${a})`:rgba(tc,a*0.9), lineC=mine?'rgba(255,255,255,0.5)':rgba(tc,0.95*blink), lw=mine?2:3;
+    if(!mine && !(c.wind && sk.type==='shockwave')){ drawCharge(h,p,tc,blink); return; }   // 23.10.2026 (Kayra): rakipte yalnız hazırlık görünür, yön/alan/hedef görünmez
     ctx.save();
     if(!mine) ctx.setLineDash([12,7]);
     if(c.wind && sk.type==='duel' && c.tgt){   // Meydan Okuma hazırlığı: hedefe dolan çizgi (sersem/susturma/kök iptal eder)
