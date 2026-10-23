@@ -236,7 +236,8 @@ export const BUILDS = {
     hasar2: ['cleaver','botrk',DEF,'predator','titanic','bt']   // 23.10.2026 deneme: tek DEF
   },
   roller: {
-    default:['sunfire',DEF,'warmog',DEF,DEF,'titanic'],   // Gülle: Zincirli gibi can çekirdeği + esnek direnç yuvaları (3 esnek)
+    default:['sunfire',DEF,'warmog','titanic','cleaver','predator'],   // 23.10.2026 (eşya A/B C8, 2v2 Uzman, 160 maç x 2 tohum): az (tek DEF) eski varsayılana karşı %60/%57 -> varsayılan
+    eskiDef:['sunfire',DEF,'warmog',DEF,DEF,'titanic'],   // Gülle: Zincirli gibi can çekirdeği + esnek direnç yuvaları (3 esnek)
     tank:   [DEF,'warmog',DEF,DEF,DEF,'sunfire'],
     az:     ['sunfire',DEF,'warmog','titanic','cleaver','predator'],   // 23.10.2026 deneme: tek DEF + hasar
     hasar:  ['sunfire','cleaver','titanic','warmog','predator','bt']   // 23.10.2026 deneme: DEF yok
