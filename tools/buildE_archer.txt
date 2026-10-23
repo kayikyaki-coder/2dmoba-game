@@ -1,0 +1,4 @@
+archer c1 | A kazanma %56 [49-64] 90/160 | süre 11.3 dk ölüm           A     7.2  B     7.6 10. dk fark (A-B) servet -102 XP -25 (93 maç) 
+archer c2 | A kazanma %43 [35-50] 68/160 | süre 11.3 dk ölüm           A     7.3  B     7.1 10. dk fark (A-B) servet -112 XP -175 (95 maç) 
+archer c3 | A kazanma %46 [38-53] 73/160 | süre 11.9 dk ölüm           A     8.0  B     7.8 10. dk fark (A-B) servet -44 XP -52 (113 maç) 
+DONE
