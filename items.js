@@ -241,7 +241,10 @@ export const BUILDS = {
     eskiDef:['cleaver',DEF,'botrk',DEF,DEF,'titanic'],   // Gladyatör: Savaşçı gibi dövüşçü çekirdeği; saldırı hızı Kızışma ile katlanır (3 esnek)
     tank:   ['cleaver',DEF,DEF,DEF,DEF,'predator'],
     hasar:  ['cleaver','predator','botrk','titanic','sheen','bt'],   // 23.10.2026 deneme: Savaşçı hasar sırası gibi (DEF yok)
-    hasar2: ['cleaver','botrk',DEF,'predator','titanic','bt']   // 23.10.2026 deneme: tek DEF
+    hasar2: ['cleaver','botrk',DEF,'predator','titanic','bt'],   // 23.10.2026 deneme: tek DEF
+    c1:     ['botrk','cleaver','kraken','titanic','predator','bt'],   // 24.10.2026 deneme: saldırı hızı (Kızışma)
+    c2:     ['cleaver','predator','botrk','mace','titanic','bt'],   // 24.10.2026 deneme: Tılsım yerine Kanlı Gürz
+    c3:     ['cleaver','predator','botrk','titanic','sheen','randuin']   // 24.10.2026 deneme: son yuva can/zırh
   },
   roller: {
     default:['sunfire',DEF,'warmog','titanic','cleaver','predator'],   // 23.10.2026 (eşya A/B C8, 2v2 Uzman, 160 maç x 2 tohum): az (tek DEF) eski varsayılana karşı %60/%57 -> varsayılan
