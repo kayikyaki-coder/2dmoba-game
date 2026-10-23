@@ -201,7 +201,10 @@ export const BUILDS = {
     krit:   ['ie','pd','rfc','ldr','bt','kraken'],
     yikik:  ['botrk','kraken','ie','pd','ldr','bt'],
     nodef:  ['kraken','botrk','windbow','bt','pd','ie'],   // deneme: DEF yok
-    yikik2: ['botrk','kraken','windbow','ie','pd','bt']    // deneme: Kanlı Kılıç önce, DEF yok
+    yikik2: ['botrk','kraken','windbow','ie','pd','bt'],    // deneme: Kanlı Kılıç önce, DEF yok
+    c1:     ['kraken','botrk','runbow','windbow','bt','pd'],   // deneme turu E
+    c2:     ['kraken','fury','botrk','ie','pd','bt'],   // deneme turu E
+    c3:     ['kraken','botrk','siege','windbow','bt','pd']   // deneme turu E
   },
   warrior: {
     default:['cleaver','predator','mace','titanic','sheen','bt'],   // 23.10.2026 (eşya A/B C2/C6, 2v2 Uzman, 160 maç x 4 tohum): hasar eski varsayılana karşı %76/%77/%75/%58 -> varsayılan
@@ -214,7 +217,10 @@ export const BUILDS = {
     default:['botrk','kraken','ie','pd','ldr','bt'],   // 23.10.2026 (eşya A/B B5/B7, 2v2 Uzman, 160 maç x 3 tohum): yikik eski varsayılana karşı %59/%59/%63 -> varsayılan
     eskiDef:['kraken','botrk','pd','ie',DEF,'ldr'],   // her ok vuruş etkisi taşıdığı için okçuya benzer nişancı eşyaları
     krit:   ['ie','pd','rfc','ldr','bt','kraken'],
-    yikik:  ['botrk','kraken','ie','pd','ldr','bt']
+    yikik:  ['botrk','kraken','ie','pd','ldr','bt'],
+    c1:     ['kraken','botrk','windbow','bt','pd','ie'],   // deneme turu E
+    c2:     ['botrk','kraken','runbow','ie','pd','bt'],   // deneme turu E
+    c3:     ['botrk','kraken','siege','ie','pd','bt']   // deneme turu E
   },
   bounce: {
     default:['botrk','ie','pd','ldr','bt','kraken'],   // 23.10.2026 (eşya A/B C1/C5, 2v2 Uzman, 160 maç x 3 tohum): yikik eski varsayılana karşı %61/%64/%63 -> varsayılan
@@ -291,7 +297,10 @@ export const BUILDS = {
     default:['sheen','cleaver',DEF,'mace',DEF,'predator'],   // iki biçimde de ek SG ile büyüyen yetenekler (Enerji Küresi %110, Sıçrayış %100), vuruş/yetenek sonrası Tılsımlı Kılıç, can ve yetenek hızı (denenmedi)
     nisanci:['ie','pd','ldr','bt','botrk','kraken'],
     dovuscu:['cleaver','predator','mace','sheen','randuin','bt'],
-    hasar:  ['sheen','cleaver','predator','mace','titanic','bt']    // deneme: DEF yok
+    hasar:  ['sheen','cleaver','predator','mace','titanic','bt'],    // deneme: DEF yok
+    c1:     ['sheen','cleaver','skillblade','predator','mace','bt'],   // deneme turu E
+    c2:     ['cleaver','sheen','predator',DEF,'mace','bt'],   // deneme turu E
+    c3:     ['botrk','cleaver','sheen','predator','mace','titanic']   // deneme turu E
   },
   mage: {
     default:['spring','witchblade','lich','dcap',DEF,'hourglass'],   // 23.10.2026 (eşya A/B B1/B6, 2v2 Uzman, 160 maç x 3 tohum): sg1 eski varsayılana karşı %68/%65/%64 -> varsayılan
