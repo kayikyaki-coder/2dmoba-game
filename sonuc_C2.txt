@@ -1,0 +1,5 @@
+warrior hasar | A kazanma %76 [68-82] 121/160 | süre 16.4 dk ölüm           A     5.9  B     7.0 10. dk fark (A-B) servet 127 XP 161 (151 maç) 
+warrior tank | A kazanma %36 [29-44] 58/160 | süre 20.1 dk ölüm           A     6.6  B     6.7 10. dk fark (A-B) servet -74 XP -94 (155 maç) 
+warrior tilsim | A kazanma %59 [52-67] 95/160 | süre 18.3 dk ölüm           A     6.5  B     7.4 10. dk fark (A-B) servet 139 XP 133 (151 maç) 
+gladiator tank | A kazanma %28 [21-35] 44/160 | süre 15.0 dk ölüm           A     6.2  B     5.6 10. dk fark (A-B) servet -102 XP -172 (142 maç) 
+DONE
