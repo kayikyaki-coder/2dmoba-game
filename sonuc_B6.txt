@@ -1,0 +1,4 @@
+mage sg1 | A kazanma %65 [57-72] 104/160 | süre 16.7 dk ölüm           A     8.8  B     9.1 10. dk fark (A-B) servet -107 XP -87 (150 maç) 
+DONE
+mage sg1 | A kazanma %64 [57-71] 103/160 | süre 15.5 dk ölüm           A     8.4  B     8.4 10. dk fark (A-B) servet -149 XP -55 (147 maç) 
+DONE
