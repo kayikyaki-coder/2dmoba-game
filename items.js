@@ -221,7 +221,8 @@ export const BUILDS = {
     yikik:  ['botrk','ie','pd','ldr','bt','kraken']
   },
   hook: {
-    default:['sunfire',DEF,'warmog',DEF,DEF,DEF],   // can ağırlıklı çekirdek + esnek direnç yuvaları
+    default:['sunfire','cleaver','titanic','warmog','predator','bt'],   // 23.10.2026 (eşya A/B C8, 2v2 Uzman, 160 maç x 3 tohum): hasar (DEF yok) eski varsayılana karşı %64/%69/%68 -> varsayılan
+    eskiDef:['sunfire',DEF,'warmog',DEF,DEF,DEF],   // can ağırlıklı çekirdek + esnek direnç yuvaları
     tank:   [DEF,'warmog',DEF,DEF,DEF,DEF],
     buyu:   ['abyss','sunfire','visage','warmog','randuin','fortress'],
     az:     ['sunfire',DEF,'warmog','titanic','cleaver','predator'],   // 23.10.2026 deneme: tek DEF + hasar
