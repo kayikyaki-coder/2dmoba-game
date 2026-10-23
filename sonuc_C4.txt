@@ -1,0 +1,7 @@
+artillery hp1 | A kazanma %34 [27-42] 55/160 | süre 18.5 dk ölüm           A    12.2  B    11.5 10. dk fark (A-B) servet -148 XP 1 (146 maç) 
+artillery hp2 | A kazanma %31 [24-38] 49/160 | süre 19.3 dk ölüm           A    13.0  B    12.8 10. dk fark (A-B) servet -123 XP -27 (148 maç) 
+artillery sg1 | A kazanma %49 [41-56] 78/160 | süre 17.3 dk ölüm           A    11.8  B    11.2 10. dk fark (A-B) servet 39 XP 211 (138 maç) 
+artillery hiz | A kazanma %36 [29-44] 58/160 | süre 18.7 dk ölüm           A    14.8  B    13.6 10. dk fark (A-B) servet -153 XP -33 (140 maç) 
+DONE
+blood sg1 | A kazanma %61 [54-68] 98/160 | süre 16.9 dk ölüm           A     8.0  B     7.7 10. dk fark (A-B) servet 53 XP 101 (150 maç) 
+DONE
