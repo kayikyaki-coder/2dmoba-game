@@ -147,7 +147,7 @@ export const STATS = {
     angle:{ base:90, per:0 }
   },
   gladiator: {   // Gladyatör: yakın dövüşçü. Savaşçı'dan az can, Kızışma yığınlarıyla saldırı hızı tırmanır
-    hp:{ base:815, per:37 },   // denge ML8 (23.10.2026, tarama ML7: Gladyatör %64): 840 idi // denge ML6 (23.10.2026, tarama ML5: Gladyatör %65): 870 idi // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Gladyatör %65): 910 idi // denge ML2 (22.10.2026, tarama ML2: Gladyatör %43): 890 idi //   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Gladyatör %41): 860 idi //   // denge O1: 900 idi //   // denge F5: 860 idi //   // zırh sistemi (11.10.2026): 980 (+46) idi
+    hp:{ base:840, per:37 },   // denge ML17 (tarama ML16: Gladyatör %40): 815 idi // denge ML8 (23.10.2026, tarama ML7: Gladyatör %64): 840 idi // denge ML6 (23.10.2026, tarama ML5: Gladyatör %65): 870 idi // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Gladyatör %65): 910 idi // denge ML2 (22.10.2026, tarama ML2: Gladyatör %43): 890 idi //   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Gladyatör %41): 860 idi //   // denge O1: 900 idi //   // denge F5: 860 idi //   // zırh sistemi (11.10.2026): 980 (+46) idi
     regen:{ base:9, per:0.9 },
     armor:{ base:40, per:5 },   // denge F2: 36 (+4.5) idi //   // denge F1 (11.10.2026, zırh sonrası): 32 (+4) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:34, per:1.8 },   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -181,7 +181,7 @@ export const STATS = {
     angle:{ base:90, per:0 }
   },
   blood: {
-    hp:{ base:630, per:28 },   // denge ML2 (22.10.2026, tarama ML2: Kan Lordu %43): 610 idi //   // denge O3: 580 idi //   // zırh sistemi (11.10.2026): 490 (+28) idi
+    hp:{ base:600, per:28 },   // denge ML17 (23.10.2026, tarama ML16: Kan Lordu %63, sg4 eşya sırasından beri 56/58/63): 630 idi // denge ML2 (22.10.2026, tarama ML2: Kan Lordu %43): 610 idi //   // denge O3: 580 idi //   // zırh sistemi (11.10.2026): 490 (+28) idi
     regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -401,7 +401,7 @@ export const HEROES = {
       // sağ tık: menzildeki rakip kahraman ya da minyondan (kule değil) imlece en yakınına güdümlü ok (yoksa yetenek harcanmaz);
       //          büyü hasarı = dmg + ap * YG; uygulanan hasarın heal'i anında iyileşir
       r:{ name:'Kan Oku', max:7, type:'bloodbolt', hold:true, cd:[7,6.5,6,5.5,5.3,5,4.8], range:320, speed:900,
-          dmg:[65,100,135,170,191,212,233], ap:0.60, heal:0.22 },   // denge: dmg 80,120,160,200 / heal 0.30 idi
+          dmg:[62,95,128,162,181,201,221], ap:0.60, heal:0.22 },   // denge ML17: Kan Oku 65-233 idi   // denge: dmg 80,120,160,200 / heal 0.30 idi
       // E: anında; o anki canın pct'ini harcar (kendine hasar değil, en az 1 can kalır), çıktığı yerden range yarıçapa kadar
       //    speed hızıyla büyüyen bir kan halkası; değdiği her rakip birime (kule değil) bir kez hasar = dmg + harcanan can + ap * YG, büyü.
       e:{ name:'Kan Patlaması', max:7, type:'bloodnova', cd:[10,9,8,7,6.5,6,5.5], pct:0.10, range:380, speed:700,
