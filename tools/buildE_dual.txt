@@ -1,0 +1,4 @@
+dual c1 | A kazanma %49 [42-57] 79/160 | süre 13.7 dk ölüm           A     8.2  B     7.6 10. dk fark (A-B) servet 35 XP 92 (128 maç) 
+dual c2 | A kazanma %61 [54-68] 98/160 | süre 13.7 dk ölüm           A     7.7  B     8.1 10. dk fark (A-B) servet 276 XP 211 (131 maç) 
+dual c3 | A kazanma %64 [56-71] 102/160 | süre 13.4 dk ölüm           A     8.3  B     7.7 10. dk fark (A-B) servet 157 XP 246 (133 maç) 
+DONE
