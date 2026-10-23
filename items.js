@@ -234,7 +234,10 @@ export const BUILDS = {
     tank:   [DEF,'warmog',DEF,DEF,DEF,DEF],
     buyu:   ['abyss','sunfire','visage','warmog','randuin','fortress'],
     az:     ['sunfire',DEF,'warmog','titanic','cleaver','predator'],   // 23.10.2026 deneme: tek DEF + hasar
-    hasar:  ['sunfire','cleaver','titanic','warmog','predator','bt']   // 23.10.2026 deneme: DEF yok
+    hasar:  ['sunfire','cleaver','titanic','warmog','predator','bt'],   // 23.10.2026 deneme: DEF yok
+    c1:     ['cleaver','sunfire','predator','titanic','mace','bt'],   // 24.10.2026 deneme: Kara Balta önce, Ölümsüz Kalp yerine Kanlı Gürz
+    c2:     ['sunfire','cleaver','predator','titanic','skillblade','bt'],   // 24.10.2026 deneme: Hüner Bıçağı (yetenek hasarı)
+    c3:     ['cleaver','predator','sunfire','titanic','warmog','bt']   // 24.10.2026 deneme: hasar önce
   },
   gladiator: {
     default:['botrk','cleaver','kraken','titanic','predator','bt'],   // 24.10.2026 (eşya A/B G, 2v2 Uzman, 160 maç x 3 tohum): c1 (saldırı hızı) eski varsayılana karşı %57/%56/%60 -> varsayılan
