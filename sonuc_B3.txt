@@ -1,0 +1,6 @@
+shadow eski | A kazanma %26 [20-34] 42/160 | süre 18.6 dk ölüm           A     9.5  B     9.1 10. dk fark (A-B) servet -82 XP -93 (151 maç) 
+shadow hp1 | A kazanma %26 [20-34] 42/159 | süre 19.0 dk ölüm           A     9.0  B     8.4 10. dk fark (A-B) servet -116 XP -139 (155 maç) 
+shadow hp2 | A kazanma %21 [16-28] 34/160 | süre 19.0 dk ölüm           A     9.4  B     8.4 10. dk fark (A-B) servet -172 XP -168 (150 maç) 
+shadow sg1 | A kazanma %52 [44-59] 83/160 | süre 18.8 dk ölüm           A     9.0  B     9.0 10. dk fark (A-B) servet -18 XP 9 (155 maç) 
+shadow hiz | A kazanma %22 [16-29] 35/159 | süre 19.0 dk ölüm           A    10.8  B     9.1 10. dk fark (A-B) servet -356 XP -355 (153 maç) 
+DONE
