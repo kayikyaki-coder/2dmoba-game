@@ -1,4 +1,4 @@
-/* 2v2 yeni-eski bot teşhisi: node tools/aivs2.js [--matches 40] [--diff expert] [--diffB aynı] [--aiA yeni] [--aiB eski2] [--seed 1] [--threads 4] [--tune '{"3":{"siege":0}}'] [--dump out.json] [--early 1: kule farkı 2+ olunca bitir] [--hero mage: iki takımın ilk kahramanı]
+/* 2v2 yeni-eski bot teşhisi: node tools/aivs2.js [--matches 40] [--diff expert] [--diffB aynı] [--aiA yeni] [--aiB eski2] [--seed 1] [--threads 4] [--tune '{"3":{"siege":0}}'] [--dump out.json] [--early 1: kule farkı 2+ olunca bitir] [--hero mage: iki takımın ilk kahramanı] [--buildA ad: A takımına items.js BUILDS adı]
    Takım kahramanları rastgele (tohumlu), her eşleşme iki kez (A takım 0 ve 1). A = aiA, B = aiB. Taraf başına maç ortalaması:
    son vuruş (minyon/canavar), ölüm sebebi (rakip kule altında, sayıca az, kule/minyon son vuruşu), kahramanların yapılara hasarı,
    yıkılan yapı, ilk kule kaybı, 5/10/15. dk servet ve XP farkı (A-B), Titan/güçlendirme, ölü geçen süre, kazanma. */
@@ -22,8 +22,8 @@ function one(job){
   try { return one0(job); } finally { for(const [L,key,own,val] of undo.reverse()) { if(own) L[key]=val; else delete L[key]; } }
 }
 function one0(job){
-  const { a, b, aTeam, seed, maxTime, aiA, aiB, diffA, diffB }=job, A=aTeam, B=1-aTeam;
-  resetGame({ types: A===0 ? [a,b] : [b,a], levels:[1,1], human:null, seed, fx:false });
+  const { a, b, aTeam, seed, maxTime, aiA, aiB, diffA, diffB, buildA }=job, A=aTeam, B=1-aTeam;
+  resetGame({ types: A===0 ? [a,b] : [b,a], levels:[1,1], human:null, seed, fx:false, ...(buildA ? { builds: A===0 ? [buildA,null] : [null,buildA] } : {}) });   // --buildA: A takımına BUILDS adı (kahramanda yoksa default)
   for(const h of S.heroes) h.botLevel = LEVEL_IDS.indexOf(h.team===A ? diffA : diffB);
   const ctl = A===0 ? [BOTS[aiA], BOTS[aiB]] : [BOTS[aiB], BOTS[aiA]];
   const side = t => t===A ? 0 : 1;
@@ -66,10 +66,10 @@ function one0(job){
   return { win: W===null ? null : (W===A ? 1 : 0), time:S.time, M, snaps, big:[J.big[A],J.big[B]], buffs:[J.buffs[A],J.buffs[B]], camps:[J.camps[A],J.camps[B]] };
 }
 
-export function jobs({ matches, seed, maxTime, aiA, aiB, diffA, diffB, tune, early=false, hero=null }){
+export function jobs({ matches, seed, maxTime, aiA, aiB, diffA, diffB, tune, early=false, hero=null, buildA=null }){
   const H=Object.keys(STATS), rnd=mulberry(seed*7919+13), pick=()=>H[Math.floor(rnd()*H.length)], out=[]; let k=0;
   while(out.length<matches){ const t0=[hero||pick(),pick()], t1=[hero||pick(),pick()], sd=seed*100003+k*31+1; k++;
-    for(const aTeam of [0,1]) if(out.length<matches) out.push({ a: aTeam===0?t0:t1, b: aTeam===0?t1:t0, aTeam, seed:sd, maxTime, aiA, aiB, diffA, diffB, tune, early }); }
+    for(const aTeam of [0,1]) if(out.length<matches) out.push({ a: aTeam===0?t0:t1, b: aTeam===0?t1:t0, aTeam, seed:sd, maxTime, aiA, aiB, diffA, diffB, tune, early, buildA }); }
   return out;
 }
 export async function run(js, threads){
@@ -97,7 +97,7 @@ if(!isMainThread && workerData && workerData.worker){
   parentPort.on('message', ({ i, job })=>{ try { parentPort.postMessage({ i, r:one(job) }); } catch(e){ parentPort.postMessage({ error:String(e && e.stack || e) }); } });
 } else if(isMain()){
   const o=parseArgs(process.argv.slice(2)), diff=o.diff||'expert';
-  const js=jobs({ matches:+(o.matches||40), seed:+(o.seed||1), maxTime:+(o.maxTime||2400), aiA:o.aiA||'yeni', aiB:o.aiB||'eski2', diffA:diff, diffB:o.diffB||diff, tune:o.tune?JSON.parse(o.tune):undefined, early:!!o.early, hero:o.hero||null });
+  const js=jobs({ matches:+(o.matches||40), seed:+(o.seed||1), maxTime:+(o.maxTime||2400), aiA:o.aiA||'yeni', aiB:o.aiB||'eski2', diffA:diff, diffB:o.diffB||diff, tune:o.tune?JSON.parse(o.tune):undefined, early:!!o.early, hero:o.hero||null, buildA:o.buildA||null });
   const t0=Date.now(), rs=await run(js, +(o.threads||os.availableParallelism()));
   if(o.dump){ const fs=await import('node:fs'); fs.writeFileSync(o.dump, JSON.stringify(rs.map((r,i)=>({ ...r, a:js[i].a, b:js[i].b })))); }
   report(rs); console.log(`${rs.length} maç, ${((Date.now()-t0)/1000).toFixed(0)} sn`);
