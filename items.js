@@ -280,6 +280,8 @@ export const BUILDS = {
     sg1:    ['spring','witchblade','lich','dcap',DEF,'hourglass'],   // denge: düz vuruş (kuşatma) ağırlıklı deneme (Ateş Dişi -> Büyü Kılıcı)
     yanki:  ['echo','dcap','void','blackflame','time','hourglass'],
     hiz:    ['time','echo','dcap','void','blackflame','hourglass'],
-    savas:  ['spring','abyss','bloodtome','dcap','visage','hourglass']
+    savas:  ['spring','abyss','bloodtome','dcap','visage','hourglass'],
+    sg2:    ['spring','witchblade','lich','dcap','void','hourglass'],   // 23.10.2026 deneme: sg1, DEF yerine Boşluk Asası
+    sg3:    ['witchblade','spring','lich','dcap',DEF,'hourglass']   // 23.10.2026 deneme: sg1, Cadı Bıçağı önce
   }
 };
