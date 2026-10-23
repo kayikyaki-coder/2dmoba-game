@@ -1,0 +1,5 @@
+medium  > easy    | kazanma 73% [57-84] | 40/40 karar | ort. süre 15.1 dk
+hard    > medium  | kazanma 73% [57-84] | 40/40 karar | ort. süre 16.8 dk
+expert  > hard    | kazanma 78% [62-88] | 40/40 karar | ort. süre 16.1 dk
+expert  > easy    | kazanma 100% [91-100] | 40/40 karar | ort. süre 13.0 dk
+2v2, 40 maç/çift, tohum 1, 753 sn
