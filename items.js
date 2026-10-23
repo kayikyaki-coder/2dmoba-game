@@ -265,7 +265,8 @@ export const BUILDS = {
     hiz:    ['time','echo','dcap','void','blackflame','hourglass']
   },
   shadow: {
-    default:['spring','witchblade','lich','dcap',DEF,'hourglass'],   // 16.10.2026: Ateş Dişi kalktı (Cadı Bıçağı ile aynı pasifti, biri boşa gidiyordu) -> Büyü Kılıcı. denge: kuşatma için düz vuruş etkili AP eşyaları, 6%->15% (testte) (eski: ['echo','blackflame','dcap','void',DEF,'glassbreak'])
+    default:['witchblade','lich','dcap','void','spring','hourglass'],   // 23.10.2026: eşya A/B sg4 %56/%58/%56 (DEF yok, Cadı Bıçağı önce)
+    eskiDef:['spring','witchblade','lich','dcap',DEF,'hourglass'],
     eski:   ['echo','blackflame','dcap','void',DEF,'glassbreak'],
     hp1:    ['spring','blackflame','dcap','void',DEF,'hourglass'],   // denge: can ağırlıklı deneme
     hp2:    ['bloodtome','spring','dcap','void',DEF,'hourglass'],   // denge: can ağırlıklı deneme
