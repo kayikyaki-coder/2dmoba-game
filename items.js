@@ -199,7 +199,9 @@ export const BUILDS = {
     default:['kraken','botrk','windbow','bt',DEF,'pd'],   // testte en iyi (eski adı: hiz); 5. yuva esnek savunma
     kraken: ['kraken','ie','pd','ldr','bt','rfc'],
     krit:   ['ie','pd','rfc','ldr','bt','kraken'],
-    yikik:  ['botrk','kraken','ie','pd','ldr','bt']
+    yikik:  ['botrk','kraken','ie','pd','ldr','bt'],
+    nodef:  ['kraken','botrk','windbow','bt','pd','ie'],   // deneme: DEF yok
+    yikik2: ['botrk','kraken','windbow','ie','pd','bt']    // deneme: Kanlı Kılıç önce, DEF yok
   },
   warrior: {
     default:['cleaver','predator','mace','titanic','sheen','bt'],   // 23.10.2026 (eşya A/B C2/C6, 2v2 Uzman, 160 maç x 4 tohum): hasar eski varsayılana karşı %76/%77/%75/%58 -> varsayılan
@@ -268,7 +270,9 @@ export const BUILDS = {
     hp1:    ['spring','blackflame','dcap','void',DEF,'hourglass'],   // denge: can ağırlıklı deneme
     hp2:    ['bloodtome','spring','dcap','void',DEF,'hourglass'],   // denge: can ağırlıklı deneme
     sg1:    ['spring','witchblade','lich','dcap',DEF,'hourglass'],   // denge: düz vuruş (kuşatma) ağırlıklı deneme (Ateş Dişi -> Büyü Kılıcı)
-    hiz:    ['time','echo','blackflame','dcap','void','hourglass']
+    hiz:    ['time','echo','blackflame','dcap','void','hourglass'],
+    sg4:    ['witchblade','lich','dcap','void','spring','hourglass'],   // deneme: DEF yok, Cadı Bıçağı önce
+    sg5:    ['spring','witchblade','lich','dcap','horizon','hourglass']    // deneme: DEF yerine Ufuk Merceği
   },
   spirit: {
     default:['spring','witchblade','lich','dcap',DEF,'hourglass'],   // 23.10.2026 (eşya A/B B4, 2v2 Uzman, 160 maç): sg1 eski varsayılana karşı %84/%81 (tohum 1/4) -> varsayılan
@@ -282,7 +286,8 @@ export const BUILDS = {
   dual: {
     default:['sheen','cleaver',DEF,'mace',DEF,'predator'],   // iki biçimde de ek SG ile büyüyen yetenekler (Enerji Küresi %110, Sıçrayış %100), vuruş/yetenek sonrası Tılsımlı Kılıç, can ve yetenek hızı (denenmedi)
     nisanci:['ie','pd','ldr','bt','botrk','kraken'],
-    dovuscu:['cleaver','predator','mace','sheen','randuin','bt']
+    dovuscu:['cleaver','predator','mace','sheen','randuin','bt'],
+    hasar:  ['sheen','cleaver','predator','mace','titanic','bt']    // deneme: DEF yok
   },
   mage: {
     default:['spring','witchblade','lich','dcap',DEF,'hourglass'],   // 23.10.2026 (eşya A/B B1/B6, 2v2 Uzman, 160 maç x 3 tohum): sg1 eski varsayılana karşı %68/%65/%64 -> varsayılan
