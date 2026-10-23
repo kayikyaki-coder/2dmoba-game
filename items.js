@@ -232,7 +232,8 @@ export const BUILDS = {
     tank:   [DEF,'warmog',DEF,DEF,DEF,'sunfire']
   },
   flame: {
-    default:['lich','spring',DEF,'bloodtome',DEF,'dcap'],   // yetenek sonrası vuruşlar, can ve YG ağırlıklı yakın dövüş büyücüsü (denenmedi)
+    default:['lich',BURN,'dcap','void','abyss','hourglass'],   // 23.10.2026 (eşya A/B B2/B8, 2v2 Uzman, 160 maç x 3 tohum): buyu eski varsayılana karşı %67/%63/%59 -> varsayılan
+    eskiDef:['lich','spring',DEF,'bloodtome',DEF,'dcap'],   // yetenek sonrası vuruşlar, can ve YG ağırlıklı yakın dövüş büyücüsü (denenmedi)
     buyu:   ['lich',BURN,'dcap','void','abyss','hourglass'],
     savas:  ['spring','abyss','bloodtome','lich','hourglass','void']
   },
