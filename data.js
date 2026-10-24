@@ -77,14 +77,14 @@ export const STATS = {
     projRadius:{ base:7, per:0 }
   },
   twin: {
-    hp:{ base:500, per:25 },   // denge ML16 (23.10.2026, ML12-ML15 taramalarında İkiz %40-45): 475 idi // denge A1 (13.10.2026): 500 idi // denge J2 (12.10.2026): 530 idi // zırh sistemi (11.10.2026): 450 (+25) idi
+    hp:{ base:515, per:25 },   // denge ML20 (tarama ML19: İkiz %35): 500 idi // denge ML16 (23.10.2026, ML12-ML15 taramalarında İkiz %40-45): 475 idi // denge A1 (13.10.2026): 500 idi // denge J2 (12.10.2026): 530 idi // zırh sistemi (11.10.2026): 450 (+25) idi
     regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:2.5 },   // denge F1 (11.10.2026, zırh sonrası): 22 (+3) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
     dmg:{ base:43, per:3 },   // denge ML16: 42 idi // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: İkiz %59): 44 idi //   // denge J3: 45 idi // denge O2: 48 idi //   // denge O1: 50 idi //   // denge F4: 53 idi //   // zırh sistemi (11.10.2026): 47 (+3) idi
-    as:{ base:1.05, per:0.05 },     // her vuruş iki ok attığı için okçudan düşük
+    as:{ base:1.09, per:0.05 },     // denge ML20 (24.10.2026, tarama ML19: İkiz %35): 1.05 idi // her vuruş iki ok attığı için okçudan düşük
     spd:{ base:200, per:3 },
     range:{ base:330, per:0 },
     size:{ base:27, per:0 },
