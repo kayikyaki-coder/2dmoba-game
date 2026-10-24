@@ -204,7 +204,10 @@ export const BUILDS = {
     yikik2: ['botrk','kraken','windbow','ie','pd','bt'],    // deneme: Kanlı Kılıç önce, DEF yok
     c1:     ['kraken','botrk','runbow','windbow','bt','pd'],   // deneme turu E
     c2:     ['kraken','fury','botrk','ie','pd','bt'],   // deneme turu E
-    c3:     ['kraken','botrk','siege','windbow','bt','pd']   // deneme turu E
+    c3:     ['kraken','botrk','siege','windbow','bt','pd'],   // deneme turu E
+    c4:     ['kraken','botrk','thornboot','windbow','bt','pd'],   // 24.10.2026 deneme: Dikenli Çizme (DEF yerine)
+    c5:     ['kraken','botrk','windbow','luck','bt','pd'],   // 24.10.2026 deneme: Talih Kılıcı
+    c6:     ['kraken','botrk','windbow','pierce','bt','pd']   // 24.10.2026 deneme: Delici Ok (zırh delme)
   },
   warrior: {
     default:['cleaver','predator','mace','titanic','sheen','bt'],   // 23.10.2026 (eşya A/B C2/C6, 2v2 Uzman, 160 maç x 4 tohum): hasar eski varsayılana karşı %76/%77/%75/%58 -> varsayılan
