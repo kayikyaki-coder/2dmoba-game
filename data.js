@@ -113,7 +113,7 @@ export const STATS = {
     projRadius:{ base:6, per:0 }
   },
   hook: {
-    hp:{ base:620, per:32 },   // denge T2: 640 idi // denge K1 (15.10.2026, %63): 670 idi // denge C7: 690 idi // denge L1 (14.10.2026, seviye 15): 720 idi // denge A1 (13.10.2026): 770 idi // denge O2: 720 idi //   // denge O1: 680 idi //   // zırh sistemi (11.10.2026): 690 (+38) idi
+    hp:{ base:645, per:32 },   // denge ML19 (24.10.2026, EB2: Zincirli %43): 620 idi // denge T2: 640 idi // denge K1 (15.10.2026, %63): 670 idi // denge C7: 690 idi // denge L1 (14.10.2026, seviye 15): 720 idi // denge A1 (13.10.2026): 770 idi // denge O2: 720 idi //   // denge O1: 680 idi //   // zırh sistemi (11.10.2026): 690 (+38) idi
     regen:{ base:6, per:1.4 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:38, per:4.5 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:32, per:1.5 },   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -423,7 +423,7 @@ export const HEROES = {
       // sağ tık: cast sn hazırlık (hazırlıkta castSlow yavaş), bitince imleç yönünde range uzunlukta, 2 x radius genişlikte şerit, anında;
       //          şeritteki bütün rakip birimlere (kule hariç) büyü hasarı dmg + ap * YG. Hazırlık sırasında şerit önizlemesi herkese görünür.
       r:{ name:'Uzun Işın', max:7, type:'beam', cd:[9.5,8.5,7.5,6.5,6,5.5,5],   /* denge C2: cd 10-5.5 idi */   /* denge F2: cd 9-6 idi */ cast:0.6,   /* denge T2: cast 0.4 idi */ castSlow:0.4, range:750, radius:35,
-          dmg:[79,118,158,197,222,245,269], ap:0.75 },   /* denge C10: 75-256 idi */   // denge C1: ap 0.70 idi   // denge: 70,110,150,190, sonra 80,120,160,200 idi (2v2 tur 3: %65)
+          dmg:[76,113,152,189,213,235,258], /* denge ML19 (24.10.2026, Topçu ML16-EB2 59/62/56/60): Uzun Işın 79-269 idi */ ap:0.75 },   /* denge C10: 75-256 idi */   // denge C1: ap 0.70 idi   // denge: 70,110,150,190, sonra 80,120,160,200 idi (2v2 tur 3: %65)
       // E: cast sn hazırlık, düz giden mermi; ilk değdiği rakip birimde (minyon dahil, kule değil) durur. Büyü hasarı dmg + ap * YG;
       //    sersemletme gidilen mesafeyle stunMin'den (0 mesafe) stunMax'a (range) doğrusal. Minyon da sersemler.
       e:{ name:'Ağır Küre', max:7, type:'stunorb', cd:[13,12,11,10,9.5,9,8.5],   /* denge C9: cd 14-9.5 idi */ cast:0.25, castSlow:0.4, range:700, speed:700, radius:26,   // kaçılabilirlik (10.10.2026): yarı menzildeki rakip hemen yana adım atarsa temel hızla kaçar, vururken (yavaşlamış) kaçamaz; menzil 750, yarıçap 22 idi
@@ -454,7 +454,7 @@ export const HEROES = {
       //    rakip birimlere (kule hariç) büyü hasarı. Bekleme ilk kullanımda başlar. back sn içinde aynı tuşa tekrar basılırsa başladığı
       //    yere döner (hasarsız, kullanım sayılmaz, bekleme süresinden bağımsız).
       e:{ name:'Gölge Adımı', max:7, type:'blink', cd:[14,13,12,11,10.5,10,9.5], range:420, radius:140,
-          dmg:[82,122,163,204,229,253,278], ap:0.50, back:3 },   // denge ML12 (tarama ML11: Gölge %37): 76-257 idi   // denge C4: 70-238 idi
+          dmg:[86,128,171,214,240,266,292], /* denge ML19 (EB2: Gölge %43): Gölge Adımı 82-278 idi */ ap:0.50, back:3 },   // denge ML12 (tarama ML11: Gölge %37): 76-257 idi   // denge C4: 70-238 idi
       // boşluk: en son kullanılan sağ tık ya da E yeteneğini (dönüşler sayılmaz) bir kez daha kullanır, hasarı bonus oranında fazla;
       //         o yeteneğin bekleme süresini etkilemez. Taklit edilen Gölge Adımı'nın dönüşü Boşluk'a tekrar basılarak yapılır.
       //         Henüz yetenek kullanılmadıysa atılamaz.
