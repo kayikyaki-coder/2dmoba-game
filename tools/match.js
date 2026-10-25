@@ -90,7 +90,7 @@ export function runMatch2v2({ a, b, levelA=1, levelB=1, aTeam=0, seed=1, maxTime
     jointA:joint[A], jointB:joint[B],
     apartA:cnt[A] ? apart[A]/cnt[A] : null, nearA:cnt[A] ? near[A]/cnt[A] : null,
     apartB:cnt[B] ? apart[B]/cnt[B] : null, nearB:cnt[B] ? near[B]/cnt[B] : null,
-    firstKill:S.stats.firstKill, firstTower:S.stats.firstTower,
+    firstKill:S.stats.firstKill, firstTower:S.stats.firstTower, structDie:S.stats.structDie,
     heroes:S.heroes.map(h=>({ type:h.type, side:h.team===A?'A':'B', kills:h.kills, deaths:h.deaths, towerDeaths:h.towerDeaths||0, assists:h.assists, role:h.role, level:h.level+h.xp/1000, lv10:(at10.get(h)||{}).lv??null, worth10:(at10.get(h)||{}).worth??null, jCamps:h.jCamps||0, jGold:h.jGold||0, jm:h.jm||0, lvEnd:h.level, itemsEnd:bigN(h), worthEnd:worth(h), snaps:snaps.get(h)||{}, cuGold:h.cuGold||0, gold:h.gold+(h.items||[]).length*0 })),
     jungle:S.jstats ? { camps:S.jstats.camps.slice(), big:S.jstats.big.slice(), buffs:S.jstats.buffs.slice(), aTeam:A } : null
   };

@@ -140,7 +140,7 @@ export function resetGame(opts){
   S.score=[0,0]; S.time=0; S.waveT=WAVE_FIRST; S.over=null;
   S.fxOn = opts.fx!==false;
   S.firstBlood = false;
-  S.stats = { firstKill:null, firstTower:null, maxLevel:[null,null] };
+  S.stats = { firstKill:null, firstTower:null, maxLevel:[null,null], structDie:[] };   // structDie: yapı yıkılış zamanları (ölçüm)
   buildStructs();
   buildCamps(opts.jungle!==undefined ? !!opts.jungle : settings.jungle);
   const other = settings.botType!=='auto' ? settings.botType : (settings.playerType==='archer' ? 'warrior' : 'archer');
@@ -673,6 +673,7 @@ export function kill(e, src){
     bloodHarvest(e, src, null);
   } else {
     if(e.sub!=='nexus' && S.stats.firstTower===null) S.stats.firstTower=S.time;
+    S.stats.structDie.push({ team:e.team, idx:e.idx, sub:e.sub, t:S.time });
     fx({ type:'boom', x:e.x, y:e.y, r0:e.r, r1:e.r+110, color:TEAM_COLORS[e.team], life:0.7 });
     if(e.sub!=='nexus'){
       awardXP(1-e.team, e.x, e.y, STRUCT_XP, 900);
