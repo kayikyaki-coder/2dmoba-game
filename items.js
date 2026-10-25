@@ -329,6 +329,9 @@ export const BUILDS = {
     savas:  ['spring','abyss','bloodtome','dcap','visage','hourglass'],
     sg2:    ['spring','witchblade','lich','dcap','void','hourglass'],   // 23.10.2026 deneme: sg1, DEF yerine Boşluk Asası
     sg3:    ['witchblade','spring','lich','dcap',DEF,'hourglass'],   // 23.10.2026 deneme: sg1, Cadı Bıçağı önce
-    sg4:    ['witchblade','lich','dcap','void','spring','hourglass']   // deneme: Gölge sg4 (DEF yok)
+    sg4:    ['witchblade','lich','dcap','void','spring','hourglass'],   // deneme: Gölge sg4 (DEF yok)
+    c1:     ['spring','witchblade','lich','dcap',BURN,'hourglass'],   // 25.10.2026 deneme: DEF yerine Esnek yakma
+    c2:     ['spring','witchblade','lich','dcap','embermask','hourglass'],   // 25.10.2026 deneme: DEF yerine Kor Maskesi
+    c3:     ['spring','witchblade','lich','dcap','glassbreak','hourglass']   // 25.10.2026 deneme: DEF yerine Cam Kırıcı
   }
 };
