@@ -371,6 +371,7 @@ export function damage(e, amt, src, opts){
   if(SB.siege && e.kind!=='hero'){ amt*=1+SB.siege; a=amt; }
   if(e.kind==='struct' && src && src.team<2 && S.teamBuff[src.team]>S.time){ amt*=BIG_BUFF.structMult; a=amt; }   // Titan Gücü: yapılara ek hasar
   if(e.kind==='struct' && src && src.kind==='minion'){ amt*=TOWER.minionTaken; a=amt; }   // dalga kuşatması güçlü
+  if(e.kind==='struct' && e.sub!=='nexus' && TOWER.fort && S.time<TOWER.fort.until*60){ amt*=TOWER.fort.mult; a=amt; }   // erken koruma (25.10.2026 deneme, until 0 = kapalı)
   if(e.kind==='struct' && src && src.kind==='hero' && !opts.noWard && !waveNear(src.team, e)){ amt*=TOWER.ward.mult; a=amt; }   // noWard: Cadı Bıçağı ek büyü hasarı   // kale koruması: dalgasız kuşatma zayıf
   if(e.kind==='monster' && src && src.kind==='hero'){ e.lastHero=src; e.lastHeroT=S.time; monsterAggro(e, src); amt*=opts.basic ? JUNGLE.basicMult : JUNGLE.skillMult; a=amt; }   // canavarlara kahraman hasarı çarpanı (yetenek ağırlıklı kahramanlar da kesebilsin)   // Kuşatma Çekici: yapılara ve minyonlara ek hasar
   // zırh / büyü direnci (sadece kahramanlarda): hasar * 100/(100+değer); 'true' türü delip geçer. Delme ve azaltmalar burada.
