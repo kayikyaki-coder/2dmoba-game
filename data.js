@@ -579,6 +579,7 @@ export const TOWER = { armorPen:0.40, r:38,
   dmg:80,          /* 60 idi */
   interval:0.9,    /* 1.0 idi */
   dmgPerMin:0, dmgCap:1.5,      // 15.10.2026: dakikalık kule hasarı artışı (denendi 0,02-0,03: maç 26-30 dk; kapalı)
+  fort:{ until:0, mult:0.5 },   // 25.10.2026 deneme: ilk 'until' dakika kuleler (nexus hariç) mult kat hasar alır; 0 = kapalı
   ward:{ mult:0.6, r:700 },     // 15.10.2026 kale koruması: 700 içinde saldıranın dost minyonu yoksa kahramanların yapılara hasarı x0,6 (yoktu)
   minionTaken:3.0,              // 15.10.2026: minyonların yapılara hasarı x3 (dalga kuşatmanın asıl gücü; yoktu)
   boltSpeed:1000, minionMult:1.6, stack:0.25, maxStack:4,
