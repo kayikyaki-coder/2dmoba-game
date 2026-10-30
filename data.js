@@ -42,7 +42,7 @@ export const STATS = {
     projRadius:{ base:6, per:0 }    // ok kalınlığı
   },
   warrior: {
-    hp:{ base:835, per:32 },   // denge ML9 (23.10.2026, tarama ML8: Savaşçı %62): 855 idi // denge ML7 (23.10.2026, tarama ML6: Savaşçı %63): 880 idi // denge ML6 (23.10.2026, tarama ML5: Savaşçı %69): 920 idi // denge ML2 (22.10.2026, tarama ML2: Savaşçı %39): 880 idi //   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Savaşçı %37): 840 idi //   // denge A1 (13.10.2026): 870 idi // denge F4: 820 idi //   // zırh sistemi (11.10.2026): 940 (+40) idi
+    hp:{ base:860, per:32 },   // denge KD1 (30.10.2026, tarama KD3: Savaşçı %43): 835 idi // denge ML9 (23.10.2026, tarama ML8: Savaşçı %62): 855 idi // denge ML7 (23.10.2026, tarama ML6: Savaşçı %63): 880 idi // denge ML6 (23.10.2026, tarama ML5: Savaşçı %69): 920 idi // denge ML2 (22.10.2026, tarama ML2: Savaşçı %39): 880 idi //   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Savaşçı %37): 840 idi //   // denge A1 (13.10.2026): 870 idi // denge F4: 820 idi //   // zırh sistemi (11.10.2026): 940 (+40) idi
     regen:{ base:10, per:0.9 },       // denge: 5 idi, seviye başına: 0 idi
     armor:{ base:40, per:5 },   // denge F2: 36 (+4.5) idi //   // denge F1 (11.10.2026, zırh sonrası): 32 (+4) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:34, per:1.8 },   // denge F1 (11.10.2026, zırh sonrası): 30 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -84,7 +84,7 @@ export const STATS = {
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
     dmg:{ base:43, per:3 },   // denge ML16: 42 idi // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: İkiz %59): 44 idi //   // denge J3: 45 idi // denge O2: 48 idi //   // denge O1: 50 idi //   // denge F4: 53 idi //   // zırh sistemi (11.10.2026): 47 (+3) idi
-    as:{ base:1.09, per:0.05 },     // denge ML20 (24.10.2026, tarama ML19: İkiz %35): 1.05 idi // her vuruş iki ok attığı için okçudan düşük
+    as:{ base:1.12, per:0.05 },     // denge KD1 (30.10.2026, tarama KD3: İkiz %42): 1.09 idi // denge ML20 (24.10.2026, tarama ML19: İkiz %35): 1.05 idi // her vuruş iki ok attığı için okçudan düşük
     spd:{ base:200, per:3 },
     range:{ base:330, per:0 },
     size:{ base:27, per:0 },
@@ -101,7 +101,7 @@ export const STATS = {
     mr:{ base:25, per:1 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     ah:{ base:0, per:0 },
     ap:{ base:0, per:0 },
-    dmg:{ base:27, per:2.8 },   // denge ML2 (22.10.2026, tarama ML2: Seken %61): 29 idi //   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Seken %64): 31 idi //   // denge O3: 33 idi //   // denge O2: 35 idi //   // denge O1: 37 idi //   // denge F5: 44 idi //   // zırh sistemi (11.10.2026): 39 (+2.8) idi
+    dmg:{ base:26, per:2.8 },   // denge KD1 (30.10.2026, tarama KD3: Seken %59): 27 idi // denge ML2 (22.10.2026, tarama ML2: Seken %61): 29 idi //   // denge ML1 (22.10.2026, kule minyon önceliği sonrası Uzman tarama: Seken %64): 31 idi //   // denge O3: 33 idi //   // denge O2: 35 idi //   // denge O1: 37 idi //   // denge F5: 44 idi //   // zırh sistemi (11.10.2026): 39 (+2.8) idi
     as:{ base:1.00, per:0.05 },     // denge: 1.15 idi
     spd:{ base:200, per:3 },
     range:{ base:310, per:0 },    // 450 idi, denge için 400
@@ -181,7 +181,7 @@ export const STATS = {
     angle:{ base:90, per:0 }
   },
   blood: {
-    hp:{ base:575, per:28 },   // kule D (30.10.2026, tarama KD: Kan Lordu %62): 600 idi // denge ML17 (23.10.2026, tarama ML16: Kan Lordu %63, sg4 eşya sırasından beri 56/58/63): 630 idi // denge ML2 (22.10.2026, tarama ML2: Kan Lordu %43): 610 idi //   // denge O3: 580 idi //   // zırh sistemi (11.10.2026): 490 (+28) idi
+    hp:{ base:555, per:28 },   // denge KD1 (30.10.2026, tarama KD3: Kan Lordu %60): 575 idi // kule D (30.10.2026, tarama KD: Kan Lordu %62): 600 idi // denge ML17 (23.10.2026, tarama ML16: Kan Lordu %63, sg4 eşya sırasından beri 56/58/63): 630 idi // denge ML2 (22.10.2026, tarama ML2: Kan Lordu %43): 610 idi //   // denge O3: 580 idi //   // zırh sistemi (11.10.2026): 490 (+28) idi
     regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -488,7 +488,7 @@ export const HEROES = {
       //        breakDeg ve üstü ani dönüş sıfırlar; yürümüyorsa (ya da kontrol altında) saniyede decay söner. Momentum ms oranında hareket hızı verir.
       //        Düz vuruş ya da yetenek isabeti ek fiziksel hasar (dmgMin..dmgMax seviyeyle + ad * ek SG) * momentum/100 verir; momentum pushAt üstündeyse
       //        rakibi gidiş yönünde push birim iter (pushT sn). İsabet momentumu harcar (sıfırlar). Kahraman/minyon, kule değil.
-      p:{ name:'Momentum', gain:55, decay:140, turnLoss:0.5, breakDeg:80, ms:0.28, dmgMin:30, dmgMax:70,   /* kule D (30.10.2026, tarama KD2: Gülle %41): 26/62 idi */ /* denge ML8 (23.10.2026, tarama ML7: Gülle %65): dmgMin 30 dmgMax 70 idi */   /* denge C11: dmgMax 80 idi */   /* denge C8: dmgMax 90 idi */ ad:0.30, pushAt:60, push:100, pushT:0.15 },
+      p:{ name:'Momentum', gain:55, decay:140, turnLoss:0.5, breakDeg:80, ms:0.28, dmgMin:32, dmgMax:75,   /* denge KD1 (30.10.2026, tarama KD3: Gülle %44): 30/70 idi */ /* kule D (30.10.2026, tarama KD2: Gülle %41): 26/62 idi */ /* denge ML8 (23.10.2026, tarama ML7: Gülle %65): dmgMin 30 dmgMax 70 idi */   /* denge C11: dmgMax 80 idi */   /* denge C8: dmgMax 90 idi */ ad:0.30, pushAt:60, push:100, pushT:0.15 },
       // sağ tık: basılı tutuldukça mesafe dMin'den dMax'a (charge sn'de) artar (bot imleç noktasına göre seçer); bırakınca o yöne speed hızıyla yuvarlanır
       //          (birimlerin içinden geçer, duvarda ve yapıda durur, kök engeller). İnişte radius yarıçapta rakiplere (kule hariç) fiziksel hasar
       //          dmg + hpPct * ek can, kahraman ve minyonlar stun sn sersemler (havaya atılır).
