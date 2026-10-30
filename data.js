@@ -130,7 +130,7 @@ export const STATS = {
     angle:{ base:90, per:0 }
   },
   roller: {   // Gülle: hareket eden tank (yakın dövüş). Zincirli/Savaşçı arası can, düşük temel hız (Momentum +%28 verir)
-    hp:{ base:655, per:37 },   // denge ML7 (23.10.2026, tarama ML6: Gülle %63): 680 idi // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Gülle %68): 720 idi // denge C9: 750 idi // denge C5: 770 idi // zırh sistemi (11.10.2026): 920 (+46) idi
+    hp:{ base:700, per:37 },   // kule D (30.10.2026, tarama KD: Gülle %41): 655 idi // denge ML7 (23.10.2026, tarama ML6: Gülle %63): 680 idi // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Gülle %68): 720 idi // denge C9: 750 idi // denge C5: 770 idi // zırh sistemi (11.10.2026): 920 (+46) idi
     regen:{ base:8, per:1.0 },
     armor:{ base:42, per:5 },   // denge F2: 38 (+4.5) idi //   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:36, per:1.8 },   // denge F1 (11.10.2026, zırh sonrası): 32 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -181,7 +181,7 @@ export const STATS = {
     angle:{ base:90, per:0 }
   },
   blood: {
-    hp:{ base:600, per:28 },   // denge ML17 (23.10.2026, tarama ML16: Kan Lordu %63, sg4 eşya sırasından beri 56/58/63): 630 idi // denge ML2 (22.10.2026, tarama ML2: Kan Lordu %43): 610 idi //   // denge O3: 580 idi //   // zırh sistemi (11.10.2026): 490 (+28) idi
+    hp:{ base:575, per:28 },   // kule D (30.10.2026, tarama KD: Kan Lordu %62): 600 idi // denge ML17 (23.10.2026, tarama ML16: Kan Lordu %63, sg4 eşya sırasından beri 56/58/63): 630 idi // denge ML2 (22.10.2026, tarama ML2: Kan Lordu %43): 610 idi //   // denge O3: 580 idi //   // zırh sistemi (11.10.2026): 490 (+28) idi
     regen:{ base:3, per:0.6 },   // seviye başına: 0 idi (LoL gibi artan yenileme)
     armor:{ base:20, per:3 },   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:25, per:1.2 },   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -488,7 +488,7 @@ export const HEROES = {
       //        breakDeg ve üstü ani dönüş sıfırlar; yürümüyorsa (ya da kontrol altında) saniyede decay söner. Momentum ms oranında hareket hızı verir.
       //        Düz vuruş ya da yetenek isabeti ek fiziksel hasar (dmgMin..dmgMax seviyeyle + ad * ek SG) * momentum/100 verir; momentum pushAt üstündeyse
       //        rakibi gidiş yönünde push birim iter (pushT sn). İsabet momentumu harcar (sıfırlar). Kahraman/minyon, kule değil.
-      p:{ name:'Momentum', gain:55, decay:140, turnLoss:0.5, breakDeg:80, ms:0.28, dmgMin:26, dmgMax:62,   /* denge ML8 (23.10.2026, tarama ML7: Gülle %65): dmgMin 30 dmgMax 70 idi */   /* denge C11: dmgMax 80 idi */   /* denge C8: dmgMax 90 idi */ ad:0.30, pushAt:60, push:100, pushT:0.15 },
+      p:{ name:'Momentum', gain:55, decay:140, turnLoss:0.5, breakDeg:80, ms:0.28, dmgMin:30, dmgMax:70,   /* kule D (30.10.2026, tarama KD2: Gülle %41): 26/62 idi */ /* denge ML8 (23.10.2026, tarama ML7: Gülle %65): dmgMin 30 dmgMax 70 idi */   /* denge C11: dmgMax 80 idi */   /* denge C8: dmgMax 90 idi */ ad:0.30, pushAt:60, push:100, pushT:0.15 },
       // sağ tık: basılı tutuldukça mesafe dMin'den dMax'a (charge sn'de) artar (bot imleç noktasına göre seçer); bırakınca o yöne speed hızıyla yuvarlanır
       //          (birimlerin içinden geçer, duvarda ve yapıda durur, kök engeller). İnişte radius yarıçapta rakiplere (kule hariç) fiziksel hasar
       //          dmg + hpPct * ek can, kahraman ve minyonlar stun sn sersemler (havaya atılır).
@@ -574,19 +574,19 @@ for(const id of Object.keys(HEROES)){
 
 /* Yapılar: kule ve üs (nexus) */
 export const TOWER = { armorPen:0.40, r:38,
-  hp:780,          /* kule 15.10.2026: 620 idi (14.10.2026: 1050 idi) */
+  hp:1200,         /* kule D (30.10.2026, Kayra: kuleler çok hızlı düşüyordu): 780 idi; */ /* kule 15.10.2026: 620 idi (14.10.2026: 1050 idi) */
   range:520,       /* 15.10.2026 (kule gibi hissettirsin): 480 idi */
   dmg:80,          /* 60 idi */
   interval:0.9,    /* 1.0 idi */
   dmgPerMin:0, dmgCap:1.5,      // 15.10.2026: dakikalık kule hasarı artışı (denendi 0,02-0,03: maç 26-30 dk; kapalı)
-  fort:{ until:0, mult:0.5 },   // 25.10.2026 deneme: ilk 'until' dakika kuleler (nexus hariç) mult kat hasar alır; 0 = kapalı
+  fort:{ until:12, mult:0.5 },  // kule D (30.10.2026): ilk 'until' dakika kuleler (nexus hariç) mult kat hasar alır; 0 = kapalı (0 idi)
   ward:{ mult:0.6, r:700 },     // 15.10.2026 kale koruması: 700 içinde saldıranın dost minyonu yoksa kahramanların yapılara hasarı x0,6 (yoktu)
-  minionTaken:3.0,              // 15.10.2026: minyonların yapılara hasarı x3 (dalga kuşatmanın asıl gücü; yoktu)
+  minionTaken:2.0,              // kule D (30.10.2026): 3 idi. 15.10.2026: minyonların yapılara hasarı x3 (dalga kuşatmanın asıl gücü; yoktu)
   boltSpeed:1000, minionMult:1.6, stack:0.25, maxStack:4,
   champMult:2.0, champStack:0.40,          // şampiyona: ilk vuruş 2 kat, aynı şampiyona art arda her vuruş +%40 (LoL gibi; denge: 1x, +%25 idi)
   minionHits:{ melee:3, ranged:2 } };       // minyona: yakın 3, menzilli 2 vuruşta ölür (azami canın 1/n'i; denge: 60*1,6 idi)   // kule mermisi güdümlü: hedefe gider, önüne giren engelleyemez
-export const BASE_TOWER_HP = 650;   // 15.10.2026: 800 idi (14.10.2026: 1250 idi)
-export const NEXUS = { r:58, hp:900 };   // 15.10.2026: 1100 idi (14.10.2026: 1750 idi)
+export const BASE_TOWER_HP = 1000;   // kule D (30.10.2026): 650 idi. 15.10.2026: 800 idi (14.10.2026: 1250 idi)
+export const NEXUS = { r:58, hp:1400 };   // kule D (30.10.2026): 900 idi. 15.10.2026: 1100 idi (14.10.2026: 1750 idi)
 /* Takım 0 için x konumları, takım 1 aynalanır. Sıra: dış kule, iç kule, üs kulesi, nexus */
 export const LAYOUT = [ ['tower',1800], ['tower',1150], ['base',420], ['nexus',160] ];
 export const FOUNTAIN = { radius:260, healPct:0.125 };  // çeşme: saniyede maks canın %12,5 (0 → dolu 8 sn)
