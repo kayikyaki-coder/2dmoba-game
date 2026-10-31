@@ -130,7 +130,7 @@ export const STATS = {
     angle:{ base:90, per:0 }
   },
   roller: {   // Gülle: hareket eden tank (yakın dövüş). Zincirli/Savaşçı arası can, düşük temel hız (Momentum +%28 verir)
-    hp:{ base:700, per:37 },   // kule D (30.10.2026, tarama KD: Gülle %41): 655 idi // denge ML7 (23.10.2026, tarama ML6: Gülle %63): 680 idi // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Gülle %68): 720 idi // denge C9: 750 idi // denge C5: 770 idi // zırh sistemi (11.10.2026): 920 (+46) idi
+    hp:{ base:730, per:37 },   // denge KD2 (31.10.2026, tarama KE1: Gülle %39): 700 idi // kule D (30.10.2026, tarama KD: Gülle %41): 655 idi // denge ML7 (23.10.2026, tarama ML6: Gülle %63): 680 idi // denge ML5 (23.10.2026, tarama ML4 Uzman tam ML: Gülle %68): 720 idi // denge C9: 750 idi // denge C5: 770 idi // zırh sistemi (11.10.2026): 920 (+46) idi
     regen:{ base:8, per:1.0 },
     armor:{ base:42, per:5 },   // denge F2: 38 (+4.5) idi //   // zırh sistemi (11.10.2026): 10 (+0) idi
     mr:{ base:36, per:1.8 },   // denge F1 (11.10.2026, zırh sonrası): 32 (+1.5) idi //,   // zırh sistemi (11.10.2026): 10 (+0) idi
@@ -401,7 +401,7 @@ export const HEROES = {
       // sağ tık: menzildeki rakip kahraman ya da minyondan (kule değil) imlece en yakınına güdümlü ok (yoksa yetenek harcanmaz);
       //          büyü hasarı = dmg + ap * YG; uygulanan hasarın heal'i anında iyileşir
       r:{ name:'Kan Oku', max:7, type:'bloodbolt', hold:true, cd:[7,6.5,6,5.5,5.3,5,4.8], range:320, speed:900,
-          dmg:[62,95,128,162,181,201,221], ap:0.60, heal:0.22 },   // denge ML17: Kan Oku 65-233 idi   // denge: dmg 80,120,160,200 / heal 0.30 idi
+          dmg:[59,90,122,154,172,191,210], ap:0.60, heal:0.22 },   // denge KD2 (31.10.2026, tarama KE1: Kan Lordu %59): 62-221 idi // denge ML17: Kan Oku 65-233 idi   // denge: dmg 80,120,160,200 / heal 0.30 idi
       // E: anında; o anki canın pct'ini harcar (kendine hasar değil, en az 1 can kalır), çıktığı yerden range yarıçapa kadar
       //    speed hızıyla büyüyen bir kan halkası; değdiği her rakip birime (kule değil) bir kez hasar = dmg + harcanan can + ap * YG, büyü.
       e:{ name:'Kan Patlaması', max:7, type:'bloodnova', cd:[10,9,8,7,6.5,6,5.5], pct:0.10, range:380, speed:700,
