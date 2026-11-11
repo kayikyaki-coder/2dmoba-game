@@ -397,7 +397,7 @@ export const HEROES = {
     skills:{
       // pasif: rakip birim ölünce, son vuruşu (kahramanda öldüren sayılan) Kan Lordu yaptıysa o birimin azami canının killPct'i;
       //        rakip kahramana asist ya da rakip minyon nearRange içinde ölürse nearPct. İyileşme dur sn'ye eşit yayılır (birikebilir).
-      p:{ name:'Kan Hasadı', killPct:0.10, nearPct:0.05, nearRange:600, dur:5 },
+      p:{ name:'Kan Hasadı', killPct:0.07, nearPct:0.035, nearRange:600, dur:5 },   // denge KL1 (11.11.2026, tarama KE2: Kan Lordu %62): killPct 0.10, nearPct 0.05 idi
       // sağ tık: menzildeki rakip kahraman ya da minyondan (kule değil) imlece en yakınına güdümlü ok (yoksa yetenek harcanmaz);
       //          büyü hasarı = dmg + ap * YG; uygulanan hasarın heal'i anında iyileşir
       r:{ name:'Kan Oku', max:7, type:'bloodbolt', hold:true, cd:[7,6.5,6,5.5,5.3,5,4.8], range:320, speed:900,
@@ -409,7 +409,7 @@ export const HEROES = {
       // boşluk: anında; range'e kadar imleçteki noktada radius yarıçap, yalnız rakip kahramanlar işaretlenir: delay sn boyunca
       //         amp kadar fazla büyü hasarı alırlar, süre sonunda (ölmediyse, nerede olursa) dmg + ap * YG büyü hasarı;
       //         Kan Lordu bunun heal'i kadar iyileşir
-      s:{ name:'Kan Laneti', max:3, type:'bloodcurse', cd:[30,24,21], range:500, radius:175, delay:3, amp:[.15,.20,.23],
+      s:{ name:'Kan Laneti', max:3, type:'bloodcurse', cd:[30,24,21], range:500, radius:175, delay:3, amp:[.12,.16,.19], /* denge KL1: .15/.20/.23 idi */
           dmg:[150,250,310], ap:0.70, heal:0.30 }
     }
   },
