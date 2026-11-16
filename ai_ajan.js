@@ -9,8 +9,12 @@ import { lanePoint, laneProject, laneDir, laneLength, inWall } from './map.js';
 
 /* ayarlar (deneyde turdan tura değişir) */
 export const AJ = {
-  engage: 1.25,      // dövüşe girme üstünlüğü
-  flee: 0.8,         // dövüşü bırakma üstünlüğü
+  engage: 1.5,       // dövüşe girme üstünlüğü
+  stay: 1.0,         // dövüşte kalma
+  flee: 0.85,
+  fleeHold: 1.5,     // kaçış kararı en az bu kadar sürer
+  hiddenT: 12, hiddenW: 0.5, deepS: 400,   // görünmeyen rakip: son 12 sn içinde görüldüyse, koridorun ortasına 400 kala ötesinde yarım say
+  safeGap: 120,      // rakip kahramana karşı üstünlük zayıfken saldırı menzili + bu kadar uzak dur         // dövüşü bırakma üstünlüğü
   lowHp: 0.30,       // geri çekilme/üsse dönme canı
   recallGold: 1300,  // bu altına ulaşınca güvenliyse üsse dön
   towerSafeN: 2,     // rakip kule menzilinde en az bu kadar dost minyon varsa girilebilir
@@ -22,7 +26,7 @@ const MEM = new Map(); let memT = -1;
 function mem(h){
   if(S.time < memT) MEM.clear(); memT = S.time;
   let m = MEM.get(h.id);
-  if(!m){ m = { lastHp:h.hp, hurtT:-99, mode:'lane', stuckT:0, lx:h.x, ly:h.y, side:0 }; MEM.set(h.id, m); }
+  if(!m){ m = { lastHp:h.hp, hurtT:-99, mode:'lane', modeT:0, stuckT:0, lx:h.x, ly:h.y, side:0 }; MEM.set(h.id, m); }
   return m;
 }
 
@@ -73,8 +77,14 @@ function laneGoal(h, s, side){
   return { x: p.x - ty/tl*side, y: p.y + tx/tl*side };
 }
 
-function dps(u){ return stat(u,'dmg')*Math.max(0.5, stat(u,'as')||1); }
-function power(list){ let hp=0, d=0; for(const u of list){ hp+=u.hp; d+=dps(u)+20*(u.level||1); } return { hp, d }; }
+/* güç tahmini: etkin can (zırh/BD ortalaması) x (düz vuruş + hazır yetenek payı); seviye dolaylı (stat zaten seviyeye göre) */
+function ehp(u){ const r=(stat(u,'armor')+stat(u,'mr'))/2; return (u.hp+((u.st&&u.st.shield)?u.st.shield.amt||0:0))*(1+Math.max(0,r)/100); }
+function dps(u){
+  let d = stat(u,'dmg')*Math.max(0.5, stat(u,'as')||1);
+  let ready = 0; for(const k of ['r','e','s']){ const sk=u.def.skills[k]; if(sk && sk.type && u.rank[k]>0 && u.cd[k]<=1) ready += k==='s' ? 2 : 1; }
+  return d + ready*(12+6*(u.level||1)) + 2*(stat(u,'ap')||0);
+}
+function power(list){ let hp=0, d=0; for(const u of list){ hp+=ehp(u); d+=dps(u); } return { hp, d }; }
 
 /* rakip konum tahmini (mermi hızına göre öne nişan) */
 function lead(h, u, speed){
@@ -148,9 +158,15 @@ export function botCommand(h){
   // üstünlük: 1100 içindeki dostlar ve görünen rakipler
   const mine = [h, ...ally.filter(u=>dist(u,h)<1100)];
   const theirs = foesV.filter(u=>dist(u,h)<1300);
+  // görünmeyen rakipler (son görülme hafızası): kendi yarımızın ötesindeyken yarı ağırlıkla sayılır
+  if(!m.seen) m.seen = {};
+  for(const u of foesV) m.seen[u.id] = S.time;
+  const hidden = S.heroes.filter(u=>u.team!==team && !u.dead && !canSee(team,u) && S.time-(m.seen[u.id]??-99) < AJ.hiddenT);
+  const deep = (laneS(h)-laneLength()/2)*dir > -AJ.deepS;
   let adv = 99;
   if(theirs.length){
     const A = power(mine), B = power(theirs);
+    if(deep && hidden.length){ const H = power(hidden); B.hp += H.hp*AJ.hiddenW; B.d += H.d*AJ.hiddenW; }
     adv = (A.hp*A.d)/Math.max(1, B.hp*B.d);
     const myT = myStructs.find(s=>s.sub!=='nexus' && dist(s,h) < s.range+200);
     if(myT) adv *= 1.5;
@@ -169,12 +185,16 @@ export function botCommand(h){
   // mod
   let mode = 'lane';
   if(tgt){
+    const inFight = m.mode==='fight' && S.time-m.modeT < 6;
+    const inFlee = m.mode==='flee' && S.time-m.modeT < AJ.fleeHold;
     if(hpR < AJ.lowHp || adv < AJ.flee) mode = 'flee';
-    else if(adv >= AJ.engage && !inTowerZone(tgt, 0)) mode = 'fight';
+    else if(inFlee && adv < AJ.engage*1.2) mode = 'flee';
+    else if((adv >= AJ.engage || (inFight && adv >= AJ.stay)) && !inTowerZone(tgt, 0)) mode = 'fight';
   }
   if(beingShot && !towerSafeAny(enemyStructs, h, team)) mode = 'flee';
   if(wantRecall && mode!=='fight') mode = 'flee';
-  m.mode = mode;
+  if(mode!==m.mode) m.modeT = S.time;
+  m.mode = mode; m.adv = adv; m.nf = theirs.length; m.tgtHp = tgt ? tgt.hp/tgt.maxHp : null;
 
   const homeP = laneGoal(h, laneS(nex) + dir*200, 0);
 
@@ -210,6 +230,12 @@ export function botCommand(h){
     if(goalS*dir > lim) goalS = lim*dir;
   }
   if(eNexus && !eTower){ /* bütün kuleler yıkıldı: nexus'a git */ }
+  // rakip kahraman görünürken üstünlük zayıfsa onun menzilinin dışında kal (koridor ekseninde geri)
+  if(tgt && adv < AJ.engage){
+    let worst = null;
+    for(const u of theirs){ const r = atkDef(u).range + u.r + h.r + AJ.safeGap; const v = laneS(u)*dir - r; if(worst===null || v<worst) worst = v; }
+    if(worst!==null && goalS*dir > worst) goalS = worst*dir;
+  }
   const goal = laneGoal(h, goalS, mySide);
 
   // vuruş hedefi
@@ -222,7 +248,7 @@ export function botCommand(h){
     if(u.hp <= dmg*0.95 && (!at || u.hp < at.hp)) at = u;
   }
   // 2) rakip kahraman dürtme (kule dışında, üstünlük kötü değilse)
-  if(!at && tgt && inAttackRange(h,tgt) && adv >= 0.9 && !inTowerZone(h,0)) at = tgt;
+  if(!at && tgt && inAttackRange(h,tgt) && adv >= AJ.stay && !inTowerZone(h,0)) at = tgt;
   // 3) yapı
   if(!at) for(const s of enemyStructs){ if(!s.prot && inAttackRange(h,s) && (s.sub==='nexus' || towerSafe(s,team))) { at = s; break; } }
   // 4) minyon itme (en düşük can)
@@ -269,3 +295,4 @@ function minionSkills(h, cmd){
     if(best && bn>=3){ aimAt(cmd,h,best); cmd[k==='r'?'rmb':'e']=true; return; }
   }
 }
+export { MEM };
