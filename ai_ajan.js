@@ -11,6 +11,7 @@ import { lanePoint, laneProject, laneDir, laneLength, inWall } from './map.js';
 export const AJ = {
   engage: 1.5,       // dövüşe girme üstünlüğü
   stay: 1.0,         // dövüşte kalma
+  defEngage: 1.05,   // rakip kulemizin menzilindeyken girme eşiği
   flee: 0.85,
   fleeHold: 1.5,     // kaçış kararı en az bu kadar sürer
   memT: 5, memSpd: 150,   // son memT sn içinde görülen rakip: son konumu (sn'de memSpd genişleyen) 1300 içindeyse tam sayılır
@@ -218,7 +219,12 @@ export function botCommand(h){
     const underMine = myStructs.some(s=>s.sub!=='nexus' && dist(s,h) < s.range-40);
     if(hpR < AJ.lowHp || (adv < AJ.flee && !(underMine && hpR > AJ.holdHp && adv >= AJ.holdAdv))) mode = 'flee';
     else if(inFlee && adv < AJ.engage*1.2) mode = 'flee';
-    else if((adv >= AJ.engage || (inFight && adv >= AJ.stay) || killable(h, mine, tgt)) && !inTowerZone(tgt, 0)) mode = 'fight';
+    else {
+      // kulemizi döven rakip: daha düşük eşikle karşılık ver
+      const sieging = myStructs.some(s=>s.sub!=='nexus' && dist(s,tgt) < s.range+80);
+      const eng = sieging ? AJ.defEngage : AJ.engage;
+      if((adv >= eng || (inFight && adv >= AJ.stay) || killable(h, mine, tgt)) && !inTowerZone(tgt, 0)) mode = 'fight';
+    }
   }
   if(beingShot && !towerSafeAny(enemyStructs, h, team)) mode = 'flee';
   if(wantRecall && mode!=='fight') mode = 'flee';
