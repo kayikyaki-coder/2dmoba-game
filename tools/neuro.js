@@ -59,7 +59,7 @@ if(!isMainThread){
   const POP = +(a.pop || 32), GAMES = +(a.games || 4), VALN = +(a.valn || 24), VAL = +(a.val || 5);
   fs.mkdirSync(DIR, { recursive:true });
   const LOG = path.join(DIR, 'log.txt');
-  const log = s => { const l = new Date().toISOString().slice(0,19).replace('T',' ')+'  '+s; console.log(l); fs.appendFileSync(LOG, l+'\n'); };
+  const log = s => { const d = new Date(); const l = new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,19).replace('T',' ')+'  '+s; fs.appendFileSync(LOG, l+'\n'); console.log(l); };   // yerel saat; önce dosyaya (Windows konsolunda seçim modu yazmayı dondurur)
   const AJM = await import('../ai_ajan.js');
   const NW = AJM.NW, NI = AJM.NI, NF = AJM.NF, NH = AJM.NH;
 
