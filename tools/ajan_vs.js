@@ -65,7 +65,7 @@ if(isMainThread){
             const src=last.get(h.id); const mine=S.heroes.filter(u=>u.team===aTeam&&!u.dead&&dist(u,h)<1000).length+1;
             const th=S.heroes.filter(u=>u.team!==aTeam&&!u.dead&&dist(u,h)<1000).length;
             const tw=S.structs.some(s=>s.team!==aTeam&&!s.dead&&s.sub!=='nexus'&&dist(s,h)<s.range+80);
-            causes.push(src&&src.kind==='struct'?'kule':src&&src.kind==='minion'?'minyon':tw?'kule altı':th>mine?'sayıca az':th===0?'tek başına?':'dövüş');
+            causes.push(h.role+':'+(src&&src.kind==='struct'?'kule':src&&src.kind==='minion'?'minyon':tw?'kule altı':th>mine?'sayıca az':th===0?'tek başına?':'dövüş'));
           }
         }
         wasDead.set(h.id, h.dead);

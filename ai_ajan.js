@@ -15,9 +15,11 @@ export const AJ = {
   fleeHold: 1.5,     // kaçış kararı en az bu kadar sürer
   memT: 5, memSpd: 150,   // son memT sn içinde görülen rakip: son konumu (sn'de memSpd genişleyen) 1300 içindeyse tam sayılır
   hiddenW: 0.5, deepS: 400,   // yeri bilinmeyen rakip: koridorun ortasına 400 kala ötesinde yarım sayılır
-  safeGap: 120,      // rakip kahramana karşı üstünlük zayıfken saldırı menzili + bu kadar uzak dur         // dövüşü bırakma üstünlüğü
+  allyR: 750,        // dövüş gücüne katılan dost uzaklığı
+  safeGap: 120,
+  kiteGap: 90,       // menzilli: yakın dövüşçünün menzili + bu kadar içindeyken geri adım      // rakip kahramana karşı üstünlük zayıfken saldırı menzili + bu kadar uzak dur         // dövüşü bırakma üstünlüğü
   lowHp: 0.30,
-  holdHp: 0.45,      // kendi kule menzilinde bu canın üstündeyse kaçma, dalgayı temizle
+  holdHp: 0.45, holdAdv: 0.5,      // kendi kule menzilinde bu canın üstündeyse kaçma, dalgayı temizle
   towerDps: 170,     // kendi kulemizin rakip kahramana saniyelik hasar tahmini       // geri çekilme/üsse dönme canı
   recallGold: 1100,
   healHp: 0.45,      // görünen rakip yokken bu canın altında üsse dön
@@ -168,7 +170,7 @@ export function botCommand(h){
   const beingShot = enemyStructs.some(s=>s.tgt===h);
 
   // üstünlük: 1100 içindeki dostlar ve görünen rakipler
-  const mine = [h, ...ally.filter(u=>dist(u,h)<1100)];
+  const mine = [h, ...ally.filter(u=>dist(u,h)<AJ.allyR)];
   const theirs = foesV.filter(u=>dist(u,h)<1300);
   // görünmeyen rakipler (takım ortak hafızası: son görülen konum ve an)
   const SEEN = seenOf(team);
@@ -213,7 +215,7 @@ export function botCommand(h){
     const inFight = m.mode==='fight' && S.time-m.modeT < 6;
     const inFlee = m.mode==='flee' && S.time-m.modeT < AJ.fleeHold;
     const underMine = myStructs.some(s=>s.sub!=='nexus' && dist(s,h) < s.range-40);
-    if(hpR < AJ.lowHp || (adv < AJ.flee && !(underMine && hpR > AJ.holdHp))) mode = 'flee';
+    if(hpR < AJ.lowHp || (adv < AJ.flee && !(underMine && hpR > AJ.holdHp && adv >= AJ.holdAdv))) mode = 'flee';
     else if(inFlee && adv < AJ.engage*1.2) mode = 'flee';
     else if((adv >= AJ.engage || (inFight && adv >= AJ.stay) || killable(h, mine, tgt)) && !inTowerZone(tgt, 0)) mode = 'fight';
   }
@@ -235,6 +237,14 @@ export function botCommand(h){
     useSkills(h, cmd, tgt, true, false, homeP, near);
     if(inAttackRange(h, tgt)){
       cmd.attack = true; cmd.target = tgt; if(cmd.tx===undefined) cmd.aim = Math.atan2(tgt.y-h.y, tgt.x-h.x);
+      // menzilli, yakın dövüşçüye karşı: vuruş hazırlığı dışında geri adım (kite)
+      const tr = atkDef(tgt).range;
+      if(!melee && tr < 200 && h.atk.state!=='windup' && dist(h,tgt) < tr + h.r + tgt.r + AJ.kiteGap){
+        const ax = h.x-tgt.x, ay = h.y-tgt.y, l = Math.hypot(ax,ay)||1;
+        const bp = { x:h.x+ax/l*120, y:h.y+ay/l*120 };
+        if(!inWall(bp.x,bp.y,h.r)){ const [mx,my] = steer(h, ax, ay); cmd.mx=mx; cmd.my=my; }
+        else moveTo(cmd, h, homeP.x, homeP.y);
+      }
     } else {
       moveTo(cmd, h, tgt.x, tgt.y);
     }
