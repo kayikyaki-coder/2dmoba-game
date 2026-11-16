@@ -13,10 +13,15 @@ export const AJ = {
   stay: 1.0,         // dövüşte kalma
   flee: 0.85,
   fleeHold: 1.5,     // kaçış kararı en az bu kadar sürer
-  hiddenT: 12, hiddenW: 0.5, deepS: 400,   // görünmeyen rakip: son 12 sn içinde görüldüyse, koridorun ortasına 400 kala ötesinde yarım say
+  memT: 5, memSpd: 150,   // son memT sn içinde görülen rakip: son konumu (sn'de memSpd genişleyen) 1300 içindeyse tam sayılır
+  hiddenW: 0.5, deepS: 400,   // yeri bilinmeyen rakip: koridorun ortasına 400 kala ötesinde yarım sayılır
   safeGap: 120,      // rakip kahramana karşı üstünlük zayıfken saldırı menzili + bu kadar uzak dur         // dövüşü bırakma üstünlüğü
-  lowHp: 0.30,       // geri çekilme/üsse dönme canı
-  recallGold: 1300,  // bu altına ulaşınca güvenliyse üsse dön
+  lowHp: 0.30,
+  holdHp: 0.45,      // kendi kule menzilinde bu canın üstündeyse kaçma, dalgayı temizle
+  towerDps: 170,     // kendi kulemizin rakip kahramana saniyelik hasar tahmini       // geri çekilme/üsse dönme canı
+  recallGold: 1100,
+  healHp: 0.45,      // görünen rakip yokken bu canın altında üsse dön
+  killK: 0.8,        // öldürme hesabı güvenlik payı  // bu altına ulaşınca güvenliyse üsse dön
   towerSafeN: 2,     // rakip kule menzilinde en az bu kadar dost minyon varsa girilebilir
   backR: 150, backM: 60,   // dalga önünün ne kadar arkasında durulur (menzilli / yakın)
   skillMinions: 1,   // 1: rakip kahraman yokken hasar yeteneklerini minyonlara at
@@ -28,9 +33,10 @@ export const AJ = {
   helpR: 2600,       // ormancı dost dövüşüne bu uzaklıktan koşar
 };
 
-const MEM = new Map(); let memT = -1;
+const MEM = new Map(); let memT = -1; let SEEN_T = [{},{}];
+function seenOf(t){ return SEEN_T[t]; }
 function mem(h){
-  if(S.time < memT) MEM.clear(); memT = S.time;
+  if(S.time < memT){ MEM.clear(); SEEN_T=[{},{}]; } memT = S.time;
   let m = MEM.get(h.id);
   if(!m){ m = { lastHp:h.hp, hurtT:-99, mode:'lane', modeT:0, stuckT:0, lx:h.x, ly:h.y, side:0 }; MEM.set(h.id, m); }
   return m;
@@ -164,24 +170,37 @@ export function botCommand(h){
   // üstünlük: 1100 içindeki dostlar ve görünen rakipler
   const mine = [h, ...ally.filter(u=>dist(u,h)<1100)];
   const theirs = foesV.filter(u=>dist(u,h)<1300);
-  // görünmeyen rakipler (son görülme hafızası): kendi yarımızın ötesindeyken yarı ağırlıkla sayılır
-  if(!m.seen) m.seen = {};
-  for(const u of foesV) m.seen[u.id] = S.time;
-  const hidden = S.heroes.filter(u=>u.team!==team && !u.dead && !canSee(team,u) && S.time-(m.seen[u.id]??-99) < AJ.hiddenT);
+  // görünmeyen rakipler (takım ortak hafızası: son görülen konum ve an)
+  const SEEN = seenOf(team);
+  for(const u of foesV) SEEN[u.id] = { t:S.time, x:u.x, y:u.y };
   const deep = (laneS(h)-laneLength()/2)*dir > -AJ.deepS;
+  const memNear = [], hidden = [];
+  for(const u of S.heroes){
+    if(u.team===team || u.dead || canSee(team,u)) continue;
+    const q = SEEN[u.id];
+    if(q && S.time-q.t < AJ.memT){ if(Math.hypot(q.x-h.x,q.y-h.y) < 1300+AJ.memSpd*(S.time-q.t)) memNear.push(u); }
+    else if(deep) hidden.push(u);
+  }
   let adv = 99;
   if(theirs.length){
     const A = power(mine), B = power(theirs);
-    if(deep && hidden.length){ const H = power(hidden); B.hp += H.hp*AJ.hiddenW; B.d += H.d*AJ.hiddenW; }
+    if(memNear.length){ const H = power(memNear); B.hp += H.hp; B.d += H.d; }
+    if(hidden.length){ const H = power(hidden); B.hp += H.hp*AJ.hiddenW; B.d += H.d*AJ.hiddenW; }
     adv = (A.hp*A.d)/Math.max(1, B.hp*B.d);
+    // kendi kulemiz: menzilinde rakip minyon yoksa menzildeki rakip kahramana vurur, gücüne kule hasarı eklenir
     const myT = myStructs.find(s=>s.sub!=='nexus' && dist(s,h) < s.range+200);
-    if(myT) adv *= 1.5;
+    if(myT){
+      const busy = S.minions.some(u=>!u.dead && u.team!==team && dist(u,myT)-u.r <= myT.range);
+      if(!busy && theirs.some(u=>dist(u,myT)-u.r <= myT.range+60)){ const A2 = power(mine); A2.d += AJ.towerDps; adv = (A2.hp*A2.d)/Math.max(1, (adv>0 ? (A.hp*A.d)/adv : 1)); }
+      else adv *= 1.15;
+    }
     if(inTowerZone(h, 150)) adv *= 0.5;
   }
 
   // üsse dönüş kararı
   const safe = !near.length;
-  const wantRecall = (hpR < AJ.lowHp || h.gold >= AJ.recallGold) && !atBase;
+  const quiet = !foesV.some(u=>dist(u,h) < 1300);
+  const wantRecall = (hpR < AJ.lowHp || (hpR < AJ.healHp && quiet) || h.gold >= AJ.recallGold) && !atBase;
   if(wantRecall && safe && !beingShot){ cmd.recall = true; return cmd; }
 
   // hedef rakip kahraman: en düşük canlı görünen
@@ -193,9 +212,10 @@ export function botCommand(h){
   if(tgt){
     const inFight = m.mode==='fight' && S.time-m.modeT < 6;
     const inFlee = m.mode==='flee' && S.time-m.modeT < AJ.fleeHold;
-    if(hpR < AJ.lowHp || adv < AJ.flee) mode = 'flee';
+    const underMine = myStructs.some(s=>s.sub!=='nexus' && dist(s,h) < s.range-40);
+    if(hpR < AJ.lowHp || (adv < AJ.flee && !(underMine && hpR > AJ.holdHp))) mode = 'flee';
     else if(inFlee && adv < AJ.engage*1.2) mode = 'flee';
-    else if((adv >= AJ.engage || (inFight && adv >= AJ.stay)) && !inTowerZone(tgt, 0)) mode = 'fight';
+    else if((adv >= AJ.engage || (inFight && adv >= AJ.stay) || killable(h, mine, tgt)) && !inTowerZone(tgt, 0)) mode = 'fight';
   }
   if(beingShot && !towerSafeAny(enemyStructs, h, team)) mode = 'flee';
   if(wantRecall && mode!=='fight') mode = 'flee';
@@ -312,6 +332,11 @@ function incoming(team){
   const M = new Map();
   for(const m of S.minions){ if(m.dead || m.team!==team || !m.atk || !m.atk.main) continue; const d=m.def.dmg*(m.dmgMult||1)/m.def.period; M.set(m.atk.main.id, (M.get(m.atk.main.id)||0)+d); }
   return M;
+}
+/* öldürülebilir mi: hedefin etkin canı, yakındaki dostlarımızın ~2,5 sn'lik hasarından az */
+function killable(h, mine, tgt){
+  let d = 0; for(const u of mine) if(dist(u,tgt) < 700) d += dps(u)*2.5;
+  return ehp(tgt) < d*AJ.killK;
 }
 function towerSafeAny(structs, h, team){
   for(const s of structs){ if(s.sub==='nexus') continue; if(dist(h,s) < s.range+h.r+20 && !towerSafe(s,team)) return false; }
