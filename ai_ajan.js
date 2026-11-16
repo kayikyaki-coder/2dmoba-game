@@ -15,7 +15,8 @@ export const AJ = {
   fleeHold: 1.5,     // kaçış kararı en az bu kadar sürer
   memT: 5, memSpd: 150,   // son memT sn içinde görülen rakip: son konumu (sn'de memSpd genişleyen) 1300 içindeyse tam sayılır
   hiddenW: 0.5, deepS: 400,   // yeri bilinmeyen rakip: koridorun ortasına 400 kala ötesinde yarım sayılır
-  allyR: 750,        // dövüş gücüne katılan dost uzaklığı
+  allyR: 750,
+  xpR: 520,          // rakip minyona en fazla bu kadar uzak dur (XP yarıçapı 600)        // dövüş gücüne katılan dost uzaklığı
   safeGap: 120,
   kiteGap: 90,       // menzilli: yakın dövüşçünün menzili + bu kadar içindeyken geri adım      // rakip kahramana karşı üstünlük zayıfken saldırı menzili + bu kadar uzak dur         // dövüşü bırakma üstünlüğü
   lowHp: 0.30,
@@ -260,7 +261,7 @@ export function botCommand(h){
   }
   // ormancı: dost dövüşüne yardım, yoksa kamp
   if(AJ.jungle && h.role==='jungle' && !(tgt && adv >= AJ.stay)){
-    const busy = ally.find(u=>{ const q=MEM.get(u.id); return q && (q.mode==='fight' || (q.mode==='flee' && q.nf>0)) && dist(u,h)<AJ.helpR; });
+    const busy = ally.find(u=>{ const q=MEM.get(u.id); return q && q.mode==='fight' && dist(u,h)<AJ.helpR; });
     if(busy){ moveTo(cmd, h, busy.x, busy.y); return cmd; }
     if(hpR >= AJ.jgLow && jungleCmd(h, cmd, m)) return cmd;
   }
@@ -282,6 +283,11 @@ export function botCommand(h){
     let worst = null;
     for(const u of theirs){ const r = atkDef(u).range + u.r + h.r + AJ.safeGap; const v = laneS(u)*dir - r; if(worst===null || v<worst) worst = v; }
     if(worst!==null && goalS*dir > worst) goalS = worst*dir;
+  }
+  // XP menzili: canımız iyiyse en yakın rakip minyonun XP yarıçapından (600) geri düşme
+  if(hpR > 0.5){
+    let ns = null; for(const u of S.minions){ if(u.dead || u.team===team || !canSee(team,u)) continue; const v = laneS(u)*dir; if(ns===null || v<ns) ns = v; }
+    if(ns!==null && goalS*dir < ns - AJ.xpR) goalS = (ns - AJ.xpR)*dir;
   }
   // kendi ön kulemizin gerisine çekilme (kule bizi korur; kaçış ayrı mod)
   if(myFront!==null && goalS*dir < myFront - AJ.towerBack) goalS = (myFront - AJ.towerBack)*dir;
