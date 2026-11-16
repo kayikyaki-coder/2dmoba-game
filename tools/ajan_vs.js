@@ -34,6 +34,8 @@ if(isMainThread){
   console.log(`K/D ajan ${avg('kA').toFixed(1)}/${avg('dA').toFixed(1)}  Uzman ${avg('kB').toFixed(1)}/${avg('dB').toFixed(1)}  10.dk servet farkı ${avg('worth10').toFixed(0)}  yapı yıkılan ajan/uzman ${avg('sA').toFixed(1)}/${avg('sB').toFixed(1)}  kuleye hasar ajan/uzman ${avg('tdA').toFixed(0)}/${avg('tdB').toFixed(0)}`);
   const dc={}; for(const x of res) for(const c of x.causes) dc[c]=(dc[c]||0)+1;
   console.log('ajan ölüm nedeni: '+Object.entries(dc).sort((p,q)=>q[1]-p[1]).map(([c,v])=>c+' '+(v/N).toFixed(2)).join(', '));
+  { const g={}; for(const x of res) for(const q of (x.h10||[])){ const k=q.t+':'+q.type+(q.t==='B'?'/'+q.role:''); g[k]=g[k]||[0,0,0,0]; g[k][0]++; g[k][1]+=q.lv; g[k][2]+=q.w; g[k][3]+=q.cs; }
+    console.log('10. dk seviye/servet/son vuruş: '+Object.entries(g).sort().map(([k,[n,l,w,c]])=>k+' '+(l/n).toFixed(1)+'/'+(w/n).toFixed(0)+'/cs'+(c/n).toFixed(0)).join(', ')); }
   const by={}; for(const x of res){ for(const t of x.a){ by[t]=by[t]||[0,0]; by[t][0]++; if(x.aWon) by[t][1]++; } }
   if(Object.keys(by).length>2) console.log('kahraman (ajan tarafı): '+Object.entries(by).map(([t,[n,w]])=>t+' %'+(100*w/n).toFixed(0)+'/'+n).join(', '));
   process.exit(0);
@@ -50,10 +52,10 @@ if(isMainThread){
     for(const h of S.heroes){ if(h.team===aTeam) h.autoBuy=true; else h.botLevel=EXPERT; }
     const getCmd=(h,dt)=> h.team===aTeam ? AJ.botCommand(h,dt) : EXP.botCommand(h,dt);
     const last=new Map(), causes=[], td=[0,0];
-    S.onDamage=(e,amt,src)=>{ if(e.kind==='hero') last.set(e.id,src); if(e.kind==='struct' && src && src.kind==='hero') td[src.team]+=amt; };
+    const cs=new Map(); S.onDamage=(e,amt,src)=>{ if(e.kind==='minion' && e.hp<=0 && e.hp+amt>0 && src && src.kind==='hero') cs.set(src.id,(cs.get(src.id)||0)+1); if(e.kind==='hero') last.set(e.id,src); if(e.kind==='struct' && src && src.kind==='hero') td[src.team]+=amt; };
     const wasDead=new Map(); let tick=0, early=null, worth10=null;
     const worth=h=>h.gold+(h.items||[]).reduce((t,id)=>t+((ITEMS[id]||PARTS[id]||{}).cost||0),0);
-    let ftA=null, fkA=null;
+    let ftA=null, fkA=null, h10=null;
     while(!S.over && S.time<2400 && !early){
       step(TICK,getCmd); tick++;
       for(const h of S.heroes){
@@ -73,13 +75,13 @@ if(isMainThread){
         if(ftA===null && lost[0]+lost[1]>0) ftA = lost[1-aTeam]>0;
         if(!workerData.full) for(const t of [0,1]) if(lost[1-t]-lost[t]>=2 || (lost[1-t]>=2 && lost[t]===0)) early={ winner:t };
       }
-      if(tick===36000){ const sum=t=>S.heroes.filter(h=>h.team===t).reduce((s,h)=>s+worth(h),0); worth10=sum(aTeam)-sum(1-aTeam); }
+      if(tick===36000){ const sum=t=>S.heroes.filter(h=>h.team===t).reduce((s,h)=>s+worth(h),0); worth10=sum(aTeam)-sum(1-aTeam); h10=S.heroes.map(h=>({ t:h.team===aTeam?'A':'B', type:h.type, role:h.role, lv:h.level, w:worth(h), cs:cs.get(h.id)||0 })); }
     }
     S.onDamage=null;
     const winner=S.over?S.over.winner:early?early.winner:null;
     const lost=[0,0]; for(const s of S.structs) if(s.dead) lost[s.team]++;
     const sum=(t,k)=>S.heroes.filter(h=>h.team===t).reduce((s,h)=>s+h[k],0);
     parentPort.postMessage({ a, b, aTeam, aWon: winner===aTeam, time:S.time, early:!!early, firstTower:S.stats.firstTower, firstKill:S.stats.firstKill, ftA, fkA,
-      kA:sum(aTeam,'kills'), dA:sum(aTeam,'deaths'), kB:sum(1-aTeam,'kills'), dB:sum(1-aTeam,'deaths'), sA:lost[1-aTeam], sB:lost[aTeam], worth10, causes, tdA:td[aTeam], tdB:td[1-aTeam] });
+      kA:sum(aTeam,'kills'), dA:sum(aTeam,'deaths'), kB:sum(1-aTeam,'kills'), dB:sum(1-aTeam,'deaths'), sA:lost[1-aTeam], sB:lost[aTeam], worth10, h10, causes, tdA:td[aTeam], tdB:td[1-aTeam] });
   });
 }
