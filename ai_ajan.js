@@ -15,7 +15,11 @@ export const AJ = {
   siege: 1, siegeHp: 0.4, siegeAdv: 1.2,   // kuşatma: can bu oranın üstünde, yakın rakip varsa üstünlük en az bu
   push: 1, pushR: 900,   // yakında (pushR) görünen rakip kahraman yokken dalgayı beklemeden it
   groupDef: 0, groupR: 1500,   // ön kulemize groupR içinde 2+ rakip: ormancı koridora
-  jgSiege: 1,        // ormancı dostun kuşatmasına katılır   // rakip kulemizin menzilindeyken girme eşiği
+  jgSiege: 1,
+  net: null,         // nöroevrim ağı (tools/neuro.js); null = kurallar
+  netDt: 0.25,       // ağ kararı aralığı (sn)
+  shiftMax: 300,     // ağın koridor konumu kayması (ileri/geri)
+  sink: null,        // taklit verisi toplama: (özellikler, kural niyeti) => void        // ormancı dostun kuşatmasına katılır   // rakip kulemizin menzilindeyken girme eşiği
   flee: 0.85,
   fleeHold: 1.5,     // kaçış kararı en az bu kadar sürer
   memT: 5, memSpd: 150,   // son memT sn içinde görülen rakip: son konumu (sn'de memSpd genişleyen) 1300 içindeyse tam sayılır
@@ -209,11 +213,25 @@ export function botCommand(h){
   const safe = !near.length;
   const quiet = !foesV.some(u=>dist(u,h) < 1300);
   const wantRecall = (hpR < AJ.lowHp || (hpR < AJ.healHp && quiet) || h.gold >= AJ.recallGold) && !atBase;
-  if(wantRecall && safe && !beingShot){ cmd.recall = true; return cmd; }
-
   // hedef rakip kahraman: en düşük canlı görünen
   let tgt = null;
   for(const u of theirs){ if(!tgt || u.hp < tgt.hp) tgt = u; }
+
+  // ---- sinir ağı (nöroevrim): özellikler ve niyet ----
+  const front0 = myStructs.filter(s=>s.sub!=='nexus' && !s.prot)[0] || myStructs.find(s=>s.sub!=='nexus');
+  const sT0 = eTower || (eNexus && !eNexus.prot ? eNexus : null);
+  let F = null;
+  if(AJ.net || AJ.sink) F = features(h, { hpR, adv, theirs, memNear, hidden, tgt, mine, ally, eTower, sT0, front0, enemyStructs, myStructs, beingShot, inTowerZone, dir, foesV });
+  let intent = null;
+  if(AJ.net){
+    if(S.time >= (m.netT||0)){ m.netT = S.time + AJ.netDt; const o = netForward(AJ.net, F); m.netOut = o; }
+    const o = m.netOut; let bi = 0; for(let i=1;i<NI;i++) if(o[i] > o[bi]) bi = i;
+    intent = INTENTS[bi]; m.shift = Math.tanh(o[NI])*AJ.shiftMax;
+    if(intent==='FIGHT' && !tgt) intent = 'LANE';
+    if(intent==='SIEGE' && !sT0) intent = 'LANE';
+    if(intent==='RECALL'){ if(atBase) intent = 'LANE'; else if(safe && !beingShot){ m.intent = intent; cmd.recall = true; return cmd; } else intent = 'FLEE'; }
+    m.intent = intent;
+  } else if(wantRecall && safe && !beingShot){ label(m, F, 'RECALL'); cmd.recall = true; return cmd; }
 
   // mod
   let mode = 'lane';
@@ -232,12 +250,14 @@ export function botCommand(h){
   }
   if(beingShot && !towerSafeAny(enemyStructs, h, team)) mode = 'flee';
   if(wantRecall && mode!=='fight') mode = 'flee';
+  if(intent) mode = intent==='FIGHT' ? 'fight' : intent==='FLEE' ? 'flee' : 'lane';
   if(mode!==m.mode) m.modeT = S.time;
   m.mode = mode; m.adv = adv; m.nf = theirs.length; m.tgtHp = tgt ? tgt.hp/tgt.maxHp : null;
 
   const homeP = laneGoal(h, laneS(nex) + dir*200, 0);
 
   if(mode==='flee'){
+    label(m, F, 'FLEE');
     useSkills(h, cmd, tgt, false, true, homeP, near);
     moveTo(cmd, h, homeP.x, homeP.y);
     // kaçarken menzildeki rakibe vurmak yavaşlatır: yalnız ölmek üzereyse
@@ -245,6 +265,7 @@ export function botCommand(h){
   }
 
   if(mode==='fight'){
+    label(m, F, 'FIGHT');
     useSkills(h, cmd, tgt, true, false, homeP, near);
     if(inAttackRange(h, tgt)){
       cmd.attack = true; cmd.target = tgt; if(cmd.tx===undefined) cmd.aim = Math.atan2(tgt.y-h.y, tgt.x-h.x);
@@ -269,31 +290,38 @@ export function botCommand(h){
   let near2 = 0;
   if(front) for(const u of S.heroes){ if(u.team===team || u.dead) continue; const q = SEEN[u.id]; const p = canSee(team,u) ? u : (q && S.time-q.t < AJ.memT ? q : null); if(p && Math.hypot(p.x-front.x,p.y-front.y) < AJ.groupR) near2++; }
   const groupDef = AJ.groupDef && near2 >= 2;
-  if(h.role==='jungle' && AJ.jungle && front && (threat.length || groupDef) && hpR > AJ.lowHp+0.1 && !(tgt && mode==='fight')){
+  if(intent==='GROUP'){
+    // dosta (canlıysa) ya da ön kulemize git, oradaysan koridor oyunu
+    const A = ally[0]; const gp = A && dist(A,h) > 500 ? A : (!A && front ? laneGoal(h, laneS(front) - dir*AJ.defBack, mySide) : null);
+    if(gp && dist(h,gp) > 200){ moveTo(cmd, h, gp.x, gp.y); if(tgt && adv>=AJ.stay) useSkills(h,cmd,tgt,false,false,homeP,near); return cmd; }
+  } else if(!intent && h.role==='jungle' && AJ.jungle && front && (threat.length || groupDef) && hpR > AJ.lowHp+0.1 && !(tgt && mode==='fight')){
     const sp = laneGoal(h, laneS(front) - dir*AJ.defBack, mySide);
-    if(dist(h, sp) > 120){ moveTo(cmd, h, sp.x, sp.y); if(tgt && adv>=AJ.stay) useSkills(h,cmd,tgt,false,false,homeP,near); return cmd; }
+    if(dist(h, sp) > 120){ label(m, F, 'GROUP'); moveTo(cmd, h, sp.x, sp.y); if(tgt && adv>=AJ.stay) useSkills(h,cmd,tgt,false,false,homeP,near); return cmd; }
   }
   // kuşatma: dalgamız rakip ön yapının menzilindeyse ve yakında üstün rakip yoksa yapıya vur
   const sTgt = eTower || (eNexus && !eNexus.prot ? eNexus : null);
   let siege = null;
-  if(AJ.siege && sTgt && !sTgt.prot && hpR > AJ.siegeHp){
+  if(intent==='SIEGE') siege = sTgt;
+  else if(!intent && AJ.siege && sTgt && !sTgt.prot && hpR > AJ.siegeHp){
     const ok = sTgt.sub==='nexus' || towerSafe(sTgt, team);
     const foesAt = foesV.filter(u=>dist(u,sTgt) < sTgt.range+400);
     if(ok && (!foesAt.length || adv >= AJ.siegeAdv)) siege = sTgt;
   }
   m.siege = !!siege;
   if(siege){
-    // son vuruş fırsatı varsa önce onu al (aşağıda), yoksa yapıya
+    label(m, F, 'SIEGE');
     if(inAttackRange(h, siege)){ cmd.attack = true; cmd.target = siege; cmd.aim = Math.atan2(siege.y-h.y, siege.x-h.x); if(tgt && adv>=AJ.stay) useSkills(h,cmd,tgt,false,false,homeP,near); return cmd; }
     const ax = h.x-siege.x, ay = h.y-siege.y, l = Math.hypot(ax,ay)||1, rr = siege.r + h.r + range - 15;
     moveTo(cmd, h, siege.x+ax/l*rr, siege.y+ay/l*rr); return cmd;
   }
   // ormancı: dost dövüşüne yardım, yoksa kamp
-  if(AJ.jungle && h.role==='jungle' && !(tgt && adv >= AJ.stay)){
+  if(intent==='JUNGLE'){ if(jungleCmd(h, cmd, m)) return cmd; }
+  else if(!intent && AJ.jungle && h.role==='jungle' && !(tgt && adv >= AJ.stay)){
     const busy = ally.find(u=>{ const q=MEM.get(u.id); return q && (q.mode==='fight' || (AJ.jgSiege && q.siege)) && dist(u,h)<AJ.helpR; });
-    if(busy){ moveTo(cmd, h, busy.x, busy.y); return cmd; }
-    if(hpR >= AJ.jgLow && jungleCmd(h, cmd, m)) return cmd;
+    if(busy){ label(m, F, 'GROUP'); moveTo(cmd, h, busy.x, busy.y); return cmd; }
+    if(hpR >= AJ.jgLow && jungleCmd(h, cmd, m)){ label(m, F, 'JUNGLE'); return cmd; }
   }
+  label(m, F, 'LANE');
   // koridor: hedef konum
   const wf = waveFront(team, dir);
   const myFront = myStructs.filter(s=>s.sub!=='nexus').reduce((b,s)=>{ const v=laneS(s)*dir; return b===null||v>b ? v : b; }, null);
@@ -320,6 +348,7 @@ export function botCommand(h){
   }
   // kendi ön kulemizin gerisine çekilme (kule bizi korur; kaçış ayrı mod)
   if(myFront!==null && goalS*dir < myFront - AJ.towerBack) goalS = (myFront - AJ.towerBack)*dir;
+  if(intent && m.shift) goalS += dir*m.shift;
   const goal = laneGoal(h, goalS, mySide);
 
   // vuruş hedefi
@@ -477,4 +506,44 @@ export function jungleCmd(h, cmd, m){
   // kampa git (doğmasını bekle)
   if(dist(h,camp) > 120) moveTo(cmd, h, camp.x, camp.y);
   return true;
+}
+
+/* ---- nöroevrim ağı ----
+   Girdi: features() (NF sayı). Gizli katman NH tanh. Çıktı: NI niyet puanı + 1 koridor kayması.
+   Ağırlıklar düz dizi: [W1 (NH x NF), b1 (NH), W2 ((NI+1) x NH), b2 (NI+1)]. */
+export const INTENTS = ['LANE','FIGHT','FLEE','SIEGE','RECALL','JUNGLE','GROUP'];
+export const NI = INTENTS.length, NF = 28, NH = 14;
+export const NW = NH*NF + NH + (NI+1)*NH + (NI+1);
+export function netForward(w, x){
+  const hdn = new Float64Array(NH); let k = 0;
+  for(let i=0;i<NH;i++){ let a=0; for(let j=0;j<NF;j++) a += w[k++]*x[j]; hdn[i]=a; }
+  for(let i=0;i<NH;i++) hdn[i] = Math.tanh(hdn[i] + w[k++]);
+  const o = new Float64Array(NI+1);
+  for(let i=0;i<=NI;i++){ let a=0; for(let j=0;j<NH;j++) a += w[k++]*hdn[j]; o[i]=a; }
+  for(let i=0;i<=NI;i++) o[i] += w[k++];
+  return o;
+}
+function label(m, F, it){ if(AJ.sink && F && S.time >= (m.labT||0)){ m.labT = S.time + AJ.netDt; AJ.sink(F, INTENTS.indexOf(it)); } }
+const cl = (v,a=-2,b=2) => Math.max(a, Math.min(b, v));
+function features(h, c){
+  const { hpR, adv, theirs, memNear, hidden, tgt, mine, ally, eTower, sT0, front0, enemyStructs, myStructs, beingShot, inTowerZone, dir, foesV } = c;
+  const team = h.team, me = laneS(h)*dir, L = laneLength();
+  const wf = waveFront(team, dir), wfE = waveFront(1-team, dir);
+  let ourAtE = 0, enAtOurs = 0;
+  for(const u of S.minions){ if(u.dead) continue;
+    if(u.team===team && eTower && dist(u,eTower)-u.r <= eTower.range) ourAtE++;
+    if(u.team!==team && front0 && dist(u,front0)-u.r <= front0.range && canSee(team,u)) enAtOurs++; }
+  const A = ally[0];
+  const eLv = foesV.length ? foesV.reduce((t,u)=>t+u.level,0)/foesV.length : h.level;
+  let ready = 0, ult = 0; for(const k of ['r','e','s']){ const sk=h.def.skills[k]; if(sk && sk.type && h.rank[k]>0 && h.cd[k]<=0){ ready++; if(k==='s') ult=1; } }
+  let camps = 0; if(S.intel) for(const cp of S.camps){ if(cp.side!==team || cp.big) continue; const I=S.intel[team].camps[cp.id]; if(I && (I.state==='alive' || (I.state==='dead' && I.until<=S.time+5))) camps++; }
+  const underMine = myStructs.some(s=>s.sub!=='nexus' && dist(s,h) < s.range-40) ? 1 : 0;
+  return [
+    hpR, cl(Math.log(adv>50 ? 8 : Math.max(adv,0.05))/2), theirs.length/2, memNear.length/2, hidden.length/2,
+    tgt ? tgt.hp/tgt.maxHp : 1, tgt ? Math.min(1, dist(h,tgt)/1300) : 1, underMine, inTowerZone(h,0) ? 1 : 0, beingShot ? 1 : 0,
+    tgt && killable(h, mine, tgt) ? 1 : 0, wf===null ? -1 : cl((wf*dir - me)/1000), wfE===null ? -1 : cl((wfE*dir - me)/1000),
+    ourAtE/5, enAtOurs/5, Math.min(2, h.gold/1500), h.level/15, cl((eLv-h.level)/3), Math.min(2, S.time/1200),
+    h.role==='jungle' ? 1 : 0, A ? A.hp/A.maxHp : 0, A ? Math.min(1, dist(A,h)/2500) : 1, ult, ready/3,
+    sT0 ? 1 : 0, eTower && towerSafe(eTower, team) ? 1 : 0, me/L, camps/5
+  ];
 }
