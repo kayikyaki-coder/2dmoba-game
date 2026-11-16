@@ -19,8 +19,10 @@ export const AJ = {
   recallGold: 1300,  // bu altına ulaşınca güvenliyse üsse dön
   towerSafeN: 2,     // rakip kule menzilinde en az bu kadar dost minyon varsa girilebilir
   backR: 150, backM: 60,   // dalga önünün ne kadar arkasında durulur (menzilli / yakın)
-  skillMinions: 0,   // 1: rakip kahraman yokken hasar yeteneklerini minyonlara at
+  skillMinions: 1,   // 1: rakip kahraman yokken hasar yeteneklerini minyonlara at
   holdK: 1.6,        // bu kadar vuruşluk canı kalan minyon yakında ölecek sayılır
+  defR: 150, defBack: 60,   // ön kulenin menzili + bu kadar içinde rakip kahraman varsa ormancı savunmaya döner, kulenin bu kadar gerisinde dur
+  towerBack: 100,    // kendi ön kulemizin en fazla bu kadar gerisine çekil (koridor modunda)
   jungle: 1,         // sim'in atadığı ormancı rolünü oyna (h.role==='jungle')
   jgLow: 0.35,       // ormancı bu canın altında kampa girmez
   helpR: 2600,       // ormancı dost dövüşüne bu uzaklıktan koşar
@@ -219,6 +221,13 @@ export function botCommand(h){
     return cmd;
   }
 
+  // savunma: ön kulemize rakip kahraman yaklaştıysa oraya git (kule altında güç x1,5)
+  const front = myStructs.filter(s=>s.sub!=='nexus' && !s.prot)[0] || myStructs.find(s=>s.sub!=='nexus');
+  const threat = front ? foesV.filter(u=>dist(u,front) < front.range + AJ.defR) : [];
+  if(h.role==='jungle' && AJ.jungle && front && threat.length && hpR > AJ.lowHp+0.1 && !(tgt && mode==='fight')){
+    const sp = laneGoal(h, laneS(front) - dir*AJ.defBack, mySide);
+    if(dist(h, sp) > 120){ moveTo(cmd, h, sp.x, sp.y); if(tgt && adv>=AJ.stay) useSkills(h,cmd,tgt,false,false,homeP,near); return cmd; }
+  }
   // ormancı: dost dövüşüne yardım, yoksa kamp
   if(AJ.jungle && h.role==='jungle' && !(tgt && adv >= AJ.stay)){
     const busy = ally.find(u=>{ const q=MEM.get(u.id); return q && (q.mode==='fight' || (q.mode==='flee' && q.nf>0)) && dist(u,h)<AJ.helpR; });
@@ -244,6 +253,9 @@ export function botCommand(h){
     for(const u of theirs){ const r = atkDef(u).range + u.r + h.r + AJ.safeGap; const v = laneS(u)*dir - r; if(worst===null || v<worst) worst = v; }
     if(worst!==null && goalS*dir > worst) goalS = worst*dir;
   }
+  // kendi ön kulemizin gerisine çekilme (kule bizi korur; kaçış ayrı mod)
+  if(myFront!==null && goalS*dir < myFront - AJ.towerBack) goalS = (myFront - AJ.towerBack)*dir;
+  m.dbg = { wf, goalS, myFront, eTowerS };
   const goal = laneGoal(h, goalS, mySide);
 
   // vuruş hedefi
@@ -260,6 +272,11 @@ export function botCommand(h){
     const pred = u.hp - di*tHit;
     if(pred <= dmg*0.97 && pred > -dmg*0.3 && (!at || u.hp < at.hp)) at = u;
     else if(u.hp - di*(tHit+1.2) <= dmg*AJ.holdK) hold = true;   // yakında ölecek: başka minyona vurup kaçırma
+  }
+  // 1b) kulemizin menzilindeki rakip minyonlar: beklemeden temizle (dalga kuleyi vurmasın)
+  if(!at && front) for(const u of S.minions){
+    if(u.dead || u.team===team || !canSee(team,u) || !inAttackRange(h,u) || dist(u,front) > front.range+150) continue;
+    if(!at || u.hp < at.hp) at = u;
   }
   // 2) rakip kahraman dürtme (kule dışında, üstünlük kötü değilse)
   if(!at && tgt && inAttackRange(h,tgt) && adv >= AJ.stay && !inTowerZone(h,0)) at = tgt;
