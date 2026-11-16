@@ -297,7 +297,6 @@ export function botCommand(h){
   }
   // kendi ön kulemizin gerisine çekilme (kule bizi korur; kaçış ayrı mod)
   if(myFront!==null && goalS*dir < myFront - AJ.towerBack) goalS = (myFront - AJ.towerBack)*dir;
-  m.dbg = { wf, goalS, myFront, eTowerS };
   const goal = laneGoal(h, goalS, mySide);
 
   // vuruş hedefi

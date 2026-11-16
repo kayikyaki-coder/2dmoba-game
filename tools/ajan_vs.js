@@ -37,7 +37,11 @@ if(isMainThread){
   { const g={}; for(const x of res) for(const q of (x.h10||[])){ const k=q.t+':'+q.type+(q.t==='B'?'/'+q.role:''); g[k]=g[k]||[0,0,0,0]; g[k][0]++; g[k][1]+=q.lv; g[k][2]+=q.w; g[k][3]+=q.cs; }
     console.log('10. dk seviye/servet/son vuruş: '+Object.entries(g).sort().map(([k,[n,l,w,c]])=>k+' '+(l/n).toFixed(1)+'/'+(w/n).toFixed(0)+'/cs'+(c/n).toFixed(0)).join(', ')); }
   const by={}; for(const x of res){ for(const t of x.a){ by[t]=by[t]||[0,0]; by[t][0]++; if(x.aWon) by[t][1]++; } }
-  if(Object.keys(by).length>2) console.log('kahraman (ajan tarafı): '+Object.entries(by).map(([t,[n,w]])=>t+' %'+(100*w/n).toFixed(0)+'/'+n).join(', '));
+  if(Object.keys(by).length>2){
+    const kd={}; for(const x of res){ for(const [t,k,d] of x.hk||[]){ kd[t]=kd[t]||[0,0,0,0]; kd[t][0]+=k; kd[t][1]+=d; } for(const [t,k,d] of x.hkB||[]){ kd[t]=kd[t]||[0,0,0,0]; kd[t][2]+=k; kd[t][3]+=d; } }
+    console.log('kahraman (ajan kazanma, ajan K/D, Uzman K/D aynı kahramanla):');
+    for(const [t,[n,w]] of Object.entries(by).sort((p,q)=>q[1][1]/q[1][0]-p[1][1]/p[1][0])){ const q=kd[t]; console.log('  '+t.padEnd(10)+' %'+(100*w/n).toFixed(0).padStart(3)+'  n'+n+'  ajan '+(q[0]/n).toFixed(1)+'/'+(q[1]/n).toFixed(1)+'  uzman '+(q[2]/n).toFixed(1)+'/'+(q[3]/n).toFixed(1)); }
+  }
   process.exit(0);
 } else {
   const { TICK } = await import('../data.js');
@@ -82,6 +86,6 @@ if(isMainThread){
     const lost=[0,0]; for(const s of S.structs) if(s.dead) lost[s.team]++;
     const sum=(t,k)=>S.heroes.filter(h=>h.team===t).reduce((s,h)=>s+h[k],0);
     parentPort.postMessage({ a, b, aTeam, aWon: winner===aTeam, time:S.time, early:!!early, firstTower:S.stats.firstTower, firstKill:S.stats.firstKill, ftA, fkA,
-      kA:sum(aTeam,'kills'), dA:sum(aTeam,'deaths'), kB:sum(1-aTeam,'kills'), dB:sum(1-aTeam,'deaths'), sA:lost[1-aTeam], sB:lost[aTeam], worth10, h10, causes, tdA:td[aTeam], tdB:td[1-aTeam] });
+      kA:sum(aTeam,'kills'), dA:sum(aTeam,'deaths'), kB:sum(1-aTeam,'kills'), dB:sum(1-aTeam,'deaths'), sA:lost[1-aTeam], sB:lost[aTeam], worth10, h10, causes, hk:S.heroes.filter(h=>h.team===aTeam).map(h=>[h.type,h.kills,h.deaths]), hkB:S.heroes.filter(h=>h.team!==aTeam).map(h=>[h.type,h.kills,h.deaths]), tdA:td[aTeam], tdB:td[1-aTeam] });
   });
 }
