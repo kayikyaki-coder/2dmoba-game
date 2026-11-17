@@ -50,7 +50,7 @@ export const ITEMS = {
   sheen:    { cat:'Dövüşçü', name:'Tılsımlı Kılıç',    cost:1225,  parts:['longsword','ruby','focus'],      stats:{ dmg:19, hp:150, ah:11, asPct:0.11 }, spellblade:{ base:50, bonusAd:0.5, window:2, cd:1, type:'phys' }, desc:'Yetenek kullandıktan sonraki 2 sn içinde yapılan ilk saldırı ek 50 + ilave SG\'nin %50\'si kadar fiziksel hasar verir. 1 sn bekleme' },
   mace:     { cat:'Dövüşçü', name:'Kanlı Gürz',        cost:1225,  parts:['longsword','ruby','focus'],      stats:{ dmg:23, hp:188, ah:11 }, armorPen:0.30, desc:'Düz vuruşlar ve yetenekler rakibin zırhının %30\'unu yok sayar' },
   // Büyücü
-  /* YG eşyaları (16.10.2026, docs/esya_ap_plan.md; eski hali old/esya_ap_yedek/items.js). Kural: eşya pasif hasarı kahramanın
+  /* YG eşyaları (16.10.2026, docs/tasarim/esya_ap_plan.md; eski hali old/esya_ap_yedek/items.js). Kural: eşya pasif hasarı kahramanın
      yetenek hasarına yaklaşmaz (metayı kahramanlar belirler). Büyü Nüfuzu ve Ateş Dişi kalktı (Akkor Asası, Cam Kırıcı). */
   dcap:     { cat:'Büyücü', name:'Büyücü Şapkası',    cost:1300, parts:['tome','tome','tome'],            stats:{ ap:70, hp:150 }, apAmp:{ base:0.15, per:0.05, max:0.35 }, desc:'Toplam YG %15 artar, elindeki her başka YG eşyası için +%5 (en fazla %35)' },   // 83 YG, YG x1,3 idi
   void:     { cat:'Büyücü', name:'Boşluk Asası',      cost:1200,  parts:['tome','tome','mantle'],          stats:{ ap:65 }, magicPenPct:0.35, desc:'%35 büyü delme (rakibin büyü direncinin %35\'ini yok sayar)' },   // 53 YG, 1175 idi
@@ -116,7 +116,7 @@ export const ITEMS = {
   breeze:   { cat:'Destek', name:'Esinti Asası',     cost:1150, parts:['tome','boots','focus'],          stats:{ ap:38, ah:11, msPct:0.06 }, castMs:{ amt:0.12, dur:2 }, desc:'Yetenek kullanınca 2 sn %12 hareket hızı kazanırsın' },
   healbell: { cat:'Destek', name:'Şifa Çanı',        cost:1150, parts:['tome','herb','focus'],           stats:{ hp:125, ap:26, ah:11, regen:12 }, castHeal:{ base:30, pctMax:0.015, cd:6 }, desc:'Yetenek kullanmak 30 + azami canının %1,5\'i kadar can yeniler. 6 sn bekleme' },
   wingward: { cat:'Destek', name:'Kanat Kalkanı',    cost:1150, parts:['mantle','boots','ruby'],         stats:{ hp:188, mr:26, msPct:0.06 }, castShield:{ base:50, pctMax:0.04, dur:2, cd:10 }, desc:'Yetenek kullanınca 2 sn boyunca 50 + azami canının %4\'ü kadar kalkan kazanırsın. 10 sn bekleme' },
-  // ---- Eşya turu 2 (20 eşya, aktifsiz; esya-plani.md) ----
+  // ---- Eşya turu 2 (20 eşya, aktifsiz; docs/tasarim/esya-plani.md) ----
   // Nişancı
   fury:     { cat:'Nişancı', name:'Hız Çarkı',        cost:1175, parts:['longsword','dagger','cloak'],    stats:{ dmg:12, asPct:0.14, crit:0.10 }, asStack:{ amt:0.04, max:5, dur:3 }, desc:'Düz vuruş isabeti saldırı hızını %4 artırır (5 kata kadar, 3 sn vurmazsan söner)' },
   luck:     { cat:'Nişancı', name:'Talih Kılıcı',     cost:1100, parts:['longsword','longsword','cloak'], stats:{ dmg:30 }, critStack:{ step:0.05, max:0.40 } },   // 17.10.2026: SG 24, kritik %12, en fazla %35, 1175 idi

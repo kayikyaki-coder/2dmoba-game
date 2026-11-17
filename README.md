@@ -19,4 +19,4 @@ Ana menüde Online bölümünden "Arkadaşla oyna". Biri oda kurar, 4 harfli kod
 - Nasıl çalışır: lockstep. Her tarayıcı aynı `sim.js`'i çalıştırır, sunucu (`tools/wsrelay.js`) yalnız komutları iletir. Kod: `lockstep.js` (komut tamponu, durum özeti ile senkron kontrolü), `net.js` (oda ve lobi), `main.js` ("Online" işaretli yerler). Test: `node tools/online_test.js --mode coop|1v1|pvp --ticks 7200 --lag 40` (iki süreç gerçek röleden oynar, durum özetleri aynı çıkmalı).
 - Sim'e yeni durum eklerken: oyun durumunu değiştiren her şey `step` içinde (komut/bot/sim) olmalı. Arayüzden doğrudan `S` değiştiren çağrı (satın alma gibi) senkronu bozar; `main.js act()` ile komut kanalından geçirin.
 
-Ayrıntılar ve kurallar: `CLAUDE.md`. Kahraman tasarımları: `kahraman-tasarimlari.md`. Eşyalar: `esyalar.xlsx`.
+Ayrıntılar ve kurallar: `CLAUDE.md`. Kahraman tasarımları: `docs/tasarim/kahraman-tasarimlari.md`. Eşyalar: `docs/tasarim/esyalar.xlsx`.

@@ -521,7 +521,7 @@ export function damage(e, amt, src, opts){
   return dealt;
 }
 
-/* ---- YG eşyası yardımcıları (16.10.2026, docs/esya_ap_plan.md) ---- */
+/* ---- YG eşyası yardımcıları (16.10.2026, docs/tasarim/esya_ap_plan.md) ---- */
 /* Büyücü Şapkası: YG çarpanı payı (envanterdeki başka YG veren büyük eşya başına artar) */
 function apAmpOf(B){ const A=B.apAmp; return Math.min(A.max, A.base+A.per*Math.max(0,(B.apItems||1)-1)); }
 /* Süreli hasar (S.dots): kaynak ve tür başına tek kayıt, yeni isabet süreyi ve gücü yeniler. Farklı kaynaklar (2v2) ve
