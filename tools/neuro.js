@@ -56,6 +56,7 @@ if(!isMainThread){
 } else {
   const a = {}; const v = process.argv.slice(2); for(let i=0;i<v.length;i+=2) a[v[i].replace(/^--/,'')] = v[i+1];
   const THREADS = +(a.threads || Math.max(1, (os.availableParallelism ? os.availableParallelism() : os.cpus().length) - (os.cpus().length>4 ? 1 : 0)));
+  const CROSS = a.cross !== '0';
   const POP = +(a.pop || 32), GAMES = +(a.games || 4), VALN = +(a.valn || 24), VAL = +(a.val || 5);
   fs.mkdirSync(DIR, { recursive:true });
   const LOG = path.join(DIR, 'log.txt');
@@ -135,7 +136,16 @@ if(!isMainThread){
 
   /* 2) evrim */
   let st;
-  if(fs.existsSync(stateF)) st = JSON.parse(fs.readFileSync(stateF,'utf8'));
+  if(fs.existsSync(stateF)){
+    st = JSON.parse(fs.readFileSync(stateF,'utf8'));
+    // devam ederken ayar değişikliği (panel): mutasyon ve nüfus
+    if(a.sigma && +a.sigma !== st.sigma){ log(`mutasyon ${st.sigma} -> ${+a.sigma}`); st.sigma = +a.sigma; }
+    if(a.pop && +a.pop !== st.pop.length){
+      const n = +a.pop; log(`nüfus ${st.pop.length} -> ${n}`);
+      if(n < st.pop.length) st.pop = st.pop.slice(0, n);   // ilk sıralar bir önceki neslin seçkinleri
+      else { const base = st.pop.slice(); rs = st.rs; while(st.pop.length < n){ const p = base[Math.floor(rnd()*Math.min(4,base.length))]; st.pop.push(p.map(x=>x+gauss()*st.sigma)); } }
+    }
+  }
   else {
     const w0 = JSON.parse(fs.readFileSync(bcF,'utf8')).w;
     st = { gen:0, sigma:+(a.sigma||0.08), rs:4242, pop:[], bestVal:null, hist:[] };
@@ -163,7 +173,7 @@ if(!isMainThread){
     const next = order.slice(0, E).map(i => st.pop[i]);
     while(next.length < POP){
       const p1 = st.pop[top[Math.floor(rnd()*top.length)]], p2 = st.pop[top[Math.floor(rnd()*top.length)]];
-      const cross = rnd() < 0.3, sg = st.sigma*(rnd()<0.2 ? 3 : 1);
+      const cross = CROSS && rnd() < 0.3, sg = st.sigma*(rnd()<0.2 ? 3 : 1);
       next.push(p1.map((x,i) => (cross && rnd()<0.5 ? p2[i] : x) + (rnd()<0.25 ? gauss()*sg : 0)));
     }
     st.pop = next; st.gen++; st.rs = rs;
